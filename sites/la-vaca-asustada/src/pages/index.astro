@@ -1,0 +1,88 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import LocationCard from '@rea/core/components/LocationCard.astro';
+import Reviews from '@rea/core/components/Reviews.astro';
+import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { price } from '@rea/core/lib/format.ts';
+import { site, menu } from '../data/index.ts';
+
+const top = menu.sections.find((s) => s.id === 'al-carbon')!.items.filter((i) => i.featured);
+---
+<BaseLayout site={site} title="La Vaca Asustada · Restaurante de carne madurada en Gijón y Oviedo" path="/"
+  jsonLd={[restaurantGraph(site, `${site.url}/menu/`)]}>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Gijón · Oviedo</p>
+      <h1>Carne madurada,<br /><em>a la brasa</em></h1>
+      <p class="lead">Una selección de los mejores cortes del mundo, elegidos y madurados uno a uno. Dos casas en Asturias, la misma obsesión por el producto.</p>
+      <div class="btn-row">
+        {site.locations.map((l) => (
+          <a class="btn" href={l.reservationUrl} target="_blank" rel="noopener">Reservar en {l.name}<span class="visually-hidden"> (abre en otra pestaña)</span></a>
+        ))}
+        <a class="btn btn--ghost" href="/menu/">Ver el menú</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section top" aria-labelledby="top-h">
+    <div class="wrap">
+      <p class="eyebrow">Garantía de calidad</p>
+      <h2 id="top-h">Nuestras carnes TOP</h2>
+      <p class="lead">Cada corte se selecciona y se madura para asegurar una experiencia inigualable.</p>
+      <ul class="top__list">
+        {top.map((c) => (
+          <li>
+            <p class="top__origin">{c.tagline}</p>
+            <h3>{c.name}</h3>
+            <p class="top__desc">{c.description}</p>
+            <p class="top__price">{price(c.price, c.unit)}</p>
+          </li>
+        ))}
+      </ul>
+      <a class="btn btn--ghost" href="/menu/">Todas nuestras carnes maduradas</a>
+    </div>
+  </section>
+
+  <section class="section todo" aria-labelledby="todo-h">
+    <div class="wrap todo__in">
+      <h2 id="todo-h">Todo importa</h2>
+      <div>
+        <p>Desde el lomo hasta el costillar, cada parte de la vaca ofrece una experiencia única. Conocer el origen de cada corte es esencial para apreciar su textura y su sabor.</p>
+        <p>Disfruta la autenticidad y la calidad de cada bocado. Porque, al final, todo importa.</p>
+        <a href="/sobre-nosotros/">Locos por la carne: conócenos</a>
+      </div>
+    </div>
+  </section>
+
+  <Reviews reviews={site.reviews} title="Cada opinión escribe nuestra historia" />
+
+  <section class="section" aria-labelledby="loc-h">
+    <div class="wrap">
+      <p class="eyebrow">Dónde encontrarnos</p>
+      <h2 id="loc-h">Nuestros restaurantes</h2>
+      <div class="locs">
+        {site.locations.map((l) => <LocationCard location={l} />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+<style>
+  .hero { padding-block: clamp(5rem, 16vw, 11rem) clamp(3.5rem, 9vw, 7rem);
+    background: radial-gradient(90% 70% at 85% 10%, color-mix(in srgb, var(--c-accent) 22%, transparent), transparent 65%); }
+  .hero h1 { font-size: clamp(3rem, 9vw, 6.5rem); }
+  .hero em { font-style: italic; color: var(--c-accent); font-weight: 500; }
+  .hero .lead { margin-bottom: 2.25rem; }
+  .top__list { list-style: none; margin: 2.5rem 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  .top__list li { background: var(--c-surface); border-top: 3px solid var(--c-accent); padding: 2rem 1.75rem; display: flex; flex-direction: column; }
+  .top__origin { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.8rem; color: var(--c-accent); margin-bottom: 0.75rem; }
+  .top__desc { color: var(--c-muted); font-size: 0.95rem; flex: 1; }
+  .top__price { margin: 0; font: 600 1.4rem/1 var(--f-display); }
+  .todo { border-block: 1px solid var(--c-line); }
+  .todo__in { display: grid; gap: 1.5rem; }
+  @media (min-width: 52rem) { .todo__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+  .todo__in > div { font-size: 1.15rem; }
+  .todo h2 { font-size: clamp(2.5rem, 7vw, 4.5rem); font-style: italic; }
+  .locs { display: grid; gap: 1.5rem; margin-top: 2rem; }
+  @media (min-width: 60rem) { .locs { grid-template-columns: 1fr 1fr; } }
+</style>

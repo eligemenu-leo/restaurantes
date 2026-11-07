@@ -1,0 +1,13 @@
+# Redirecciones desde las URLs de WordPress (formato Cloudflare Pages / Netlify)
+/menu-2026/              /menu/                 301
+/menu-2026               /menu/                 301
+# PENDIENTE: confirmar si los menús por local difieren del general
+/menu-gijon/             /menu/                 301
+/menu-gijon              /menu/                 301
+/menu-oviedo/            /menu/                 301
+/menu-oviedo             /menu/                 301
+/politica-de-cookies-ue/ /politica-de-cookies/  301
+/politica-de-cookies-ue  /politica-de-cookies/  301
+/feed/                   /                      301
+/wp-admin/*              /                      301
+/wp-login.php            /                      301

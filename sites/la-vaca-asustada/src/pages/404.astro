@@ -1,0 +1,12 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import { site } from '../data/index.ts';
+---
+<BaseLayout site={site} title="Página no encontrada" path="/404/" noindex>
+  <div class="wrap section">
+    <h1>Esta página no existe</h1>
+    <p class="lead">Puede que la dirección haya cambiado con la nueva web.</p>
+    <div class="btn-row"><a class="btn" href="/menu/">Ver el menú</a><a class="btn btn--ghost" href="/">Ir al inicio</a></div>
+  </div>
+</BaseLayout>

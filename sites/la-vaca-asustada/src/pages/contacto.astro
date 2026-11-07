@@ -1,0 +1,23 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import LocationCard from '@rea/core/components/LocationCard.astro';
+import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { site } from '../data/index.ts';
+---
+<BaseLayout site={site} title="Locales y reservas" path="/contacto/"
+  description="Reserva en La Vaca Asustada: Gijón (C/ San Bernardo, 79 · 663 20 06 15) y Oviedo (C/ Melquiades Álvarez, 24 · 984 29 86 60)."
+  jsonLd={[restaurantGraph(site)]}>
+  <div class="wrap section">
+    <p class="eyebrow">Contacto</p>
+    <h1>Locales y reservas</h1>
+    <p class="lead">Reserva online en el local que prefieras o llámanos. Para grupos y eventos escríbenos a <a href="mailto:info@lavacaasustada.com">info@lavacaasustada.com</a>.</p>
+    <div class="locs">
+      {site.locations.map((l) => <LocationCard location={l} headingLevel={2} />)}
+    </div>
+  </div>
+</BaseLayout>
+<style>
+  .locs { display: grid; gap: 1.5rem; margin-top: 2.5rem; }
+  @media (min-width: 60rem) { .locs { grid-template-columns: 1fr 1fr; } }
+</style>

@@ -1,0 +1,192 @@
+{
+  "title": "Carta de Sidrería Villaviciosa",
+  "updated": "2026-11-07",
+  "notes": [
+    "Servicio de pan: 1,60 €."
+  ],
+  "sections": [
+    {
+      "id": "ensaladas",
+      "name": "Ensaladas",
+      "items": [
+        {
+          "name": "Tomates seleccionados con ventresca de bonito del norte",
+          "price": 18.5,
+          "featured": true,
+          "tagline": "Fresca y sabrosa"
+        },
+        {
+          "name": "Ensalada de burrata, pesto y tomate cherry",
+          "price": 18.5
+        }
+      ]
+    },
+    {
+      "id": "entrantes",
+      "name": "Entrantes",
+      "items": [
+        {
+          "name": "Fabada asturiana IGP",
+          "price": 19.5,
+          "featured": true,
+          "tagline": "La mejor tradición"
+        },
+        {
+          "name": "Tabla de embutidos ibéricos",
+          "price": 23
+        },
+        {
+          "name": "Tabla de quesos asturianos (5 quesos)",
+          "price": 14.5
+        },
+        {
+          "name": "Tabla de quesos asturianos (8 quesos)",
+          "price": 19.5
+        },
+        {
+          "name": "Pastel de cabracho",
+          "price": 16.5
+        },
+        {
+          "name": "Calamares frescos",
+          "price": 23
+        },
+        {
+          "name": "Provolone relleno de pulpo",
+          "price": 22.5
+        },
+        {
+          "name": "Provolone relleno de jamón ibérico",
+          "price": 19.5
+        },
+        {
+          "name": "Huevos rotos con gambón y patatinas",
+          "price": 20
+        },
+        {
+          "name": "Sartén de pulpo, pixín y langostinos",
+          "price": 26
+        },
+        {
+          "name": "Sartén de chipirones encebollados",
+          "price": 19
+        },
+        {
+          "name": "Cecina de black angus",
+          "price": 20
+        },
+        {
+          "name": "Croquetas de buey",
+          "price": 16.5
+        },
+        {
+          "name": "Fingers de pollo con alioli",
+          "price": 16
+        },
+        {
+          "name": "Cachopines de setas rellenos de jamón ibérico y queso semicurado",
+          "price": 25
+        }
+      ]
+    },
+    {
+      "id": "pescados",
+      "name": "Pescados",
+      "items": [
+        {
+          "name": "Lomo de bacalao de Portugal a la portuguesa",
+          "price": 27
+        },
+        {
+          "name": "Lenguado relleno de marisco",
+          "price": 26
+        },
+        {
+          "name": "Pixín de ración a la espalda",
+          "price": 27,
+          "featured": true,
+          "tagline": "De nuestro mar Cantábrico"
+        },
+        {
+          "name": "Bogavante azul del Cantábrico al josper con huevos fritos y patatas",
+          "price": 68
+        }
+      ]
+    },
+    {
+      "id": "carnes",
+      "name": "Carnes",
+      "items": [
+        {
+          "name": "Cachopo de ternera asturiana",
+          "description": "Relleno de jamón ibérico y queso manchego.",
+          "price": 28,
+          "featured": true,
+          "tagline": "Grande, tierno y jugoso"
+        },
+        {
+          "name": "Escalopines de ternera asturiana al cabrales",
+          "price": 19
+        },
+        {
+          "name": "Tacos de solomillo de ternera asturiana al afuega'l pitu rojo",
+          "price": 26
+        }
+      ]
+    },
+    {
+      "id": "josper",
+      "name": "Carnes al josper",
+      "items": [
+        {
+          "name": "Entrecot premium de vaca Holstein",
+          "price": 30
+        },
+        {
+          "name": "Medallón de solomillo de ternera asturiana",
+          "price": 26.5
+        },
+        {
+          "name": "Chuleta de vaca asturiana de los valles",
+          "price": 65
+        },
+        {
+          "name": "T-bone de vaca frisona",
+          "price": 58
+        }
+      ]
+    },
+    {
+      "id": "postres",
+      "name": "Postres",
+      "items": [
+        {
+          "name": "Arroz con leche requemado",
+          "price": 5.5,
+          "featured": true,
+          "tagline": "Auténticamente delicioso"
+        },
+        {
+          "name": "Tarta de queso al horno con frutos rojos",
+          "price": 6.5
+        },
+        {
+          "name": "Tarta de la abuela",
+          "price": 6.5
+        },
+        {
+          "name": "Helado de Diego Verdú Monerris",
+          "price": 6.5
+        },
+        {
+          "name": "Frixuelo relleno de arroz con leche",
+          "price": 6.5
+        },
+        {
+          "name": "Frixuelo con azúcar",
+          "price": 5.5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "title": "Menú de La Vaca Asustada",
+  "updated": "2026-11-07",
+  "notes": [
+    "Las piezas al carbón se sirven al peso: el precio indicado es por kilo."
+  ],
+  "sections": [
+    {
+      "id": "entrantes",
+      "name": "Entrantes",
+      "items": [
+        {
+          "name": "Ensalada de tomates",
+          "description": "Cherokee, mar azul y rosa.",
+          "price": 18
+        },
+        {
+          "name": "Boletus silvestres a la brasa con virutas de foie",
+          "price": 25
+        },
+        {
+          "name": "Burrata con pesto de pistachos",
+          "price": 18
+        },
+        {
+          "name": "Foie micuit con mermelada de manzana y cebolla caramelizada",
+          "price": 23
+        },
+        {
+          "name": "Ensaladilla de bugre del Cantábrico y fondo de carabinero",
+          "price": 26
+        },
+        {
+          "name": "Steak tartar de solomillo de vaca retinta",
+          "price": 25
+        },
+        {
+          "name": "Cecina wagyu Selectium",
+          "price": 24
+        },
+        {
+          "name": "Provolone envuelto en masa con tomate cherry",
+          "price": 18
+        },
+        {
+          "name": "Tostas de brioche a la brasa con mantequilla de trufa y lingote de wagyu A5 sobre lámina de su cecina",
+          "price": 29.5
+        },
+        {
+          "name": "Carpaccio de vaca de nuestros lomos madurados 30 días",
+          "price": 24
+        }
+      ]
+    },
+    {
+      "id": "principales",
+      "name": "Principales",
+      "items": [
+        {
+          "name": "Lingote ribeye de wagyu Japón A5 (mínimo 200 g)",
+          "description": "Lomo alto central sin hueso. Origen Japón. Textura grasa y tierna, sabor sutil.",
+          "price": 64,
+          "featured": true
+        },
+        {
+          "name": "Lomo «Prime» Black Angus USA (400 g)",
+          "description": "Lomo bajo. Origen EE. UU. Sabor suave, textura jugosa.",
+          "price": 42
+        },
+        {
+          "name": "Bife de novillo de Angus argentino (350 g)",
+          "description": "Lomo alto central. Origen Argentina. Sabor suave, textura tierna.",
+          "price": 34
+        },
+        {
+          "name": "Filet mignon de vaca retinta",
+          "description": "Medallón de solomillo con hueso. Origen Extremadura y Andalucía. Sabor intermedio, textura tierna y jugosa.",
+          "price": 34
+        },
+        {
+          "name": "Entraña de wagyu USA G9+ (300 g)",
+          "description": "Origen EE. UU. Sabor pronunciado, textura jugosa.",
+          "price": 36
+        },
+        {
+          "name": "Ribeye Holstein (350 g)",
+          "description": "Lomo alto central de raza Holstein. Origen Holanda. Sabor pronunciado, excelente textura y jugosidad.",
+          "price": 36
+        },
+        {
+          "name": "Lomo de bacalao de Portugal con pimientos y patata asada",
+          "price": 30
+        }
+      ]
+    },
+    {
+      "id": "al-carbon",
+      "name": "Al carbón",
+      "note": "Piezas enteras con maduración propia. Precio por kilo.",
+      "items": [
+        {
+          "name": "Chuleta selección especial La Vaca Asustada",
+          "description": "Más de 45 días de maduración. Lomo con hueso de razas autóctonas de la península ibérica criadas de forma tradicional. Sabor pronunciado, excelente jugosidad, textura tierna.",
+          "price": 94,
+          "unit": "kg",
+          "featured": true,
+          "tagline": "Península ibérica"
+        },
+        {
+          "name": "Tomahawk Angus 100 % cebón",
+          "description": "Más de 30 días de maduración. Chuleta en forma de hacha. Origen Escocia. Sabor intermedio, textura tierna.",
+          "price": 84,
+          "unit": "kg",
+          "featured": true,
+          "tagline": "Escocia"
+        },
+        {
+          "name": "Cowboy steak de vaca Jersey",
+          "description": "Más de 30 días de maduración. Lomo alto central con hueso. Origen británico. Sabor pronunciado, excelente textura y jugosidad.",
+          "price": 78,
+          "unit": "kg"
+        },
+        {
+          "name": "T-bone de Angus nacional",
+          "description": "Más de 30 días de maduración. Entrecot y solomillo con hueso en forma de T. Origen Valladolid. Sabor exquisito y sutil, textura tierna.",
+          "price": 76,
+          "unit": "kg",
+          "featured": true,
+          "tagline": "Valladolid"
+        }
+      ]
+    },
+    {
+      "id": "guarniciones",
+      "name": "Guarniciones",
+      "items": [
+        {
+          "name": "Patatas fritas con aceite de trufa y parmesano",
+          "price": 6
+        },
+        {
+          "name": "Piquillos asados al horno, confitados en su jugo con tomillo, romero y naranja",
+          "price": 6
+        },
+        {
+          "name": "Boniato al carbón con mantequilla y pimienta",
+          "price": 6
+        },
+        {
+          "name": "Patatas fritas",
+          "price": 5
+        },
+        {
+          "name": "Lechuga, tomate y cebolleta",
+          "price": 5.5
+        }
+      ]
+    },
+    {
+      "id": "postres",
+      "name": "Postres",
+      "items": [
+        {
+          "name": "Lemon pie con helado de cítricos",
+          "price": 7.5
+        },
+        {
+          "name": "Tarta de queso afuega'l pitu blanco, con galleta y frutos rojos",
+          "price": 7.5
+        },
+        {
+          "name": "Torrija con helado de dulce de arce",
+          "price": 7.5
+        },
+        {
+          "name": "Cremoso de chocolate y su helado",
+          "price": 7.5
+        }
+      ]
+    }
+  ]
+}

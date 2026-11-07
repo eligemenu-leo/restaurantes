@@ -1,0 +1,112 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import LocationCard from '@rea/core/components/LocationCard.astro';
+import Reviews from '@rea/core/components/Reviews.astro';
+import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { price, telHref } from '@rea/core/lib/format.ts';
+import { site, carta, sugerencias, local } from '../data/index.ts';
+
+const destacados = carta.sections.flatMap((s) => s.items.filter((i) => i.featured));
+---
+<BaseLayout
+  site={site}
+  title="Sidrería Villaviciosa · Cocina asturiana y sidra en la calle Gascona, Oviedo"
+  path="/"
+  jsonLd={[restaurantGraph(site, `${site.url}/nuestra-carta/`)]}
+>
+  <section class="hero">
+    <div class="wrap hero__in">
+      <p class="eyebrow">Calle Gascona, 7 · Oviedo</p>
+      <h1>Sidra escanciada y cocina asturiana de siempre</h1>
+      <p class="lead">En pleno Bulevar de la Sidra. Fabada, cachopo, pixín y producto de aquí, cocinado sin prisas y como en casa.</p>
+      <div class="btn-row">
+        <a class="btn" href={telHref(local.phone)}>Reservar · {local.phone}</a>
+        <a class="btn btn--ghost" href="/nuestra-carta/">Ver la carta</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section sug" id="sugerencias" aria-labelledby="sug-h">
+    <div class="wrap sug__in">
+      <div>
+        <p class="eyebrow">Hoy en cocina</p>
+        <h2 id="sug-h">Sugerencias del día</h2>
+        <p>Platos fuera de carta que cambian según mercado. Pregunta en sala por los de hoy.</p>
+      </div>
+      <ul class="sug__list">
+        {sugerencias.sections[0].items.map((i) => (
+          <li><span>{i.name}</span><span class="sug__p">{price(i.price)}</span></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section dest" aria-labelledby="dest-h">
+    <div class="wrap">
+      <p class="eyebrow">De la carta</p>
+      <h2 id="dest-h">Los imprescindibles de la casa</h2>
+      <ol class="dest__list">
+        {destacados.map((d, n) => (
+          <li>
+            <span class="dest__n" aria-hidden="true">{String(n + 1).padStart(2, '0')}</span>
+            <p class="dest__t">{d.tagline}</p>
+            <h3>{d.name}</h3>
+            <p class="dest__p">{price(d.price)}</p>
+          </li>
+        ))}
+      </ol>
+      <a class="btn btn--ghost" href="/nuestra-carta/">Carta completa</a>
+    </div>
+  </section>
+
+  <section class="section casa" aria-labelledby="casa-h">
+    <div class="wrap casa__in">
+      <h2 id="casa-h">Un sitio para sentirse en casa</h2>
+      <div>
+        <p>Sidrería Villaviciosa es un local cercano y familiar en la calle Gascona. Rocío pone la hospitalidad; Luis, el cariño por los sabores tradicionales.</p>
+        <p>Aquí la sidra no es solo una bebida: es encuentro y celebración, y se escancia con orgullo.</p>
+        <a href="/quienes-somos/">Conoce nuestra historia</a>
+      </div>
+    </div>
+  </section>
+
+  <Reviews reviews={site.reviews} />
+
+  <section class="section" id="reservas" aria-labelledby="res-h">
+    <div class="wrap res">
+      <div>
+        <p class="eyebrow">Reservas</p>
+        <h2 id="res-h">Reserva tu mesa</h2>
+        <p class="lead">Llámanos o escríbenos y te guardamos sitio. Para grupos, mejor con unos días de antelación.</p>
+      </div>
+      <LocationCard location={local} title="Horario y ubicación" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero { padding-block: clamp(4rem, 14vw, 10rem) clamp(3rem, 8vw, 6rem); background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--c-accent) 14%, transparent), transparent 60%); }
+  .hero h1 { max-width: 14ch; }
+  .hero .lead { margin-bottom: 2rem; }
+  .sug { background: var(--c-accent); color: var(--c-accent-text); }
+  .sug .eyebrow { color: inherit; opacity: 0.8; }
+  .sug__in { display: grid; gap: 2rem; align-items: center; }
+  @media (min-width: 52rem) { .sug__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+  .sug__list { list-style: none; margin: 0; padding: 0; font: 500 1.4rem/1.3 var(--f-display); }
+  .sug__list li { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
+  .sug__p { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .dest__list { list-style: none; margin: 2.5rem 0; padding: 0; display: grid; gap: 1px; background: var(--c-line); grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); border: 1px solid var(--c-line); }
+  .dest__list li { background: var(--c-bg); padding: 1.75rem 1.5rem; display: flex; flex-direction: column; }
+  .dest__n { font: 400 2.5rem/1 var(--f-display); color: var(--c-accent); margin-bottom: 1.5rem; }
+  .dest__t { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--c-muted); margin: 0 0 0.5rem; }
+  .dest__list h3 { flex: 1; }
+  .dest__p { margin: 0; font-weight: 600; }
+  .casa { background: var(--c-surface); border-block: 1px solid var(--c-line); }
+  .casa__in { display: grid; gap: 1.5rem; }
+  @media (min-width: 52rem) { .casa__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+  .casa__in > div { font-size: 1.15rem; }
+  .res { display: grid; gap: 2rem; }
+  @media (min-width: 60rem) { .res { grid-template-columns: 1fr 1.1fr; gap: 4rem; align-items: start; } }
+</style>

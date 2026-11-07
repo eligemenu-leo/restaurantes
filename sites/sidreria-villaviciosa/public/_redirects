@@ -1,0 +1,11 @@
+# Redirecciones desde las URLs de WordPress (formato Cloudflare Pages / Netlify)
+/meet-our-chefs/      /quienes-somos/        301
+/meet-our-chefs       /quienes-somos/        301
+/elementor-6737/      /                      301
+/elementor-6737       /                      301
+/reservas/            /contacto/#reservas    301
+/reservas             /contacto/#reservas    301
+# Feeds y rutas de WordPress que ya no existen
+/feed/                /                      301
+/wp-admin/*           /                      301
+/wp-login.php         /                      301

@@ -1,0 +1,20 @@
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+@import '@rea/core/styles/base.css';
+
+/* Sidrería Villaviciosa: madera, papel y verde botella de sidra. */
+:root {
+  --c-bg: #f6f0e4;
+  --c-surface: #fffaf0;
+  --c-text: #231c14;
+  --c-muted: #5c5143;
+  --c-accent: #2f5b34;
+  --c-accent-text: #fffaf0;
+  --c-line: #dccfb8;
+  --c-footer-bg: #1f2b1f;
+  --c-footer-text: #efe7d6;
+  --f-display: 'Fraunces Variable', Georgia, serif;
+  --f-body: 'Inter Variable', system-ui, sans-serif;
+  --radius: 2px;
+}
+h1, h2 { font-variation-settings: 'SOFT' 50, 'WONK' 1; font-weight: 560; }

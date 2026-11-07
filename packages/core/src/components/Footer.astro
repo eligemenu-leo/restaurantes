@@ -1,0 +1,51 @@
+---
+import type { SiteData } from '../lib/schema.ts';
+import { groupHours } from '../lib/hours.ts';
+import { telHref } from '../lib/format.ts';
+interface Props { site: SiteData }
+const { site } = Astro.props;
+const year = new Date().getFullYear();
+---
+<footer class="ftr">
+  <div class="wrap ftr__grid">
+    {site.locations.map((l) => (
+      <section aria-labelledby={`ftr-${l.id}`}>
+        <h2 id={`ftr-${l.id}`} class="ftr__h">{site.locations.length > 1 ? l.name : 'Dónde estamos'}</h2>
+        <address>
+          {l.address.street}<br />{l.address.postalCode} {l.address.locality}<br />
+          <a href={telHref(l.phone)}>{l.phone}</a>
+          {l.email && <><br /><a href={`mailto:${l.email}`}>{l.email}</a></>}
+        </address>
+        <dl class="ftr__hours">
+          {groupHours(l).map((r) => (
+            <div><dt>{r.label}</dt><dd>{r.status === 'open' ? r.slots.map((t) => <span class="slot">{t}</span>) : r.status === 'closed' ? 'Cerrado' : 'Consultar'}</dd></div>
+          ))}
+        </dl>
+      </section>
+    ))}
+  </div>
+  <div class="wrap ftr__legal">
+    <p>© {year} {site.name}</p>
+    <ul>
+      <li><a href="/aviso-legal/">Aviso legal</a></li>
+      <li><a href="/politica-de-privacidad/">Privacidad</a></li>
+      <li><a href="/politica-de-cookies/">Cookies</a></li>
+    </ul>
+    {site.credit && <p>{site.credit}</p>}
+  </div>
+</footer>
+<style>
+  .ftr { background: var(--c-footer-bg, var(--c-text)); color: var(--c-footer-text, var(--c-bg)); padding-block: 4rem 2rem; margin-top: 0; font-size: 0.975rem; }
+  .ftr a:hover { color: inherit; opacity: 0.75; }
+  .ftr__grid { display: grid; gap: 2.5rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .ftr__h { font-size: 1.4rem; }
+  address { font-style: normal; margin-bottom: 1.25rem; line-height: 1.7; }
+  .ftr__hours { margin: 0; display: grid; gap: 0.35rem; }
+  .ftr__hours div { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); padding-bottom: 0.35rem; }
+  .ftr__hours dt { font-weight: 600; }
+  .ftr__hours dd { margin: 0; text-align: right; }
+  .ftr__legal { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-size: 0.875rem; opacity: 0.85; }
+  .ftr__legal p { margin: 0; }
+  .ftr__legal ul { display: flex; flex-wrap: wrap; gap: 1.25rem; list-style: none; margin: 0; padding: 0; }
+  .ftr__hours .slot { display: inline-block; white-space: nowrap; margin-left: 0.75em; }
+</style>

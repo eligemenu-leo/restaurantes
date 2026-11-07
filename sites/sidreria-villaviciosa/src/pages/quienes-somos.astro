@@ -1,0 +1,26 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import { site } from '../data/index.ts';
+---
+<BaseLayout site={site} title="Quiénes somos" path="/quienes-somos/"
+  description="Rocío y Luis abrieron Sidrería Villaviciosa en la calle Gascona de Oviedo: un local familiar de cocina asturiana tradicional y sidra.">
+  <article class="wrap section about">
+    <p class="eyebrow">Nuestra historia</p>
+    <h1>Un sueño hecho realidad</h1>
+    <div class="about__body">
+      <p class="lead">Rocío y Luis siempre quisieron llevar una sidrería en la calle Gascona, en el corazón del Bulevar de la Sidra. Hoy ese proyecto es Sidrería Villaviciosa.</p>
+      <h2>Nuestra cocina</h2>
+      <p>Platos tradicionales asturianos con producto de calidad y sin artificios. Rocío aporta la hospitalidad; Luis, la dedicación por los sabores de siempre.</p>
+      <h2>La sidra como forma de ser</h2>
+      <p>En Gascona la sidra es cultura, encuentro y celebración. Aquí se escancia con orgullo.</p>
+      <h2>Un lugar para sentirse en casa</h2>
+      <p>Un ambiente cálido y acogedor para comer sin prisas, en familia o con amigos.</p>
+      <p><a class="btn" href="/contacto/">Reserva tu mesa</a></p>
+    </div>
+  </article>
+</BaseLayout>
+<style>
+  .about__body { max-width: var(--w-text); }
+  .about__body h2 { font-size: 1.75rem; margin-top: 2.5rem; }
+</style>

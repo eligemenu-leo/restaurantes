@@ -1,0 +1,133 @@
+{
+  "title": "Bodega de Sidrería Villaviciosa",
+  "updated": "2026-11-07",
+  "notes": [],
+  "sections": [
+    {
+      "id": "espumosos",
+      "name": "Espumosos",
+      "items": [
+        {
+          "name": "Terrer de La Creu Brut Nature",
+          "description": "Cava",
+          "price": 22,
+          "unit": "botella"
+        },
+        {
+          "name": "At Roca Rosat Brut Nature",
+          "description": "Penedès",
+          "price": 19,
+          "unit": "botella"
+        }
+      ]
+    },
+    {
+      "id": "blancos",
+      "name": "Blancos",
+      "items": [
+        {
+          "name": "Condes de Albarei",
+          "description": "Albariño · D.O. Rías Baixas",
+          "price": 19,
+          "unit": "botella"
+        },
+        {
+          "name": "Do Ferreiro",
+          "description": "Albariño · D.O. Rías Baixas",
+          "price": 28,
+          "unit": "botella"
+        },
+        {
+          "name": "V & R",
+          "description": "Verdejo · D.O. Rueda",
+          "price": 18,
+          "unit": "botella"
+        },
+        {
+          "name": "Marqués de Riscal Limousin",
+          "description": "Verdejo · D.O. Rueda",
+          "price": 32,
+          "unit": "botella"
+        },
+        {
+          "name": "Antonio Montero",
+          "description": "Godello · D.O. Monterrei",
+          "price": 24,
+          "unit": "botella"
+        }
+      ]
+    },
+    {
+      "id": "rosados",
+      "name": "Rosados",
+      "items": [
+        {
+          "name": "Inurrieta Mediodía",
+          "description": "Garnacha · D.O. Navarra",
+          "price": 18,
+          "unit": "botella"
+        }
+      ]
+    },
+    {
+      "id": "tintos",
+      "name": "Tintos",
+      "items": [
+        {
+          "name": "Valdecontina",
+          "description": "D.O. Bierzo",
+          "price": 19,
+          "unit": "botella"
+        },
+        {
+          "name": "Flores de Callejo",
+          "description": "D.O. Ribera del Duero",
+          "price": 19.5,
+          "unit": "botella"
+        },
+        {
+          "name": "Briego Crianza",
+          "description": "D.O. Ribera del Duero",
+          "price": 24,
+          "unit": "botella"
+        },
+        {
+          "name": "Corimbo",
+          "description": "D.O. Ribera del Duero",
+          "price": 34,
+          "unit": "botella"
+        },
+        {
+          "name": "Románico",
+          "description": "D.O. Toro",
+          "price": 20,
+          "unit": "botella"
+        },
+        {
+          "name": "Montelciedo",
+          "description": "D.O. Rioja",
+          "price": 17,
+          "unit": "botella"
+        },
+        {
+          "name": "Sierra Cantabria",
+          "description": "D.O. Rioja",
+          "price": 25,
+          "unit": "botella"
+        },
+        {
+          "name": "Marqués de Riscal XR",
+          "description": "D.O. Rioja",
+          "price": 35,
+          "unit": "botella"
+        },
+        {
+          "name": "Arienzo de Riscal",
+          "description": "D.O. Rioja",
+          "price": 19.5,
+          "unit": "botella"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "restaurantes",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "sites/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm test --workspace @rea/core"
+  },
+  "engines": { "node": ">=22" }
+}

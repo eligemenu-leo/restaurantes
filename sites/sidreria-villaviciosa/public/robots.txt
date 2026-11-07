@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sidreriavillaviciosa.es/sitemap-index.xml

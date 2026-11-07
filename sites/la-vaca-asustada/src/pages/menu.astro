@@ -1,0 +1,18 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import MenuSections from '@rea/core/components/MenuSections.astro';
+import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
+import { site, menu } from '../data/index.ts';
+const path = '/menu/';
+---
+<BaseLayout site={site} title="Menú de carnes maduradas" path={path}
+  description="Menú de La Vaca Asustada: wagyu A5, Black Angus, vaca retinta, T-bone, tomahawk y chuletas maduradas más de 45 días al carbón. Gijón y Oviedo."
+  jsonLd={[menuJsonLd(site, menu, site.url + path)]}>
+  <div class="wrap section">
+    <p class="eyebrow">Gijón y Oviedo</p>
+    <h1>Menú</h1>
+    <p class="lead">Carnes de distintas razas y orígenes, maduradas en casa y terminadas al carbón.</p>
+    <MenuSections menu={menu} />
+  </div>
+</BaseLayout>
