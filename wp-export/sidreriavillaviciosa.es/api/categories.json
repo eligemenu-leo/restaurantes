@@ -1,0 +1,137 @@
+[
+  {
+    "id": 3,
+    "count": 3,
+    "description": "",
+    "link": "https://sidreriavillaviciosa.es/category/news/",
+    "name": "News",
+    "slug": "news",
+    "taxonomy": "category",
+    "parent": 0,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/categories/3",
+          "targetHints": {
+            "allow": [
+              "GET"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/posts?categories=3"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "count": 3,
+    "description": "",
+    "link": "https://sidreriavillaviciosa.es/category/recipes/",
+    "name": "Recipes",
+    "slug": "recipes",
+    "taxonomy": "category",
+    "parent": 0,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/categories/4",
+          "targetHints": {
+            "allow": [
+              "GET"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/posts?categories=4"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 1,
+    "count": 1,
+    "description": "",
+    "link": "https://sidreriavillaviciosa.es/category/uncategorized/",
+    "name": "Uncategorized",
+    "slug": "uncategorized",
+    "taxonomy": "category",
+    "parent": 0,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/categories/1",
+          "targetHints": {
+            "allow": [
+              "GET"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://sidreriavillaviciosa.es/wp-json/wp/v2/posts?categories=1"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  }
+]

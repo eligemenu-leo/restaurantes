@@ -1,0 +1,27 @@
+Start importing demo: Elegant Restaurant
+
+---Importing content---
+
+------
+New AJAX call!
+
+
+------
+New AJAX call!
+
+
+------
+New AJAX call!
+
+
+---Importing widgets---
+Main Sidebar : 
+
+PatioTime Profile - Our mission - Imported
+PatioTime Posts - Latest News - Imported
+PatioTime Opening Hours - Opening Hours - Imported
+
+
+
+---Importing customizer settings---
+Customizer settings import finished!
