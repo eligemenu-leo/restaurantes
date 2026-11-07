@@ -1,0 +1,20 @@
+{
+  "name": "@rea/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./components/*": "./src/components/*",
+    "./lib/*": "./src/lib/*",
+    "./styles/*": "./src/styles/*"
+  },
+  "scripts": {
+    "test": "node --test --experimental-strip-types src/lib/*.test.ts"
+  },
+  "peerDependencies": {
+    "astro": "^7.0.0"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

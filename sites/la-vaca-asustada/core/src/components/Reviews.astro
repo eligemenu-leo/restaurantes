@@ -1,0 +1,28 @@
+---
+import type { SiteData } from '../lib/schema.ts';
+interface Props { reviews: SiteData['reviews']; title?: string }
+const { reviews, title = 'Lo que dicen nuestros clientes' } = Astro.props;
+---
+{reviews.length > 0 && (
+  <section class="section rev" aria-labelledby="rev-h">
+    <div class="wrap">
+      <h2 id="rev-h">{title}</h2>
+      <ul class="rev__list">
+        {reviews.map((r) => (
+          <li>
+            <figure>
+              <blockquote><p>{r.text}</p></blockquote>
+              <figcaption>{r.author}{r.date && <>, {r.date}</>} · {r.source === 'google' ? 'Google' : r.source === 'tripadvisor' ? 'Tripadvisor' : 'Cliente'}</figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+<style>
+  .rev__list { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  figure { margin: 0; height: 100%; padding: 1.75rem; background: var(--c-surface); border-left: 3px solid var(--c-accent); }
+  blockquote { margin: 0 0 1rem; font-family: var(--f-display); font-size: 1.15rem; line-height: 1.45; }
+  figcaption { font-size: 0.9rem; color: var(--c-muted); font-weight: 600; }
+</style>

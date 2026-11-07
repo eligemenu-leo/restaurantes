@@ -7,6 +7,7 @@
 - [ ] Textos de "Sobre nosotros": reescritos a partir de la web actual; validar o sustituir por los originales.
 - [ ] Horario: la web actual dice "12:30–18:00 | 19:30–1:00" todos los días para ambos locales. Confirmar.
 - [ ] Textos legales del export, con titular y NIF.
-- [ ] Alérgenos por plato.
+- [ ] Carta: conectar con la integración de Eligemenú (pendiente de saber si es API o widget). Mientras, se usa src/data con la carta actual.
+- [ ] Alérgenos por plato (probablemente vendrán de Eligemenú).
 - [ ] Logo en SVG.
-- [ ] Antes de cambiar DNS: dónde está el correo de info@ (registros MX).
+- [ ] Antes de cambiar DNS: dónde está el correo de info@ (registros MX). El correo sigue en OVH: copiar sus registros a Cloudflare antes de cambiar DNS.

@@ -1,0 +1,48 @@
+---
+import type { SiteData } from '../lib/schema.ts';
+interface Props { site: SiteData; current: string }
+const { site, current } = Astro.props;
+const isCurrent = (href: string) => (href === '/' ? current === '/' : current.startsWith(href));
+---
+<header class="hdr">
+  <div class="wrap hdr__in">
+    <a class="hdr__brand" href="/"><slot name="brand">{site.name}</slot></a>
+    <details class="hdr__menu">
+      <summary><span>Menú</span></summary>
+      <nav aria-label="Principal">
+        <ul>
+          {site.nav.map((n) => (
+            <li><a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </details>
+  </div>
+</header>
+<style>
+  .hdr { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--c-bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--c-line); }
+  .hdr__in { display: flex; align-items: center; justify-content: space-between; min-height: 4.25rem; gap: 1rem; }
+  .hdr__brand { font: 600 1.35rem/1 var(--f-display); text-decoration: none; letter-spacing: -0.01em; }
+  .hdr__menu summary { list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center; padding: 0 0.25rem; font-weight: 600; }
+  .hdr__menu summary::-webkit-details-marker { display: none; }
+  .hdr__menu ul { list-style: none; margin: 0; padding: 0; }
+  .hdr__menu a { display: block; padding: 0.7rem 0; text-decoration: none; font-weight: 500; }
+  .hdr__menu a[aria-current='page'] { color: var(--c-accent); }
+  .hdr__menu nav { position: absolute; left: 0; right: 0; top: 100%; background: var(--c-bg); border-bottom: 1px solid var(--c-line); padding: 0.5rem var(--space) 1rem; }
+  @media (min-width: 52rem) {
+    .hdr__menu summary { display: none; }
+    .hdr__menu nav { position: static; display: block; padding: 0; border: 0; background: none; }
+    .hdr__menu ul { display: flex; gap: 1.75rem; }
+    .hdr__menu a { padding: 0.5rem 0; }
+    .hdr__menu a[aria-current='page'] { text-decoration: underline; text-decoration-thickness: 2px; }
+  }
+</style>
+<script is:inline>
+  // En escritorio el menú siempre está abierto; en móvil se pliega. Sin JS funciona igual (queda plegable).
+  (function () {
+    var d = document.querySelector('.hdr__menu');
+    var mq = matchMedia('(min-width: 52rem)');
+    function sync() { if (d) d.open = mq.matches; }
+    sync(); mq.addEventListener('change', sync);
+  })();
+</script>

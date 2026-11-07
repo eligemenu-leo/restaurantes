@@ -1,0 +1,18 @@
+---
+// Página legal. Mientras no se migre el texto original, se publica con noindex y un aviso visible.
+import type { SiteData } from '../lib/schema.ts';
+import BaseLayout from './BaseLayout.astro';
+interface Props { site: SiteData; title: string; path: string; pending?: boolean }
+const { site, title, path, pending = false } = Astro.props;
+---
+<BaseLayout site={site} title={title} path={path} noindex>
+  <article class="wrap section legal">
+    <h1>{title}</h1>
+    {pending ? <p class="legal__pending">Texto pendiente de migrar desde la web anterior.</p> : <slot />}
+  </article>
+</BaseLayout>
+<style>
+  .legal { max-width: var(--w-text); }
+  .legal h1 { font-size: clamp(2rem, 5vw, 3rem); }
+  .legal__pending { padding: 1rem 1.25rem; border: 2px dashed var(--c-accent); }
+</style>

@@ -2,30 +2,84 @@
   "name": "Sidrería Villaviciosa",
   "url": "https://sidreriavillaviciosa.es",
   "description": "Sidrería en la calle Gascona de Oviedo: cocina asturiana de siempre, fabada, cachopo, pixín y sidra escanciada. Reserva en el 984 68 14 15.",
-  "cuisine": ["Asturiana", "Sidrería"],
+  "cuisine": [
+    "Asturiana",
+    "Sidrería"
+  ],
   "locations": [
     {
       "id": "gascona",
       "name": "Sidrería Villaviciosa",
-      "address": { "street": "C/ Gascona, 7", "postalCode": "33001", "locality": "Oviedo" },
+      "address": {
+        "street": "C/ Gascona, 7",
+        "postalCode": "33001",
+        "locality": "Oviedo"
+      },
       "phone": "984 68 14 15",
       "email": "hola@sidreriavillaviciosa.es",
       "hours": [
-        { "days": ["mo", "we", "th", "fr"], "open": "12:30", "close": "16:30" },
-        { "days": ["mo", "we", "th"], "open": "19:00", "close": "24:00" },
-        { "days": ["fr"], "open": "19:00", "close": "00:30" },
-        { "days": ["sa", "su"], "open": "12:30", "close": "24:00" }
+        {
+          "days": [
+            "mo",
+            "tu",
+            "th",
+            "fr"
+          ],
+          "open": "12:30",
+          "close": "16:30"
+        },
+        {
+          "days": [
+            "mo",
+            "tu",
+            "th"
+          ],
+          "open": "19:00",
+          "close": "24:00"
+        },
+        {
+          "days": [
+            "fr"
+          ],
+          "open": "19:00",
+          "close": "00:30"
+        },
+        {
+          "days": [
+            "sa",
+            "su"
+          ],
+          "open": "12:30",
+          "close": "24:00"
+        }
       ],
-      "closedDays": [],
+      "closedDays": [
+        "we"
+      ],
       "mapsQuery": "Sidrería Villaviciosa, Calle Gascona 7, Oviedo"
     }
   ],
   "nav": [
-    { "label": "Inicio", "href": "/" },
-    { "label": "Carta", "href": "/nuestra-carta/" },
-    { "label": "Bodega", "href": "/bodega/" },
-    { "label": "Quiénes somos", "href": "/quienes-somos/" },
-    { "label": "Reservas y contacto", "href": "/contacto/" }
+    {
+      "label": "Inicio",
+      "href": "/"
+    },
+    {
+      "label": "Carta",
+      "href": "/nuestra-carta/"
+    },
+    {
+      "label": "Bodega",
+      "href": "/bodega/"
+    },
+    {
+      "label": "Quiénes somos",
+      "href": "/quienes-somos/"
+    },
+    {
+      "label": "Reservas y contacto",
+      "href": "/contacto/"
+    }
   ],
   "reviews": [],
   "credit": "Diseño web Eligemenú"

@@ -1,6 +1,12 @@
 # Instrucciones para asistentes (Claude Code y Codex)
 
-Monorepo de webs de restaurante de Eligemenú. Núcleo común en `packages/core`, una carpeta por web en `sites/`.
+Repositorio de webs de restaurante de Eligemenú. Núcleo común en `packages/core`, una carpeta por web en `sites/`.
+
+## Independencia de cada web
+Cada web es autosuficiente: `sites/<web>` tiene su propia copia del núcleo (`sites/<web>/core`), su `package-lock.json` y su proyecto de despliegue. Se puede llevar a otro proveedor copiando solo su carpeta.
+- No edites `sites/<web>/core` a mano. Los cambios del núcleo se hacen en `packages/core` y se llevan a cada web con `npm run core:sync -- <web>`, una web cada vez, revisándola antes de publicar.
+- `npm run core:status` muestra qué webs van por detrás del núcleo.
+- Una web nunca importa nada de otra web ni de `packages/` directamente.
 
 ## Reglas
 - El contenido de cada web vive en `sites/<web>/src/data/*.json` y se valida con `packages/core/src/lib/schema.ts`. Para cambiar textos, precios u horarios, edita el JSON, no las páginas.

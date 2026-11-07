@@ -7,16 +7,15 @@ import { telHref } from '@rea/core/lib/format.ts';
 import { site, local } from '../data/index.ts';
 ---
 <BaseLayout site={site} title="Reservas y contacto" path="/contacto/"
-  description="Reserva en Sidrería Villaviciosa: llama al 984 68 14 15 o escribe a hola@sidreriavillaviciosa.es. Calle Gascona, 7, Oviedo."
+  description="Reserva en Sidrería Villaviciosa llamando al 984 68 14 15. Calle Gascona, 7, Oviedo. Cerramos los miércoles."
   jsonLd={[restaurantGraph(site)]}>
   <div class="wrap section ct">
     <div id="reservas">
       <p class="eyebrow">Reservas</p>
       <h1>Reserva tu mesa</h1>
-      <p class="lead">La forma más rápida es llamar. Si prefieres, escríbenos con el día, la hora y el número de personas y te confirmamos.</p>
+      <p class="lead">Las reservas se hacen por teléfono. Llámanos y te confirmamos al momento.</p>
       <div class="btn-row">
         <a class="btn" href={telHref(local.phone)}>Llamar al {local.phone}</a>
-        <a class="btn btn--ghost" href={`mailto:${local.email}?subject=${encodeURIComponent('Reserva')}`}>Escribir un correo</a>
       </div>
     </div>
     <LocationCard location={local} title="Dónde estamos" headingLevel={2} />
