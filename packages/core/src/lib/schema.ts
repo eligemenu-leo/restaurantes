@@ -57,9 +57,14 @@ export const ALLERGENS = {
 export const MenuItem = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  /** Precio en euros. */
-  price: z.number().positive(),
+  /** Precio en euros. Sin precio = no se muestra (p. ej. "según mercado"). */
+  price: z.number().nonnegative().optional(),
   unit: z.enum(['racion', 'kg', 'botella', 'copa']).default('racion'),
+  /** Texto que acompaña al precio si no es solo "€" (p. ej. "€/ud"). */
+  priceLabel: z.string().optional(),
+  /** Segundo precio (media ración, copa…), cuando la sección tiene precio doble. */
+  price2: z.number().nonnegative().optional(),
+  price2Label: z.string().optional(),
   allergens: z.array(z.enum(Object.keys(ALLERGENS) as [keyof typeof ALLERGENS, ...(keyof typeof ALLERGENS)[]])).optional(),
   featured: z.boolean().default(false),
   tagline: z.string().optional(),
@@ -70,6 +75,10 @@ export const MenuSection = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string().min(1),
   note: z.string().optional(),
+  /** Subsección de la anterior. */
+  sub: z.boolean().default(false),
+  /** Cabeceras de las columnas de precio cuando hay precio doble. */
+  priceHeaders: z.array(z.string()).optional(),
   items: z.array(MenuItem).min(1),
 });
 

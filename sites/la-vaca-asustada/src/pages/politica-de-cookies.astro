@@ -1,6 +1,11 @@
 ---
 import '../styles/theme.css';
 import LegalPage from '@rea/core/components/LegalPage.astro';
+import { logo } from '../layouts.ts';
 import { site } from '../data/index.ts';
 ---
-<LegalPage site={site} title="Política de cookies" path="/politica-de-cookies/" pending />
+<LegalPage site={site} logo={logo} title="Política de cookies" path="/politica-de-cookies/">
+  <p>Esta web no instala cookies propias ni de terceros y no utiliza herramientas de analítica ni publicidad. Por eso no te pedimos consentimiento al entrar.</p>
+  <p>Los botones de reserva te llevan a la web de Restaurantic, que gestiona las reservas y aplica su propia política de cookies.</p>
+  <p>Si en el futuro incorporamos cookies que requieran tu consentimiento, actualizaremos esta página y te lo pediremos antes de instalarlas.</p>
+</LegalPage>

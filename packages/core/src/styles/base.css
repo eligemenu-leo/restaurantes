@@ -23,6 +23,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 img { max-width: 100%; height: auto; display: block; }
+picture { display: block; }
 a { color: inherit; text-underline-offset: 0.2em; }
 a:hover { color: var(--c-accent); }
 :focus-visible { outline: 3px solid var(--c-accent); outline-offset: 3px; }

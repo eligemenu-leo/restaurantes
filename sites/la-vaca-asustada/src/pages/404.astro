@@ -1,9 +1,10 @@
 ---
 import '../styles/theme.css';
 import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import { logo } from '../layouts.ts';
 import { site } from '../data/index.ts';
 ---
-<BaseLayout site={site} title="Página no encontrada" path="/404/" noindex>
+<BaseLayout site={site} logo={logo} title="Página no encontrada" path="/404/" noindex>
   <div class="wrap section">
     <h1>Esta página no existe</h1>
     <p class="lead">Puede que la dirección haya cambiado con la nueva web.</p>

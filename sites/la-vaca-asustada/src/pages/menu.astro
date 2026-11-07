@@ -1,18 +1,38 @@
 ---
 import '../styles/theme.css';
 import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import MenuSections from '@rea/core/components/MenuSections.astro';
-import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
-import { site, menu } from '../data/index.ts';
-const path = '/menu/';
+import Photo from '@rea/core/components/Photo.astro';
+import { logo } from '../layouts.ts';
+import { site, locales } from '../data/index.ts';
+import lomo from '../assets/lomo-brasa.jpg';
 ---
-<BaseLayout site={site} title="Menú de carnes maduradas" path={path}
-  description="Menú de La Vaca Asustada: wagyu A5, Black Angus, vaca retinta, T-bone, tomahawk y chuletas maduradas más de 45 días al carbón. Gijón y Oviedo."
-  jsonLd={[menuJsonLd(site, menu, site.url + path)]}>
-  <div class="wrap section">
-    <p class="eyebrow">Gijón y Oviedo</p>
-    <h1>Menú</h1>
-    <p class="lead">Carnes de distintas razas y orígenes, maduradas en casa y terminadas al carbón.</p>
-    <MenuSections menu={menu} />
+<BaseLayout site={site} logo={logo} title="Menú de carnes maduradas" path="/menu/"
+  description="Menú de La Vaca Asustada en Gijón y Oviedo: carnes maduradas a la brasa, wagyu, Black Angus, T-bone, tomahawk y chuletas. Elige tu local.">
+  <div class="wrap section pick">
+    <div>
+      <p class="eyebrow">Gijón y Oviedo</p>
+      <h1>Nuestro menú</h1>
+      <p class="lead">Cada casa tiene su carta. Elige el local para ver sus platos, precios y vinos.</p>
+      <ul class="pick__list">
+        {locales.map((l) => {
+          const loc = site.locations.find((x) => x.id === l.id)!;
+          return (
+            <li><a href={l.path}><span class="pick__name">{l.name}</span><span class="pick__addr">{loc.address.street}</span><span aria-hidden="true" class="pick__arrow">→</span></a></li>
+          );
+        })}
+      </ul>
+    </div>
+    <Photo src={lomo} alt="Lomo madurado a la brasa cortado en lonchas" loading="eager" sizes="(min-width: 60rem) 45vw, 100vw" class="pick__img" />
   </div>
 </BaseLayout>
+<style>
+  .pick { display: grid; gap: 3rem; align-items: center; }
+  @media (min-width: 60rem) { .pick { grid-template-columns: 1fr 1fr; } }
+  .pick__list { list-style: none; margin: 2.5rem 0 0; padding: 0; display: grid; gap: 1rem; }
+  .pick__list a { display: grid; grid-template-columns: 1fr auto; padding: 1.5rem 1.75rem; background: var(--c-surface); border: 1px solid var(--c-line); text-decoration: none; transition: border-color .15s; }
+  .pick__list a:hover { border-color: var(--c-accent); color: inherit; }
+  .pick__name { font: 600 2rem/1.1 var(--f-display); }
+  .pick__addr { grid-row: 2; color: var(--c-muted); }
+  .pick__arrow { grid-row: 1 / 3; grid-column: 2; align-self: center; font-size: 1.75rem; color: var(--c-accent); }
+  :global(.pick__img) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+</style>

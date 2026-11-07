@@ -53,3 +53,8 @@ test('los datos inválidos fallan con un mensaje claro', () => {
     /site.json[\s\S]*postalCode/,
   );
 });
+
+test('ocultar decimales cuando el precio es entero', () => {
+  assert.equal(price(18, 'racion', { hideZeroDecimals: true }).replace(/\s/g, ' '), '18 €');
+  assert.equal(price(29.5, 'racion', { hideZeroDecimals: true }).replace(/\s/g, ' '), '29,50 €');
+});

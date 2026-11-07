@@ -1,6 +1,8 @@
 ---
 import '../styles/theme.css';
 import LegalPage from '@rea/core/components/LegalPage.astro';
+import { logo } from '../layouts.ts';
 import { site } from '../data/index.ts';
+import html from '../content/legal/aviso-legal.html?raw';
 ---
-<LegalPage site={site} title="Aviso legal" path="/aviso-legal/" pending />
+<LegalPage site={site} logo={logo} title="Aviso legal" path="/aviso-legal/" html={html} />

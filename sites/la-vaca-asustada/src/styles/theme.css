@@ -2,17 +2,17 @@
 @import '@fontsource-variable/inter';
 @import '@rea/core/styles/base.css';
 
-/* La Vaca Asustada: brasa, carbón y papel de carnicería. */
+/* La Vaca Asustada: carbón, madera oscura y el dorado del logotipo. */
 :root {
-  --c-bg: #141110;
-  --c-surface: #1d1917;
-  --c-text: #f1e9de;
-  --c-muted: #b3a797;
-  --c-accent: #e0633a;
-  --c-accent-text: #141110;
-  --c-line: #3a322d;
-  --c-footer-bg: #0c0a09;
-  --c-footer-text: #e8dfd3;
+  --c-bg: #131110;
+  --c-surface: #1c1917;
+  --c-text: #f2ebe0;
+  --c-muted: #b5aa9a;
+  --c-accent: #e4c590;
+  --c-accent-text: #131110;
+  --c-line: #3a322b;
+  --c-footer-bg: #0b0a09;
+  --c-footer-text: #e9e0d2;
   --f-display: 'Playfair Display Variable', Georgia, serif;
   --f-body: 'Inter Variable', system-ui, sans-serif;
   --radius: 0;

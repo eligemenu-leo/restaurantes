@@ -1,0 +1,50 @@
+---
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import MenuSections from '@rea/core/components/MenuSections.astro';
+import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
+import Photo from '@rea/core/components/Photo.astro';
+import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
+import { logo } from '../layouts.ts';
+import { site, locales, HIDE_ZERO_DECIMALS } from '../data/index.ts';
+import lomo from '../assets/lomo-brasa.jpg';
+import piquillos from '../assets/piquillos.jpg';
+import emplatado from '../assets/emplatado.jpg';
+interface Props { id: 'oviedo' | 'gijon' }
+const l = locales.find((x) => x.id === Astro.props.id)!;
+const loc = site.locations.find((x) => x.id === l.id)!;
+const other = locales.find((x) => x.id !== l.id)!;
+---
+<BaseLayout site={site} logo={logo} title={`Menú de La Vaca Asustada ${l.name}`} path={l.path}
+  description={`Menú de La Vaca Asustada en ${l.name}: carnes maduradas a la brasa, wagyu, Black Angus, T-bone, tomahawk y chuletas. Carta de vinos y bebidas.`}
+  jsonLd={[menuJsonLd(site, l.platos, site.url + l.path)]}>
+  <div class="wrap section">
+    <p class="eyebrow">{loc.address.street} · {l.name}</p>
+    <h1>Menú {l.name}</h1>
+    <p class="lead">Carnes de distintas razas y orígenes, maduradas en casa y terminadas al carbón. ¿Vas a {other.name}? <a href={other.path}>Ver el menú de {other.name}</a>.</p>
+    <div class="btn-row">
+      {loc.reservationUrl && <a class="btn" href={loc.reservationUrl} target="_blank" rel="noopener">Reservar en {l.name}<span class="visually-hidden"> (abre en otra pestaña)</span></a>}
+      {l.bebidas && <a class="btn btn--ghost" href="#bebidas">Carta de bebidas</a>}
+    </div>
+    <div class="strip">
+      <Photo src={lomo} alt="Lomo madurado a la brasa cortado en lonchas" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
+      <Photo src={piquillos} alt="Piquillos confitados en cazuela de cobre" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
+      <Photo src={emplatado} alt="Carne en lonchas emplatada con salsas" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
+    </div>
+    <MenuSections menu={l.platos} hideZeroDecimals={HIDE_ZERO_DECIMALS} />
+    {l.bebidas && (
+      <section id="bebidas" class="bebidas" aria-labelledby="bebidas-h">
+        <h2 id="bebidas-h" class="bebidas__h">Bebidas y vinos</h2>
+        <MenuSections menu={l.bebidas} headingLevel={3} hideZeroDecimals={HIDE_ZERO_DECIMALS} toc={false} />
+      </section>
+    )}
+  </div>
+  <EligemenuTracking restaurantId={l.em.restaurant.id} />
+</BaseLayout>
+<style>
+  .strip { display: grid; gap: 0.75rem; grid-template-columns: repeat(3, 1fr); margin-block: 2.5rem 1rem; }
+  .strip :global(img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  @media (max-width: 40rem) { .strip { grid-template-columns: 1fr 1fr; } .strip > :global(picture:last-child) { display: none; } }
+  .bebidas { margin-top: var(--section); padding-top: 2rem; border-top: 1px solid var(--c-line); scroll-margin-top: 5rem; }
+  .bebidas__h { font-size: clamp(2rem, 5vw, 3rem); }
+</style>

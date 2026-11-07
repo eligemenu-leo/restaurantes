@@ -3,9 +3,10 @@ import '../styles/theme.css';
 import BaseLayout from '@rea/core/components/BaseLayout.astro';
 import LocationCard from '@rea/core/components/LocationCard.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { logo } from '../layouts.ts';
 import { site } from '../data/index.ts';
 ---
-<BaseLayout site={site} title="Locales y reservas" path="/contacto/"
+<BaseLayout site={site} logo={logo} title="Locales y reservas" path="/contacto/"
   description="Reserva en La Vaca Asustada: Gijón (C/ San Bernardo, 79 · 663 20 06 15) y Oviedo (C/ Melquiades Álvarez, 24 · 984 29 86 60)."
   jsonLd={[restaurantGraph(site)]}>
   <div class="wrap section">

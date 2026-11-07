@@ -1,0 +1,8 @@
+---
+import '../styles/theme.css';
+import LegalPage from '@rea/core/components/LegalPage.astro';
+import { logo } from '../layouts.ts';
+import { site } from '../data/index.ts';
+import html from '../content/legal/declaracion-de-accesibilidad.html?raw';
+---
+<LegalPage site={site} logo={logo} title="Declaración de accesibilidad" path="/declaracion-de-accesibilidad/" html={html} />

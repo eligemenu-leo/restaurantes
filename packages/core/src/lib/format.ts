@@ -2,10 +2,13 @@ const eur = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR',
 
 const UNIT: Record<string, string> = { racion: '', kg: ' / kg', botella: '', copa: ' / copa' };
 
-/** 18.5 → "18,50 €"; con unidad kg → "76,00 € / kg". */
-export function price(value: number, unit = 'racion'): string {
+const eurShort = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+/** 18.5 → "18,50 €"; con unidad kg → "76,00 € / kg"; con hideZeroDecimals, 18 → "18 €". */
+export function price(value: number, unit = 'racion', opts: { hideZeroDecimals?: boolean } = {}): string {
   // Intl usa espacio duro antes del símbolo: lo mantenemos para que no se parta la línea.
-  return eur.format(value) + (UNIT[unit] ?? '');
+  const f = opts.hideZeroDecimals && Number.isInteger(value) ? eurShort : eur;
+  return f.format(value) + (UNIT[unit] ?? '');
 }
 
 /** Enlace tel: limpio a partir de un teléfono escrito para humanos. */

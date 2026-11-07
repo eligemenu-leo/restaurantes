@@ -1,26 +1,50 @@
 ---
 import '../styles/theme.css';
 import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Photo from '@rea/core/components/Photo.astro';
+import { logo } from '../layouts.ts';
 import { site } from '../data/index.ts';
+import cocina from '../assets/cocina.jpg';
+import madurada from '../assets/madurada.jpg';
+import sala from '../assets/sala.jpg';
 ---
-<BaseLayout site={site} title="Sobre nosotros" path="/sobre-nosotros/"
-  description="Luis y Rocío crearon La Vaca Asustada para celebrar las mejores carnes del mundo, con técnicas tradicionales y una mirada actual. Gijón y Oviedo.">
-  <article class="wrap section about">
-    <p class="eyebrow">Desde nuestros inicios</p>
-    <h1>Locos por la carne</h1>
-    <div class="about__body">
-      <p class="lead">Luis y Rocío compartían una pasión: la buena mesa. De ahí nació La Vaca Asustada, un restaurante con la carne como protagonista.</p>
-      <h2>Nuestra historia</h2>
-      <p>Originarios de Amarante (Portugal) y con años de oficio en la hostelería asturiana, unieron la experiencia de Luis en casas como La Teyera y El Guarapu con el conocimiento de empresa de Rocío.</p>
-      <h2>Nuestra filosofía</h2>
-      <p>Carne madurada, técnicas tradicionales y una mirada innovadora. Cuidamos el origen de cada pieza y el respeto por el producto.</p>
-      <h2>Nuestro equipo</h2>
-      <p>Un equipo que combina oficio y ganas de sorprender para que cada plato sea una experiencia.</p>
-      <div class="btn-row"><a class="btn" href="/contacto/">Reserva tu mesa</a><a class="btn btn--ghost" href="/menu/">Ver el menú</a></div>
+<BaseLayout site={site} logo={logo} title="Sobre nosotros" path="/sobre-nosotros/"
+  description="Luis y Rocío crearon La Vaca Asustada para rendir homenaje a las mejores carnes del mundo, fusionando tradición y modernidad. Gijón y Oviedo.">
+  <article class="section">
+    <div class="wrap about__head">
+      <div>
+        <p class="eyebrow">Desde nuestros inicios</p>
+        <h1>Nuestra historia</h1>
+        <p class="lead">Luis y Rocío, apasionados por la gastronomía, soñaban con crear un restaurante donde la carne de vaca fuera la protagonista.</p>
+        <p>Originarios de Amarante, Portugal, y con una trayectoria en el mundo de la hostelería en Asturias, decidieron llevar su pasión al siguiente nivel en La Vaca Asustada.</p>
+        <p>Con la experiencia de Luis en lugares como La Teyera y El Guarapu, y el conocimiento empresarial de Rocío, crearon un espacio donde se rinde homenaje a las mejores carnes del mundo, fusionando tradición y modernidad en cada plato.</p>
+      </div>
+      <Photo src={sala} alt="Sala de La Vaca Asustada con lámparas de techo y mesas de madera" loading="eager" sizes="(min-width: 60rem) 40vw, 100vw" class="about__img" />
     </div>
+    <div class="wrap about__grid">
+      <section>
+        <Photo src={cocina} alt="Cocinero trabajando en la parrilla" sizes="(min-width: 60rem) 45vw, 100vw" widths={[480, 720, 1080]} />
+        <p class="eyebrow">Innovación y tradición</p>
+        <h2>Nuestro equipo</h2>
+        <p>Con un profundo respeto por las técnicas tradicionales y un enfoque innovador, nuestro equipo garantiza que cada plato sea una experiencia excepcional. Cada miembro de nuestro equipo comparte el compromiso de ofrecerte la perfección en cada bocado.</p>
+      </section>
+      <section>
+        <Photo src={madurada} alt="Piezas de carne en la cámara de maduración" sizes="(min-width: 60rem) 45vw, 100vw" widths={[480, 720, 900]} />
+        <p class="eyebrow">20 años de experiencia</p>
+        <h2>Nuestra filosofía</h2>
+        <p>En La Vaca Asustada redefinimos el arte de la carne madurada. Nuestra dedicación a la calidad y la perfección se refleja en cada detalle. Utilizamos técnicas tradicionales combinadas con innovación para ofrecer una experiencia gastronómica única. Sostenibilidad y elegancia son nuestros pilares, garantizando que cada visita sea memorable.</p>
+      </section>
+    </div>
+    <div class="wrap btn-row about__cta"><a class="btn" href="/contacto/">Reserva tu mesa</a><a class="btn btn--ghost" href="/menu/">Nuestro menú</a></div>
   </article>
 </BaseLayout>
 <style>
-  .about__body { max-width: var(--w-text); }
-  .about__body h2 { font-size: 1.75rem; margin-top: 2.5rem; }
+  .about__head { display: grid; gap: 2.5rem; align-items: center; margin-bottom: var(--section); }
+  @media (min-width: 60rem) { .about__head { grid-template-columns: 1.1fr 0.9fr; gap: 4rem; } }
+  .about__head p:not(.eyebrow) { max-width: var(--w-text); }
+  :global(.about__img) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+  .about__grid { display: grid; gap: 3rem; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+  .about__grid :global(img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; margin-bottom: 1.25rem; }
+  .about__grid h2 { font-size: 1.9rem; }
+  .about__cta { margin-top: 3rem; }
 </style>

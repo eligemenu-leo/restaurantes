@@ -1,6 +1,8 @@
 ---
 import '../styles/theme.css';
 import LegalPage from '@rea/core/components/LegalPage.astro';
+import { logo } from '../layouts.ts';
 import { site } from '../data/index.ts';
+import html from '../content/legal/politica-de-privacidad.html?raw';
 ---
-<LegalPage site={site} title="Política de privacidad" path="/politica-de-privacidad/" pending />
+<LegalPage site={site} logo={logo} title="Política de privacidad" path="/politica-de-privacidad/" html={html} />

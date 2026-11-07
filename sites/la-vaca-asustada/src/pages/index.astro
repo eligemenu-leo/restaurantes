@@ -3,24 +3,37 @@ import '../styles/theme.css';
 import BaseLayout from '@rea/core/components/BaseLayout.astro';
 import LocationCard from '@rea/core/components/LocationCard.astro';
 import Reviews from '@rea/core/components/Reviews.astro';
+import Photo from '@rea/core/components/Photo.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
 import { price } from '@rea/core/lib/format.ts';
-import { site, menu } from '../data/index.ts';
+import { logo } from '../layouts.ts';
+import { site, top as topData, HIDE_ZERO_DECIMALS } from '../data/index.ts';
+import neon from '../assets/neon.jpg';
+import chuleta from '../assets/chuleta.jpg';
+import tomahawk from '../assets/tomahawk.jpg';
+import tbone from '../assets/t-bone.jpg';
+import corte from '../assets/corte.jpg';
 
-const top = menu.sections.find((s) => s.id === 'al-carbon')!.items.filter((i) => i.featured);
+const photos = {
+  chuleta: { src: chuleta, alt: 'Chuleta madurada con hueso sobre tabla de madera' },
+  't-bone': { src: tbone, alt: 'T-bone madurado presentado en tabla' },
+  tomahawk: { src: tomahawk, alt: 'Tomahawk con su hueso largo sobre tabla' },
+};
+const top = topData.filter((t) => t.item).map((t) => ({ ...t, ...photos[t.photo] }));
 ---
-<BaseLayout site={site} title="La Vaca Asustada · Restaurante de carne madurada en Gijón y Oviedo" path="/"
+<BaseLayout site={site} logo={logo} title="La Vaca Asustada · Restaurante de carne madurada en Gijón y Oviedo" path="/"
   jsonLd={[restaurantGraph(site, `${site.url}/menu/`)]}>
   <section class="hero">
-    <div class="wrap">
+    <Photo src={neon} alt="Sala de La Vaca Asustada con el neón «No apto para veganos»" loading="eager" class="hero__bg" sizes="100vw" />
+    <div class="wrap hero__txt">
       <p class="eyebrow">Gijón · Oviedo</p>
-      <h1>Carne madurada,<br /><em>a la brasa</em></h1>
-      <p class="lead">Una selección de los mejores cortes del mundo, elegidos y madurados uno a uno. Dos casas en Asturias, la misma obsesión por el producto.</p>
+      <h1>Restaurante de carne madurada<br /><em>en Gijón y Oviedo</em></h1>
+      <p class="lead">Una selección exclusiva de las mejores carnes del mundo, elegidas y maduradas una a una.</p>
       <div class="btn-row">
         {site.locations.map((l) => (
-          <a class="btn" href={l.reservationUrl} target="_blank" rel="noopener">Reservar en {l.name}<span class="visually-hidden"> (abre en otra pestaña)</span></a>
+          <a class="btn" href={l.reservationUrl} target="_blank" rel="noopener">Reserva en {l.name}<span class="visually-hidden"> (abre en otra pestaña)</span></a>
         ))}
-        <a class="btn btn--ghost" href="/menu/">Ver el menú</a>
+        <a class="btn btn--ghost" href="/menu/">Consultar menú</a>
       </div>
     </div>
   </section>
@@ -29,29 +42,31 @@ const top = menu.sections.find((s) => s.id === 'al-carbon')!.items.filter((i) =>
     <div class="wrap">
       <p class="eyebrow">Garantía de calidad</p>
       <h2 id="top-h">Nuestras carnes TOP</h2>
-      <p class="lead">Cada corte se selecciona y se madura para asegurar una experiencia inigualable.</p>
+      <p class="lead">Nos enorgullecemos de ofrecer una selección exclusiva de las mejores carnes del mundo. Cada corte ha sido cuidadosamente seleccionado y madurado para asegurar una experiencia gastronómica inigualable.</p>
       <ul class="top__list">
         {top.map((c) => (
           <li>
-            <p class="top__origin">{c.tagline}</p>
-            <h3>{c.name}</h3>
-            <p class="top__desc">{c.description}</p>
-            <p class="top__price">{price(c.price, c.unit)}</p>
+            <Photo src={c.src} alt={c.alt} sizes="(min-width: 60rem) 30vw, 100vw" widths={[360, 540, 720]} class="top__img" />
+            <div class="top__body">
+              <p class="top__origin">{c.origin}</p>
+              <h3>{c.title}</h3>
+              <p class="top__desc">{c.item!.description ?? c.item!.name}</p>
+              {c.item!.price != null && <p class="top__price">{price(c.item!.price, c.item!.unit, { hideZeroDecimals: HIDE_ZERO_DECIMALS })}</p>}
+            </div>
           </li>
         ))}
       </ul>
-      <a class="btn btn--ghost" href="/menu/">Todas nuestras carnes maduradas</a>
+      <a class="btn btn--ghost" href="/menu/">Descubre todas nuestras carnes maduradas</a>
     </div>
   </section>
 
-  <section class="section todo" aria-labelledby="todo-h">
-    <div class="wrap todo__in">
+  <section class="todo" aria-labelledby="todo-h">
+    <Photo src={corte} alt="Carne madurada cortada en lonchas sobre plato de hierro" sizes="(min-width: 52rem) 50vw, 100vw" widths={[480, 800, 1200, 1600]} class="todo__img" />
+    <div class="todo__txt">
       <h2 id="todo-h">Todo importa</h2>
-      <div>
-        <p>Desde el lomo hasta el costillar, cada parte de la vaca ofrece una experiencia única. Conocer el origen de cada corte es esencial para apreciar su textura y su sabor.</p>
-        <p>Disfruta la autenticidad y la calidad de cada bocado. Porque, al final, todo importa.</p>
-        <a href="/sobre-nosotros/">Locos por la carne: conócenos</a>
-      </div>
+      <p>Desde el lomo hasta el costillar, cada parte de la vaca ofrece una experiencia única. Conocer el origen de cada corte es esencial para apreciar su textura y sabor.</p>
+      <p>Disfruta la autenticidad y calidad de cada bocado. Porque, al final, todo importa.</p>
+      <a href="/sobre-nosotros/">Locos por la carne: conócenos</a>
     </div>
   </section>
 
@@ -68,21 +83,25 @@ const top = menu.sections.find((s) => s.id === 'al-carbon')!.items.filter((i) =>
   </section>
 </BaseLayout>
 <style>
-  .hero { padding-block: clamp(5rem, 16vw, 11rem) clamp(3.5rem, 9vw, 7rem);
-    background: radial-gradient(90% 70% at 85% 10%, color-mix(in srgb, var(--c-accent) 22%, transparent), transparent 65%); }
-  .hero h1 { font-size: clamp(3rem, 9vw, 6.5rem); }
+  .hero { position: relative; isolation: isolate; min-height: min(88vh, 52rem); display: flex; align-items: flex-end; padding-block: 8rem clamp(3rem, 8vw, 6rem); }
+  :global(.hero__bg) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(19 17 16 / 0.35) 0%, rgb(19 17 16 / 0.6) 45%, rgb(19 17 16 / 0.95) 100%); }
+  .hero h1 { font-size: clamp(2.6rem, 7.5vw, 5.75rem); max-width: 16ch; }
   .hero em { font-style: italic; color: var(--c-accent); font-weight: 500; }
-  .hero .lead { margin-bottom: 2.25rem; }
+  .hero .lead { color: var(--c-text); margin-bottom: 2.25rem; }
   .top__list { list-style: none; margin: 2.5rem 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
-  .top__list li { background: var(--c-surface); border-top: 3px solid var(--c-accent); padding: 2rem 1.75rem; display: flex; flex-direction: column; }
+  .top__list li { background: var(--c-surface); display: flex; flex-direction: column; }
+  :global(.top__img) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+  .top__body { padding: 1.75rem; display: flex; flex-direction: column; flex: 1; border-top: 3px solid var(--c-accent); }
   .top__origin { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.8rem; color: var(--c-accent); margin-bottom: 0.75rem; }
   .top__desc { color: var(--c-muted); font-size: 0.95rem; flex: 1; }
   .top__price { margin: 0; font: 600 1.4rem/1 var(--f-display); }
-  .todo { border-block: 1px solid var(--c-line); }
-  .todo__in { display: grid; gap: 1.5rem; }
-  @media (min-width: 52rem) { .todo__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .todo__in > div { font-size: 1.15rem; }
-  .todo h2 { font-size: clamp(2.5rem, 7vw, 4.5rem); font-style: italic; }
+  .todo { display: grid; border-block: 1px solid var(--c-line); }
+  @media (min-width: 52rem) { .todo { grid-template-columns: 1fr 1fr; } }
+  :global(.todo__img) { width: 100%; height: 100%; min-height: 20rem; object-fit: cover; }
+  .todo__txt { padding: var(--section) var(--space); max-width: 36rem; font-size: 1.15rem; align-self: center; }
+  @media (min-width: 52rem) { .todo__txt { padding-inline: 4rem; } }
+  .todo h2 { font-size: clamp(2.5rem, 6vw, 4.25rem); font-style: italic; }
   .locs { display: grid; gap: 1.5rem; margin-top: 2rem; }
   @media (min-width: 60rem) { .locs { grid-template-columns: 1fr 1fr; } }
 </style>

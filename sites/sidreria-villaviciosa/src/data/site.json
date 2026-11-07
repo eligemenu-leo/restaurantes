@@ -1,7 +1,7 @@
 {
   "name": "Sidrería Villaviciosa",
   "url": "https://sidreriavillaviciosa.es",
-  "description": "Sidrería en la calle Gascona de Oviedo: cocina asturiana de siempre, fabada, cachopo, pixín y sidra escanciada. Reserva en el 984 68 14 15.",
+  "description": "Tu sidrería en pleno corazón de Gascona, Oviedo: cocina asturiana casera, fabada, cachopo, pixín y sidra escanciada. Reservas en el 984 68 14 15.",
   "cuisine": [
     "Asturiana",
     "Sidrería"
@@ -21,7 +21,21 @@
         {
           "days": [
             "mo",
-            "tu",
+            "tu"
+          ],
+          "open": "12:30",
+          "close": "16:30"
+        },
+        {
+          "days": [
+            "mo",
+            "tu"
+          ],
+          "open": "19:00",
+          "close": "24:00"
+        },
+        {
+          "days": [
             "th",
             "fr"
           ],
@@ -30,15 +44,7 @@
         },
         {
           "days": [
-            "mo",
-            "tu",
-            "th"
-          ],
-          "open": "19:00",
-          "close": "24:00"
-        },
-        {
-          "days": [
+            "th",
             "fr"
           ],
           "open": "19:00",
@@ -81,6 +87,22 @@
       "href": "/contacto/"
     }
   ],
-  "reviews": [],
+  "reviews": [
+    {
+      "author": "Vanesa CM",
+      "text": "Comida tradional asturiana muy buena calidad precio. Pedimos cachopo y cazuela de pulpo y gambas y ambas cosas muy recomendables. Los camareros súper simpáticos!! Además se ve que cuidan mucho la limpieza y el trato. Gracias , para repetir!",
+      "source": "google"
+    },
+    {
+      "author": "Antonia Roman",
+      "text": "Cenamos cachopo por primera vez y estaba buenísimo. Y la tarta de la abuela genial. Nos trataron de maravilla. El servicio de camareros y encargado un 10. Sitio 100% recomendable para cenar . Sin duda repetiré, si vuelvo a Oviedo.",
+      "source": "google"
+    },
+    {
+      "author": "Marina Iglesias Neila",
+      "text": "Pedimos un menú del día cada uno y nos quedamos más que llenos. El sabor tanto de la fabada como del cachopo muy muy ricos, y el tamaño muy bueno. La atención del camarero también fue muy buena (creo que se llamaba Luis), atento y simpático en todo momento. Relación calidad-precio de lo mejor que puedes encontrar por Oviedo.",
+      "source": "google"
+    }
+  ],
   "credit": "Diseño web Eligemenú"
 }

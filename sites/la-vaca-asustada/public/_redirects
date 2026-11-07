@@ -1,13 +1,17 @@
 # Redirecciones desde las URLs de WordPress (formato Cloudflare Pages / Netlify)
 /menu-2026/              /menu/                 301
 /menu-2026               /menu/                 301
-# PENDIENTE: confirmar si los menús por local difieren del general
-/menu-gijon/             /menu/                 301
-/menu-gijon              /menu/                 301
-/menu-oviedo/            /menu/                 301
-/menu-oviedo             /menu/                 301
 /politica-de-cookies-ue/ /politica-de-cookies/  301
 /politica-de-cookies-ue  /politica-de-cookies/  301
 /feed/                   /                      301
 /wp-admin/*              /                      301
 /wp-login.php            /                      301
+# Contenido de demostración del tema que no se migra
+/nuestro-menu/                                   /menu/  301
+/blog/                                           /       301
+/hello-world/                                    /       301
+/flavour-so-good-youll-try-to-eat-with-your-eyes/ /      301
+/try-new-recipes-with-us-food-changes-the-mood/  /       301
+/the-7-best-places-to-eat-in-new-york/           /       301
+/category/*                                      /       301
+/author/*                                        /       301

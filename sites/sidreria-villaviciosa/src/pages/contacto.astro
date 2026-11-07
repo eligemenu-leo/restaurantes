@@ -18,11 +18,16 @@ import { site, local } from '../data/index.ts';
         <a class="btn" href={telHref(local.phone)}>Llamar al {local.phone}</a>
       </div>
     </div>
-    <LocationCard location={local} title="Dónde estamos" headingLevel={2} />
+    <div>
+      <LocationCard location={local} title="Dónde estamos" headingLevel={2} />
+      <p class="ct__txt">En pleno corazón de la mítica calle Gascona de Oviedo, la Sidrería Villaviciosa te recibe con el sabor auténtico de la tradición asturiana. Un lugar donde la buena sidra, la cocina casera y el ambiente único de «el Bulevar de la Sidra» se unen para que disfrutes de una experiencia genuina, cercana y siempre inolvidable.</p>
+      <p class="ct__txt">Para cualquier otra consulta, escríbenos a <a href={`mailto:${local.email}`}>{local.email}</a>.</p>
+    </div>
   </div>
 </BaseLayout>
 <style>
   .ct { display: grid; gap: 3rem; }
   @media (min-width: 60rem) { .ct { grid-template-columns: 1fr 1.1fr; align-items: start; gap: 4rem; } }
   .ct .lead { margin-bottom: 2rem; }
+  .ct__txt { margin-top: 1.5rem; color: var(--c-muted); }
 </style>
