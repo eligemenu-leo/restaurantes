@@ -1,20 +1,38 @@
-@import '@fontsource-variable/fraunces';
-@import '@fontsource-variable/inter';
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/400-italic.css';
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource-variable/jost';
 @import '@rea/core/styles/base.css';
 
-/* Sidrería Villaviciosa: madera, papel y verde botella de sidra. */
+/* Sidrería Villaviciosa: la estética de la web original (fondo casi negro, naranja
+   #DD5903, Cormorant Garamond para títulos y Jost para texto y menús). */
 :root {
-  --c-bg: #f6f0e4;
-  --c-surface: #fffaf0;
-  --c-text: #231c14;
-  --c-muted: #5c5143;
-  --c-accent: #2f5b34;
-  --c-accent-text: #fffaf0;
-  --c-line: #dccfb8;
-  --c-footer-bg: #1f2b1f;
-  --c-footer-text: #efe7d6;
-  --f-display: 'Fraunces Variable', Georgia, serif;
-  --f-body: 'Inter Variable', system-ui, sans-serif;
-  --radius: 2px;
+  --c-bg: #0b0a08;
+  --c-surface: #151318;
+  --c-surface-2: #1c1a20;
+  --c-text: #ffffff;
+  --c-muted: #a2a2a2;
+  /* Naranja original. Sobre fondo oscuro contrasta 5,2:1. */
+  --c-accent: #dd5903;
+  /* Para botones con texto blanco: el naranja original solo da 3,8:1. */
+  --c-accent-strong: #c24e03;
+  --c-accent-text: #ffffff;
+  --c-line: #2a272e;
+  --c-footer-bg: #0b0a08;
+  --c-footer-text: #ffffff;
+  --f-display: 'Cormorant Garamond', Georgia, serif;
+  --f-body: 'Jost Variable', 'Jost', system-ui, sans-serif;
+  --radius: 0;
+  color-scheme: dark;
 }
-h1, h2 { font-variation-settings: 'SOFT' 50, 'WONK' 1; font-weight: 560; }
+body { font-size: 1rem; font-weight: 400; }
+h1, h2, h3 { font-weight: 500; letter-spacing: 0; }
+.eyebrow { font: 500 0.75rem/1.2 var(--f-body); letter-spacing: 0.12em; color: var(--c-accent); }
+.btn { background: var(--c-accent-strong); border-color: var(--c-accent-strong); font: 500 0.8rem/1 var(--f-body); letter-spacing: 0.1em; text-transform: uppercase; }
+.btn:hover { background: transparent; color: var(--c-accent); }
+.btn--ghost { background: transparent; color: var(--c-accent); border-color: var(--c-accent); }
+.btn--ghost:hover { background: var(--c-accent-strong); border-color: var(--c-accent-strong); color: #fff; }
+/* Enlace subrayado en naranja, como los de la web original. */
+.ulink { display: inline-block; padding-bottom: 0.35rem; border-bottom: 2px solid var(--c-accent); font: 500 0.75rem/1.2 var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: #fff; }
+.ulink:hover { color: var(--c-accent); }

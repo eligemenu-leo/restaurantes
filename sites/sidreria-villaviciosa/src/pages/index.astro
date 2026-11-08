@@ -1,137 +1,199 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import LocationCard from '@rea/core/components/LocationCard.astro';
-import Reviews from '@rea/core/components/Reviews.astro';
+// Portada: réplica de la web original (sidreriavillaviciosa.es) en estructura, fotos,
+// tipografía y colores. Diapositivas, sugerencias, fotos, franja con la entrada,
+// reseñas, "Visítanos" y "Reservas".
+import Layout from '../components/Layout.astro';
 import Photo from '@rea/core/components/Photo.astro';
+import { getImage } from 'astro:assets';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
-import { price, telHref } from '@rea/core/lib/format.ts';
-import { site, sugerencias, destacados, local } from '../data/index.ts';
-import fachada from '../assets/fachada.jpg';
-import escanciado from '../assets/escanciado.jpg';
-import ambiente from '../assets/ambiente.jpg';
-import tomates from '../assets/tomates.jpg';
-import fabada from '../assets/fabada.jpg';
-import pixin from '../assets/pixin.jpg';
-import cachopo from '../assets/cachopo.jpg';
-import arroz from '../assets/arroz-con-leche.jpg';
+import { groupHours } from '@rea/core/lib/hours.ts';
+import { price, telHref, mapsHref } from '@rea/core/lib/format.ts';
+import { site, sugerencias, local } from '../data/index.ts';
+import heroCulin from '../assets/hero-culin.jpg';
+import heroAlmejas from '../assets/hero-almejas.jpg';
+import bacalao from '../assets/bacalao.jpg';
+import botellas from '../assets/botellas.jpg';
+import entrada from '../assets/entrada.jpg';
+import luis from '../assets/luis.jpg';
 
-// Foto de cada plato destacado, en el mismo orden que `destacados`.
-const fotos = [tomates, fabada, pixin, cachopo, arroz];
-const platos = destacados.map((d, n) => ({ ...d, foto: fotos[n] })).filter((d) => d.item);
+const franja = await getImage({ src: entrada, width: 1920, format: 'webp', quality: 70 });
+const horario = groupHours(local);
+const cta = [
+  { href: '/nuestra-carta/', label: 'Ver nuestra carta' },
+  { href: '/bodega/', label: 'Ver nuestra bodega' },
+  { href: '#sugerencias', label: 'Sugerencias del chef' },
+];
 ---
-<BaseLayout
+<Layout
   site={site}
   title="Sidrería Villaviciosa · Cocina asturiana y sidra en la calle Gascona, Oviedo"
   path="/"
+  overlayHeader
   jsonLd={[restaurantGraph(site, `${site.url}/nuestra-carta/`)]}
 >
-  <section class="hero">
-    <div class="wrap hero__in">
-      <div class="hero__txt">
-        <p class="eyebrow">Calle Gascona, 7 · Oviedo</p>
-        <h1>Tu sidrería en pleno corazón de Gascona</h1>
-        <p class="lead">Un lugar para celebrar, picar algo rico y sentir el espíritu de la sidra asturiana.</p>
-        <div class="btn-row">
-          <a class="btn" href={telHref(local.phone)}>Reservar · {local.phone}</a>
-          <a class="btn btn--ghost" href="/nuestra-carta/">Ver nuestra carta</a>
+  <section class="hero" aria-label="Portada">
+    <div class="hero__track" tabindex="0" aria-label="Diapositivas de portada">
+      <div class="slide" id="diapositiva-1">
+        <Photo src={heroCulin} alt="" loading="eager" sizes="100vw" class="slide__bg" />
+        <div class="slide__txt">
+          <h1><span class="t1">Tu sidrería en pleno</span> <span class="t2">Corazón de Gascona</span></h1>
+          <p>Un lugar para celebrar, picar algo rico y sentir el espíritu de la sidra asturiana.</p>
+          <ul class="slide__cta">{cta.map((c) => <li><a class="ulink" href={c.href}>{c.label}</a></li>)}</ul>
         </div>
       </div>
-      <Photo src={fachada} alt="Fachada iluminada de Sidrería Villaviciosa en la calle Gascona" loading="eager"
-        sizes="(min-width: 60rem) 55vw, 100vw" class="hero__img" />
+      <div class="slide" id="diapositiva-2">
+        <Photo src={heroAlmejas} alt="" sizes="100vw" class="slide__bg" />
+        <div class="slide__txt">
+          <p class="t-h"><span class="t1">Bienvenido a la</span> <span class="t2">Sidrería Villaviciosa</span></p>
+          <p>Cocina casera, auténtica y hecha con cariño, como siempre se ha comido en casa.</p>
+          <ul class="slide__cta">{cta.map((c) => <li><a class="ulink" href={c.href}>{c.label}</a></li>)}</ul>
+        </div>
+      </div>
+    </div>
+    <nav class="dots" aria-label="Cambiar diapositiva">
+      <a href="#diapositiva-1" aria-label="Diapositiva 1"></a>
+      <a href="#diapositiva-2" aria-label="Diapositiva 2"></a>
+    </nav>
+  </section>
+
+  <section class="section sug" id="sugerencias" aria-labelledby="sug-h">
+    <div class="wrap">
+      <p class="eyebrow eyebrow--lines">Recomendación del chef</p>
+      <h2 id="sug-h">Sugerencias para hoy</h2>
+      {sugerencias && (
+        <ul class="sug__list">
+          {sugerencias.items.map((i) => (
+            <li><span class="sug__n">{i.name}</span><span class="sug__dots" aria-hidden="true"></span>{i.price != null && <span>{price(i.price, i.unit)}</span>}</li>
+          ))}
+        </ul>
+      )}
+      <div class="sug__fotos">
+        <Photo src={bacalao} alt="Bacalao a la portuguesa en cazuela" sizes="(min-width: 52rem) 18rem, 45vw" widths={[320, 480, 640, 762]} />
+        <Photo src={botellas} alt="Botellas de sidra iluminadas en verde" sizes="(min-width: 52rem) 18rem, 45vw" widths={[320, 480, 640, 799]} />
+      </div>
+      <div class="sug__btns">
+        <a class="btn" href="/nuestra-carta/">Ver carta completa</a>
+        <a class="btn btn--ghost" href="/bodega/">Ver bodega</a>
+      </div>
     </div>
   </section>
 
-  {sugerencias && <section class="section sug" id="sugerencias" aria-labelledby="sug-h">
-    <div class="wrap sug__in">
-      <div>
-        <p class="eyebrow">Recomendación del chef</p>
-        <h2 id="sug-h">Sugerencias para hoy</h2>
-        <p>Platos fuera de carta que cambian según mercado. Pregunta en sala por los de hoy.</p>
+  <div class="franja" style={`--bg: url(${franja.src})`} role="img" aria-label="Entrada de la Sidrería Villaviciosa en la calle Gascona"></div>
+
+  <section class="section rev" aria-label="Opiniones de clientes">
+    <div class="wrap rev__in">
+      <span class="rev__q" aria-hidden="true">“</span>
+      <div class="rev__track" tabindex="0" aria-label="Reseñas de Google">
+        {site.reviews.map((r, n) => (
+          <figure class="rev__item" id={`resena-${n + 1}`}>
+            <blockquote><p>{r.text}</p></blockquote>
+            <figcaption><strong>{r.author}</strong><span>reseña en Google</span></figcaption>
+          </figure>
+        ))}
       </div>
-      <ul class="sug__list">
-        {sugerencias.items.map((i) => (
-          <li><span>{i.name}</span>{i.price != null && <span class="sug__p">{price(i.price, i.unit)}</span>}</li>
+      <nav class="dots dots--rev" aria-label="Cambiar reseña">
+        {site.reviews.map((_, n) => <a href={`#resena-${n + 1}`} aria-label={`Reseña ${n + 1}`}></a>)}
+      </nav>
+    </div>
+  </section>
+
+  <section class="visita" id="reservas">
+    <div class="visita__col visita__donde" aria-labelledby="donde-h">
+      <p class="eyebrow">Dónde estamos</p>
+      <h2 id="donde-h">Visítanos</h2>
+      <p>{local.address.street.replace(/^C\/\s*/, '')}, {local.address.locality}, Asturias, {local.address.postalCode}</p>
+      <h3>Horario de apertura</h3>
+      <ul class="horario">
+        {horario.map((r) => (
+          <li>{r.label}: {r.status === 'open' ? r.slots.join(' | ') : r.status === 'closed' ? 'Cerrado' : 'Consultar'}</li>
         ))}
       </ul>
+      <a class="ulink" href={mapsHref(local.mapsQuery ?? site.name)}>Cómo llegar</a>
     </div>
-  </section>}
-
-  <section class="section dest" aria-labelledby="dest-h">
-    <div class="wrap">
-      <p class="eyebrow">De la carta</p>
-      <h2 id="dest-h">Los imprescindibles de la casa</h2>
-      <ol class="dest__list">
-        {platos.map((d) => (
-          <li>
-            <Photo src={d.foto} alt={d.item!.name} sizes="(min-width: 60rem) 20vw, (min-width: 40rem) 45vw, 90vw" widths={[320, 480, 640, 960]} class="dest__img" />
-            <p class="dest__t">{d.tagline}</p>
-            <h3>{d.item!.name}</h3>
-            {d.item!.price != null && <p class="dest__p">{price(d.item!.price, d.item!.unit)}</p>}
-          </li>
-        ))}
-      </ol>
-      <a class="btn btn--ghost" href="/nuestra-carta/">Ver carta completa</a>
-    </div>
-  </section>
-
-  <section class="section casa" aria-labelledby="casa-h">
-    <div class="wrap casa__in">
-      <div class="casa__fotos">
-        <Photo src={escanciado} alt="Camarero escanciando sidra en la sala" sizes="(min-width: 52rem) 25vw, 50vw" widths={[320, 480, 640, 1000]} />
-        <Photo src={ambiente} alt="Sala de la sidrería llena de clientes" sizes="(min-width: 52rem) 25vw, 50vw" widths={[320, 480, 640, 800]} />
-      </div>
-      <div>
-        <p class="eyebrow">Bienvenido</p>
-        <h2 id="casa-h">Bienvenido a la Sidrería Villaviciosa</h2>
-        <p class="casa__lead">Cocina casera, auténtica y hecha con cariño, como siempre se ha comido en casa.</p>
-        <p>En plena calle Gascona, la sidra es más que una bebida: es cultura, encuentro y celebración. Aquí se escancia con orgullo.</p>
-        <a href="/quienes-somos/">Conoce nuestra historia</a>
+    <div class="visita__col visita__res" aria-labelledby="res-h">
+      <Photo src={luis} alt="" sizes="(min-width: 52rem) 55vw, 100vw" widths={[480, 800, 1200, 1715]} class="visita__bg" />
+      <div class="visita__txt">
+        <p class="eyebrow eyebrow--white">Ven, te esperamos</p>
+        <h2 id="res-h">Reservas</h2>
+        <p>Reserva tu mesa, asegúrate de poder disfrutar de un momento único. Tú eliges la compañía.</p>
+        <h3>Reservas</h3>
+        <p class="visita__contact">
+          {local.email && <>Email: <a href={`mailto:${local.email}`}>{local.email}</a><br /></>}
+          Llámanos: <a href={telHref(local.phone)}>{local.phone}</a>
+        </p>
+        <a class="ulink" href={telHref(local.phone)}>Reserva tu mesa</a>
       </div>
     </div>
   </section>
-
-  <Reviews reviews={site.reviews} />
-
-  <section class="section" id="reservas" aria-labelledby="res-h">
-    <div class="wrap res">
-      <div>
-        <p class="eyebrow">Reservas</p>
-        <h2 id="res-h">Reserva tu mesa</h2>
-        <p class="lead">Asegúrate de poder disfrutar de un momento único. Tú eliges la compañía. Reservas por teléfono en el <a href={telHref(local.phone)}>{local.phone}</a>.</p>
-      </div>
-      <LocationCard location={local} title="Horario y ubicación" />
-    </div>
-  </section>
-</BaseLayout>
+</Layout>
 
 <style>
-  .hero { padding-block: clamp(2.5rem, 7vw, 5rem); }
-  .hero__in { display: grid; gap: 2rem; align-items: center; }
-  @media (min-width: 60rem) { .hero__in { grid-template-columns: 0.9fr 1.1fr; gap: 4rem; } }
-  .hero h1 { max-width: 13ch; }
-  .hero .lead { margin-bottom: 2rem; }
-  :global(.hero__img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-  .sug { background: var(--c-accent); color: var(--c-accent-text); }
-  .sug .eyebrow { color: inherit; opacity: 0.8; }
-  .sug__in { display: grid; gap: 2rem; align-items: center; }
-  @media (min-width: 52rem) { .sug__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .sug__list { list-style: none; margin: 0; padding: 0; font: 500 1.4rem/1.3 var(--f-display); }
-  .sug__list li { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
-  .sug__p { white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .dest__list { list-style: none; margin: 2.5rem 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
-  .dest__list li { display: flex; flex-direction: column; }
-  :global(.dest__img) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; margin-bottom: 1rem; }
-  .dest__t { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--c-muted); margin: 0 0 0.4rem; }
-  .dest__list h3 { flex: 1; font-size: 1.2rem; }
-  .dest__p { margin: 0; font-weight: 600; }
-  .casa { background: var(--c-surface); border-block: 1px solid var(--c-line); }
-  .casa__in { display: grid; gap: 2.5rem; align-items: center; }
-  @media (min-width: 52rem) { .casa__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .casa__fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .casa__fotos :global(img) { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
-  .casa__fotos > :global(picture:nth-child(2)) { margin-top: 3rem; }
-  .casa__lead { font: 500 1.4rem/1.4 var(--f-display); }
-  .res { display: grid; gap: 2rem; }
-  @media (min-width: 60rem) { .res { grid-template-columns: 1fr 1.1fr; gap: 4rem; align-items: start; } }
+  /* Portada con diapositivas: desplazamiento horizontal, sin JavaScript ni cambio automático. */
+  .hero { position: relative; }
+  .hero__track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .hero__track::-webkit-scrollbar { display: none; }
+  .slide { position: relative; flex: 0 0 100%; scroll-snap-align: start; min-height: min(100svh, 58rem); display: grid; place-items: center; padding: 11rem var(--space) 5rem; overflow: hidden; }
+  .slide :global(.slide__bg) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .slide::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.5); }
+  .slide__txt { position: relative; z-index: 1; text-align: center; max-width: 52rem; }
+  .slide h1, .t-h { margin: 0 0 1.5rem; font-family: var(--f-display); line-height: 1.05; }
+  .t1 { display: block; font-style: italic; font-weight: 400; font-size: clamp(2.6rem, 6vw, 4.6rem); color: #fff; }
+  .t2 { display: block; font-weight: 600; font-size: clamp(2.9rem, 6.6vw, 5rem); color: var(--c-accent); }
+  .slide__txt > p:not(.t-h) { font-size: 1.05rem; margin-bottom: 2.75rem; }
+  .slide__cta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1.25rem 3.5rem; }
+  .dots { position: absolute; left: 0; right: 0; bottom: 1.5rem; display: flex; justify-content: center; gap: 0.25rem; }
+  .dots a { width: 24px; height: 24px; display: grid; place-items: center; }
+  .dots a::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: rgb(255 255 255 / 0.5); }
+  .dots a:hover::before, .dots a:focus-visible::before { background: #fff; transform: scale(1.4); }
+
+  /* Sugerencias */
+  .sug { text-align: center; }
+  .eyebrow--lines { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+  .eyebrow--lines::before, .eyebrow--lines::after { content: ''; width: 2.5rem; height: 1px; background: var(--c-accent); }
+  .sug h2 { font-size: clamp(2.4rem, 5vw, 3.25rem); }
+  .sug__list { list-style: none; margin: 1rem auto 0; padding: 0; max-width: 28rem; font: 500 1.25rem/1.4 var(--f-display); }
+  .sug__list li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.6rem 0; text-align: left; }
+  .sug__dots { flex: 1; border-bottom: 1px dotted var(--c-muted); min-width: 1.5rem; transform: translateY(-0.3em); }
+  .sug__fotos { display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 3rem auto; }
+  .sug__fotos :global(picture) { width: min(45%, 15rem); }
+  .sug__fotos :global(picture:last-child) { width: min(50%, 17rem); }
+  .sug__fotos :global(img) { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; }
+  .sug__fotos :global(picture:first-child img) { aspect-ratio: 3 / 4; }
+  .sug__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.25rem; }
+
+  /* Franja con la entrada del local (fija al hacer scroll en escritorio, como la original). */
+  .franja { height: clamp(16rem, 34vw, 30rem); background: var(--bg) center / cover no-repeat; }
+  @media (min-width: 62rem) and (prefers-reduced-motion: no-preference) { .franja { background-attachment: fixed; } }
+
+  /* Reseñas */
+  .rev__in { position: relative; text-align: center; max-width: 52rem; }
+  .rev__in::before, .rev__in::after { content: ''; position: absolute; top: 50%; width: 3rem; height: 1px; background: rgb(255 255 255 / 0.5); }
+  .rev__in::before { left: -4rem; }
+  .rev__in::after { right: -4rem; }
+  @media (max-width: 62rem) { .rev__in::before, .rev__in::after { display: none; } }
+  .rev__q { display: block; font: 600 5rem/0.6 var(--f-display); color: var(--c-accent); margin-bottom: 1rem; }
+  .rev__track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .rev__track::-webkit-scrollbar { display: none; }
+  .rev__item { flex: 0 0 100%; scroll-snap-align: start; margin: 0; padding-inline: 0.5rem; }
+  .rev__item blockquote { margin: 0 0 1.5rem; font: 500 clamp(1.25rem, 2.4vw, 1.6rem)/1.45 var(--f-display); }
+  .rev__item figcaption { display: grid; gap: 0.25rem; font-size: 0.8rem; }
+  .rev__item figcaption strong { font-weight: 500; text-transform: capitalize; }
+  .rev__item figcaption span { color: var(--c-muted); font-size: 0.7rem; }
+  .dots--rev { position: static; margin-top: 2.5rem; }
+
+  /* Visítanos y Reservas */
+  .visita { display: grid; }
+  @media (min-width: 52rem) { .visita { grid-template-columns: 0.83fr 1fr; } }
+  .visita__col { position: relative; display: grid; align-content: center; justify-items: center; text-align: center; padding: clamp(4rem, 9vw, 7rem) var(--space); }
+  .visita__donde { background: var(--c-surface-2); }
+  .visita h2 { font-size: clamp(2rem, 4vw, 2.6rem); text-transform: uppercase; letter-spacing: 0.04em; }
+  .visita h3 { font: 600 0.85rem/1.4 var(--f-body); text-transform: uppercase; letter-spacing: 0.04em; margin: 0.5rem 0 0.35rem; }
+  .visita p { font-size: 0.95rem; }
+  .eyebrow--white { color: #fff; }
+  .horario { list-style: none; margin: 0 0 1.5rem; padding: 0; font-size: 0.95rem; line-height: 1.6; }
+  .visita__res { overflow: hidden; }
+  .visita__res :global(.visita__bg) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .visita__res::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.55); }
+  .visita__txt { position: relative; z-index: 1; max-width: 32rem; }
+  .visita__contact a { text-decoration: none; }
 </style>

@@ -1,0 +1,94 @@
+---
+// Cabecera propia de la sidrería, copiada de la web original: barra superior con
+// dirección y contacto, logo, menú en mayúsculas y botón "Reservar mesa" (por teléfono).
+// Con `overlay` va sobre la foto de portada; en el resto de páginas, sobre fondo oscuro.
+import { Image } from 'astro:assets';
+import { telHref } from '@rea/core/lib/format.ts';
+import type { SiteData, LocationData } from '@rea/core/lib/schema.ts';
+import logo from '../assets/logo-blanco.png';
+interface Props { site: SiteData; local: LocationData; current: string; overlay?: boolean }
+const { site, local, current, overlay = false } = Astro.props;
+const isCurrent = (href: string) => (href === '/' ? current === '/' : current.startsWith(href));
+const a = local.address;
+---
+<header class:list={['hdr', { 'hdr--overlay': overlay }]}>
+  <div class="hdr__top">
+    <div class="wrap hdr__top-in">
+      <p>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+        {a.street.replace(/^C\/\s*/, '')}, {a.locality}, Asturias, {a.postalCode}
+      </p>
+      <p class="hdr__contact">
+        <a href={telHref(local.phone)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1Z" /></svg>
+          {local.phone}
+        </a>
+        {local.email && (
+          <a href={`mailto:${local.email}`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3V5Zm2 2v.5l7 4.5 7-4.5V7H5Zm14 2.85-7 4.5-7-4.5V17h14V9.85Z" /></svg>
+            {local.email}
+          </a>
+        )}
+      </p>
+    </div>
+  </div>
+  <div class="wrap hdr__in">
+    <a class="hdr__brand" href="/">
+      <Image src={logo} alt={site.name} height={56} densities={[1, 2]} loading="eager" />
+    </a>
+    <details class="hdr__menu">
+      <summary><span>Menú</span></summary>
+      <nav aria-label="Principal">
+        <ul>
+          {site.nav.map((n) => (
+            <li><a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </details>
+    <a class="hdr__cta" href={telHref(local.phone)}>Reservar mesa</a>
+  </div>
+</header>
+<style>
+  .hdr { position: relative; z-index: 50; background: var(--c-bg); color: #fff; font-family: var(--f-body); }
+  .hdr--overlay { position: absolute; inset: 0 0 auto; background: linear-gradient(rgb(0 0 0 / 0.55), transparent); }
+  .hdr__top { border-bottom: 1px solid rgb(255 255 255 / 0.12); font-size: 0.75rem; }
+  .hdr__top-in { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.6rem; }
+  .hdr__top p { margin: 0; display: flex; align-items: center; gap: 0.4rem; }
+  .hdr__contact { gap: 1.75rem !important; }
+  .hdr__top a { display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
+  .hdr__top svg { width: 0.9rem; height: 0.9rem; fill: currentColor; flex: none; }
+  .hdr__in { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-height: 5.5rem; }
+  .hdr__brand img { height: 56px; width: auto; }
+  .hdr__menu summary { list-style: none; cursor: pointer; min-height: 44px; display: flex; align-items: center; padding: 0 0.25rem; font: 500 0.8rem/1 var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; }
+  .hdr__menu summary::-webkit-details-marker { display: none; }
+  .hdr__menu ul { list-style: none; margin: 0; padding: 0; }
+  .hdr__menu a { display: block; padding: 0.8rem 0; text-decoration: none; font: 500 0.75rem/1.2 var(--f-body); letter-spacing: 0.1em; text-transform: uppercase; }
+  .hdr__menu a[aria-current='page'] { color: #fff; }
+  .hdr__menu nav { position: absolute; left: 0; right: 0; top: 100%; background: var(--c-bg); border-bottom: 1px solid var(--c-line); padding: 0.5rem var(--space) 1rem; }
+  .hdr__cta { display: none; padding: 0.8rem 1.1rem; border: 2px solid #fff; font: 500 0.7rem/1 var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+  .hdr__cta:hover { background: #fff; color: var(--c-bg); }
+  @media (max-width: 40rem) {
+    .hdr__top-in > p:first-child, .hdr__top a:last-child:not(:first-child) { display: none; }
+    .hdr__top-in { justify-content: center; }
+    .hdr__brand img { height: 44px; }
+  }
+  @media (min-width: 62rem) {
+    .hdr__menu summary { display: none; }
+    .hdr__menu nav { position: static; display: block; padding: 0; border: 0; background: none; }
+    .hdr__menu ul { display: flex; gap: 1.75rem; }
+    .hdr__menu a { padding: 0.5rem 0; border-bottom: 2px solid transparent; }
+    .hdr__menu a:hover { color: #fff; border-bottom-color: rgb(255 255 255 / 0.4); }
+    .hdr__menu a[aria-current='page'] { border-bottom-color: var(--c-accent); }
+    .hdr__cta { display: inline-block; }
+  }
+</style>
+<script is:inline>
+  // En escritorio el menú siempre está abierto; en móvil se pliega. Sin JS funciona igual (queda plegable).
+  (function () {
+    var d = document.querySelector('.hdr__menu');
+    var mq = matchMedia('(min-width: 62rem)');
+    function sync() { if (d) d.open = mq.matches; }
+    sync(); mq.addEventListener('change', sync);
+  })();
+</script>

@@ -1,0 +1,58 @@
+---
+// Plantilla de la sidrería: la misma cabecera <head> que la del núcleo, pero con la
+// cabecera y el pie propios de esta web (copiados del diseño original).
+import '../styles/theme.css';
+import type { SiteData } from '@rea/core/lib/schema.ts';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import { local } from '../data/index.ts';
+
+interface Props {
+  site: SiteData;
+  title: string;
+  description?: string;
+  /** Ruta de la página, p. ej. "/carta/". Se usa para la canónica. */
+  path: string;
+  jsonLd?: object[];
+  noindex?: boolean;
+  /** Imagen para redes sociales, ruta absoluta dentro de la web. */
+  ogImage?: string;
+  /** Cabecera transparente sobre la foto de portada. */
+  overlayHeader?: boolean;
+}
+const { site, title, description = site.description, path, jsonLd = [], noindex = false, ogImage, overlayHeader = false } = Astro.props;
+const canonical = new URL(path, site.url).href;
+const fullTitle = path === '/' ? title : `${title} | ${site.name}`;
+---
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content="#0b0a08" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={new URL(ogImage, site.url).href} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <slot name="head" />
+    {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
+  </head>
+  <body>
+    <a class="skip" href="#contenido">Saltar al contenido</a>
+    <SiteHeader site={site} local={local} current={path} overlay={overlayHeader} />
+    <main id="contenido">
+      <slot />
+    </main>
+    <SiteFooter site={site} />
+  </body>
+</html>
