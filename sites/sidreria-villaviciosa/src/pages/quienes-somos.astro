@@ -1,13 +1,12 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Layout from '../components/Layout.astro';
 import Photo from '@rea/core/components/Photo.astro';
 import { site } from '../data/index.ts';
 import luis from '../assets/luis.jpg';
 import botellas from '../assets/botellas.jpg';
 import entrada from '../assets/entrada.jpg';
 ---
-<BaseLayout site={site} title="Quiénes somos" path="/quienes-somos/"
+<Layout title="Quiénes somos" path="/quienes-somos/"
   description="Rocío y Luis cumplieron su sueño de regentar una sidrería en la calle Gascona de Oviedo: cocina asturiana de siempre y trato familiar.">
   <article class="section about">
     <div class="wrap about__head">
@@ -45,7 +44,7 @@ import entrada from '../assets/entrada.jpg';
       </section>
     </div>
   </article>
-</BaseLayout>
+</Layout>
 <style>
   .about__head { display: grid; gap: 2.5rem; align-items: center; }
   @media (min-width: 60rem) { .about__head { grid-template-columns: 1.1fr 0.9fr; gap: 4rem; } }

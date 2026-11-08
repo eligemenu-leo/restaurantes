@@ -14,7 +14,7 @@ interface Props {
   noindex?: boolean;
   /** Imagen para redes sociales, ruta absoluta dentro de la web. */
   ogImage?: string;
-  /** Logo para la cabecera. */
+  /** Logo para la cabecera. Una web puede poner su propia cabecera o pie con los slots "header" y "footer". */
   logo?: ImageMetadata;
 }
 const { site, title, description = site.description, path, jsonLd = [], noindex = false, ogImage, logo } = Astro.props;
@@ -45,10 +45,10 @@ const fullTitle = path === '/' ? title : `${title} | ${site.name}`;
   </head>
   <body>
     <a class="skip" href="#contenido">Saltar al contenido</a>
-    <Header site={site} current={path} logo={logo} />
+    <slot name="header"><Header site={site} current={path} logo={logo} /></slot>
     <main id="contenido">
       <slot />
     </main>
-    <Footer site={site} />
+    <slot name="footer"><Footer site={site} /></slot>
   </body>
 </html>

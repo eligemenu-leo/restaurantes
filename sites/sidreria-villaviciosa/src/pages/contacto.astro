@@ -1,12 +1,11 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Layout from '../components/Layout.astro';
 import LocationCard from '@rea/core/components/LocationCard.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
 import { telHref } from '@rea/core/lib/format.ts';
 import { site, local } from '../data/index.ts';
 ---
-<BaseLayout site={site} title="Reservas y contacto" path="/contacto/"
+<Layout title="Reservas y contacto" path="/contacto/"
   description="Reserva en Sidrería Villaviciosa llamando al 984 68 14 15. Calle Gascona, 7, Oviedo. Cerramos los miércoles."
   jsonLd={[restaurantGraph(site)]}>
   <div class="wrap section ct">
@@ -24,7 +23,7 @@ import { site, local } from '../data/index.ts';
       <p class="ct__txt">Para cualquier otra consulta, escríbenos a <a href={`mailto:${local.email}`}>{local.email}</a>.</p>
     </div>
   </div>
-</BaseLayout>
+</Layout>
 <style>
   .ct { display: grid; gap: 3rem; }
   @media (min-width: 60rem) { .ct { grid-template-columns: 1fr 1.1fr; align-items: start; gap: 4rem; } }

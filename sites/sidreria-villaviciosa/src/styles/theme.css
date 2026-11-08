@@ -1,20 +1,55 @@
-@import '@fontsource-variable/fraunces';
-@import '@fontsource-variable/inter';
+@import '@fontsource/cormorant-garamond/latin-400.css';
+@import '@fontsource/cormorant-garamond/latin-400-italic.css';
+@import '@fontsource/cormorant-garamond/latin-600.css';
+@import '@fontsource-variable/jost';
 @import '@rea/core/styles/base.css';
 
-/* Sidrería Villaviciosa: madera, papel y verde botella de sidra. */
+/* Sidrería Villaviciosa: la estética de la web original (tema Patiotime):
+   fondo casi negro, naranja sidra, Cormorant Garamond para títulos y Jost para texto. */
 :root {
-  --c-bg: #f6f0e4;
-  --c-surface: #fffaf0;
-  --c-text: #231c14;
-  --c-muted: #5c5143;
-  --c-accent: #2f5b34;
-  --c-accent-text: #fffaf0;
-  --c-line: #dccfb8;
-  --c-footer-bg: #1f2b1f;
-  --c-footer-text: #efe7d6;
-  --f-display: 'Fraunces Variable', Georgia, serif;
-  --f-body: 'Inter Variable', system-ui, sans-serif;
-  --radius: 2px;
+  --c-bg: #0b0a08;
+  --c-surface: #151318;
+  --c-surface-2: #1c1a20;
+  --c-text: #ffffff;
+  --c-muted: #a2a2a2;
+  --c-accent: #dd5903;
+  /* Fondo de botón: un punto más oscuro que el naranja para que el texto blanco cumpla contraste AA. */
+  --c-accent-strong: #c24e02;
+  --c-accent-text: #ffffff;
+  --c-line: rgb(255 255 255 / 0.12);
+  --c-footer-bg: #0b0a08;
+  --c-footer-text: #ffffff;
+  --f-display: 'Cormorant Garamond', Georgia, serif;
+  --f-body: 'Jost Variable', 'Jost', system-ui, sans-serif;
+  --radius: 0;
+  color-scheme: dark;
 }
-h1, h2 { font-variation-settings: 'SOFT' 50, 'WONK' 1; font-weight: 560; }
+body { font-size: 1rem; line-height: 1.7; }
+h1, h2 { font-weight: 400; letter-spacing: 0; }
+h3 { font-weight: 600; }
+.lead { color: var(--c-text); opacity: 0.85; }
+.eyebrow { font-weight: 500; letter-spacing: 0.12em; font-size: 0.75rem; }
+
+/* Botones como los del tema original: texto en mayúsculas, pequeño y espaciado. */
+.btn {
+  font: 600 0.8125rem/1 var(--f-body); letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--c-accent-strong); border-color: var(--c-accent-strong); min-height: 44px; padding: 0.9em 1.6em;
+}
+.btn:hover { background: transparent; color: var(--c-accent); border-color: var(--c-accent); }
+.btn--ghost { background: transparent; color: var(--c-accent); border-color: var(--c-accent); }
+.btn--ghost:hover { background: var(--c-accent-strong); color: #fff; border-color: var(--c-accent-strong); }
+
+/* Enlace subrayado (pt-btn-underline). */
+.link-line {
+  display: inline-block; padding: 0.35rem 0; font: 600 0.75rem/1.2 var(--f-body); letter-spacing: 0.12em;
+  text-transform: uppercase; text-decoration: none; color: #fff; border-bottom: 1px solid currentColor;
+}
+.link-line:hover { color: var(--c-accent); }
+.link-line--accent { border-bottom-color: var(--c-accent); }
+
+/* Antetítulo naranja con rayas a los lados ("Recomendación del chef"). */
+.kicker {
+  display: flex; align-items: center; justify-content: center; gap: 0.9rem; margin: 0 0 0.75rem;
+  font: 500 0.75rem/1.2 var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-accent);
+}
+.kicker--lines::before, .kicker--lines::after { content: ''; width: 2.5rem; height: 1px; background: currentColor; }

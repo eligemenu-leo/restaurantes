@@ -1,0 +1,17 @@
+---
+// Plantilla de la web: la del núcleo con la cabecera y el pie propios de la Sidrería.
+import '../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import { site } from '../data/index.ts';
+type BaseProps = Omit<Parameters<typeof BaseLayout>[0], 'site'>;
+interface Props extends BaseProps { overlayHeader?: boolean }
+const { overlayHeader = false, ...rest } = Astro.props;
+---
+<BaseLayout site={site} {...rest}>
+  <Fragment slot="head"><slot name="head" /></Fragment>
+  <SiteHeader slot="header" current={rest.path} overlay={overlayHeader} />
+  <slot />
+  <SiteFooter slot="footer" />
+</BaseLayout>

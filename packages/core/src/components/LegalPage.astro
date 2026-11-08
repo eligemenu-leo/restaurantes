@@ -7,6 +7,8 @@ interface Props { site: SiteData; title: string; path: string; pending?: boolean
 const { site, title, path, pending = false, logo, html, index = false } = Astro.props;
 ---
 <BaseLayout site={site} title={title} path={path} noindex={!index} logo={logo}>
+  {Astro.slots.has('header') && <slot name="header" slot="header" />}
+  {Astro.slots.has('footer') && <slot name="footer" slot="footer" />}
   <article class="wrap section legal">
     <h1>{title}</h1>
     {pending ? <p class="legal__pending">Texto pendiente de migrar desde la web anterior.</p> : html ? <div class="legal__body" set:html={html} /> : <slot />}
