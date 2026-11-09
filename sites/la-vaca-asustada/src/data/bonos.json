@@ -1,0 +1,9 @@
+{
+  "activo": false,
+  "endpoint": "",
+  "comercio": "la-vaca-asustada",
+  "importes": [50, 100, 150],
+  "validezMeses": 12,
+  "locales": ["Gijón", "Oviedo"],
+  "email": "info@lavacaasustada.com"
+}

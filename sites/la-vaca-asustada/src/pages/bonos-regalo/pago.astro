@@ -1,0 +1,39 @@
+---
+import '../../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import { logo } from '../../layouts.ts';
+import { site } from '../../data/index.ts';
+---
+<BaseLayout site={site} logo={logo} title="Pago del bono" path="/bonos-regalo/pago/" noindex>
+  <div class="wrap section">
+    <p class="eyebrow">Bonos regalo</p>
+    <h1>Te llevamos al pago</h1>
+    <!-- El servicio de bonos devuelve aquí el pedido firmado (en el #) y este formulario lo envía a Redsys. -->
+    <form id="redsys" method="post">
+      <input type="hidden" name="Ds_SignatureVersion" />
+      <input type="hidden" name="Ds_MerchantParameters" />
+      <input type="hidden" name="Ds_Signature" />
+      <p class="lead" id="estado">Un momento, estamos abriendo la pasarela segura de Redsys.</p>
+      <noscript><p class="lead">Pulsa el botón para ir a la pasarela de pago.</p></noscript>
+      <button class="btn" type="submit" id="seguir">Continuar al pago</button>
+    </form>
+  </div>
+</BaseLayout>
+<script is:inline>
+  (function () {
+    var URLS = { pruebas: 'https://sis-t.redsys.es:25443/sis/realizarPago', real: 'https://sis.redsys.es/sis/realizarPago' };
+    var q = new URLSearchParams(location.hash.slice(1));
+    var f = document.getElementById('redsys');
+    var e = q.get('e');
+    if (!Object.prototype.hasOwnProperty.call(URLS, e) || !q.get('p') || !q.get('s')) {
+      document.getElementById('estado').innerHTML = 'No encontramos el pedido. <a href="/bonos-regalo/">Vuelve a empezar</a>.';
+      document.getElementById('seguir').hidden = true;
+      return;
+    }
+    f.action = URLS[e];
+    f.Ds_SignatureVersion.value = q.get('v') || 'HMAC_SHA256_V1';
+    f.Ds_MerchantParameters.value = q.get('p');
+    f.Ds_Signature.value = q.get('s');
+    f.submit();
+  })();
+</script>

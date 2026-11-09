@@ -1,0 +1,15 @@
+---
+import '../../styles/theme.css';
+import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import { logo } from '../../layouts.ts';
+import { site } from '../../data/index.ts';
+import { bonos } from '../../data/bonos.ts';
+---
+<BaseLayout site={site} logo={logo} title="Gracias por tu compra" path="/bonos-regalo/gracias/" noindex>
+  <div class="wrap section">
+    <p class="eyebrow">Bonos regalo</p>
+    <h1>¡Gracias por tu compra!</h1>
+    <p class="lead">En unos minutos te llegará el bono por correo. Si no lo ves, mira en la carpeta de correo no deseado o escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</p>
+    <div class="btn-row"><a class="btn" href="/contacto/">Reservar mesa</a><a class="btn btn--ghost" href="/">Ir al inicio</a></div>
+  </div>
+</BaseLayout>

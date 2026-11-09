@@ -1,0 +1,6 @@
+# Las dos funciones las llaman un formulario de la web y Redsys, que no llevan token de Supabase.
+[functions.bonos-pedido]
+verify_jwt = false
+
+[functions.bonos-notificacion]
+verify_jwt = false
