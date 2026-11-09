@@ -23,8 +23,10 @@ y de las webs: cualquier web (esté donde esté alojada) puede vender bonos con 
      pública de la documentación de Redsys, `sq7HjrUOBfKmC576ILgskD5srU870gJ7`.
    - `RESEND_API_KEY` y `CORREO_REMITENTE` (p. ej. `La Vaca Asustada <bonos@lavacaasustada.com>`).
      Sin ellos todo funciona pero no salen correos (queda en el registro de la función).
-3. Desplegar las funciones (con verificación de JWT desactivada, ya está en `config.toml`):
-   `supabase functions deploy bonos-pedido bonos-notificacion --project-ref <ref>`
+3. Desplegar las funciones con la verificación de JWT desactivada (ya está en `config.toml`). Con la CLI:
+   `supabase functions deploy bonos-pedido bonos-notificacion --project-ref <ref>`.
+   Sin CLI, desde el panel: `sh scripts/empaquetar.sh salida/` deja cada función en un solo archivo para pegarla
+   en Edge Functions → Deploy a new function → Via editor, y luego desactivar "Verify JWT" en sus ajustes.
 4. En la web, `src/data/bonos.json`: `endpoint` = `https://<ref>.supabase.co/functions/v1/bonos-pedido`
    y `activo: true`. Los importes deben coincidir con `comercios.importes_cent`.
 
