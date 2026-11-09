@@ -17,7 +17,7 @@ export function b64encode(bytes: Uint8Array): string {
 }
 
 /** Acepta base64 normal y "url-safe" (Redsys usa este último en las notificaciones), con o sin relleno. */
-export function b64decode(str: string): Uint8Array {
+export function b64decode(str: string): Uint8Array<ArrayBuffer> {
   let s = str.trim().replace(/-/g, '+').replace(/_/g, '/');
   while (s.length % 4) s += '=';
   const bin = atob(s);

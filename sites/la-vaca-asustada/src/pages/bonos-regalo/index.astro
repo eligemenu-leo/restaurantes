@@ -10,6 +10,8 @@ const locales = lista(bonos.locales);
 const validez = bonos.validezMeses % 12 === 0
   ? `${bonos.validezMeses / 12} ${bonos.validezMeses === 12 ? 'año' : 'años'}`
   : `${bonos.validezMeses} meses`;
+// Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
+const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
 ---
 <BaseLayout site={site} logo={logo} title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo}
   description={`Regala una comida en La Vaca Asustada. Bonos regalo válidos en ${locales}, con pago seguro con tarjeta.`}>
@@ -21,15 +23,16 @@ const validez = bonos.validezMeses % 12 === 0
     {!bonos.activo ? (
       <p class="aviso">Muy pronto podrás comprar los bonos aquí. Mientras tanto, pregúntanos en el restaurante o escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</p>
     ) : (
+      <p class="aviso" id="cerrado" hidden>Ahora mismo no hay bonos a la venta. Escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a> si quieres uno.</p>
       <form id="comprar" class="bono" method="post" action={bonos.endpoint}>
         <input type="hidden" name="comercio" value={bonos.comercio} />
         <p class="error" id="error" role="alert" hidden></p>
 
         <fieldset>
           <legend>Importe</legend>
-          <div class="importes">
+          <div class="importes" id="importes" data-api={api} data-comercio={bonos.comercio}>
             {bonos.importes.map((e, i) => (
-              <label class="importe"><input type="radio" name="importe" value={e} required checked={i === 0} /><span>{e} €</span></label>
+              <label class="importe"><input type="radio" name="importe" value={e} required checked={i === 0} /><span><strong>{e} €</strong><small>Válido {validez}</small></span></label>
             ))}
           </div>
         </fieldset>
@@ -63,7 +66,8 @@ const validez = bonos.validezMeses % 12 === 0
     <section id="condiciones" class="condiciones" aria-labelledby="condiciones-h">
       <h2 id="condiciones-h">Condiciones</h2>
       <ul>
-        <li>El bono es válido durante {validez} desde la compra en nuestros locales de {locales}.</li>
+        <li>El bono se puede usar en nuestros locales de {locales} hasta la fecha de caducidad que aparece junto a cada importe y en el propio bono.</li>
+        <li>Se puede gastar de una vez o en varias visitas hasta agotar el saldo.</li>
         <li>Para usarlo, enseña el correo o di el código al pedir la cuenta.</li>
         <li>Si tienes cualquier duda, escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</li>
       </ul>
@@ -78,26 +82,67 @@ const validez = bonos.validezMeses % 12 === 0
         importe: 'Elige uno de los importes disponibles.',
         datos: 'Revisa tu nombre y tu correo electrónico.',
         condiciones: 'Tienes que aceptar las condiciones para continuar.',
-        servicio: 'Ahora mismo no podemos procesar el pedido. Inténtalo en unos minutos.'
+        servicio: 'Ahora mismo no podemos procesar el pedido. Inténtalo en unos minutos.',
+        cerrado: 'Ahora mismo no hay bonos a la venta.'
       };
       var code = new URLSearchParams(location.search).get('error');
       var el = document.getElementById('error');
       if (el && code && Object.prototype.hasOwnProperty.call(msgs, code)) { el.textContent = msgs[code]; el.hidden = false; }
+
+      // Tipos de bono vigentes, desde el panel de gestión. Si falla, se quedan los importes de la página.
+      var box = document.getElementById('importes');
+      if (!box || !window.fetch) return;
+      var euros = function (c) { return (c % 100 ? (c / 100).toFixed(2).replace('.', ',') : String(c / 100)) + ' €'; };
+      var fecha = function (iso) { return new Date(iso + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }); };
+      var validez = function (t) {
+        if (t.caduca_fija) return 'Válido hasta el ' + fecha(t.caduca_fija);
+        var m = t.validez_meses;
+        return 'Válido ' + (m % 12 ? m + ' meses' : (m / 12) + (m === 12 ? ' año' : ' años'));
+      };
+      fetch(box.dataset.api + '/config?comercio=' + encodeURIComponent(box.dataset.comercio))
+        .then(function (r) { if (!r.ok) throw r; return r.json(); })
+        .then(function (cfg) {
+          if (!cfg.venta_activa) {
+            document.getElementById('comprar').hidden = true;
+            document.getElementById('cerrado').hidden = false;
+            return;
+          }
+          box.textContent = '';
+          cfg.tipos.forEach(function (t, i) {
+            var label = document.createElement('label'); label.className = 'importe';
+            var input = document.createElement('input');
+            input.type = 'radio'; input.name = 'tipo'; input.value = t.id; input.required = true; input.checked = i === 0;
+            var span = document.createElement('span');
+            var strong = document.createElement('strong'); strong.textContent = euros(t.importe_cent);
+            var small = document.createElement('small');
+            small.textContent = (t.nombre && t.nombre !== 'Bono ' + euros(t.importe_cent) ? t.nombre + ' · ' : '') + validez(t);
+            span.append(strong, small);
+            if (t.descripcion) { var d = document.createElement('small'); d.textContent = t.descripcion; span.append(d); }
+            label.append(input, span); box.append(label);
+          });
+        })
+        .catch(function () {});
     })();
   </script>
 )}
-<style>
+<!-- Global: los importes se crean con JavaScript y no llevan el atributo de estilos de Astro. Solo afecta a esta página. -->
+<style is:global>
   .aviso { margin-top: 2rem; padding: 1.25rem 1.5rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); max-width: var(--w-text); }
   .bono { margin-top: 2.5rem; max-width: var(--w-text); display: grid; gap: 2rem; }
+  .bono[hidden], .aviso[hidden] { display: none; }
   fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 1rem; }
   legend { font: 600 1.35rem/1.2 var(--f-display); margin-bottom: 1rem; padding: 0; }
   .opcional { font: 400 1rem var(--f-body); color: var(--c-muted); }
   .importes { display: flex; flex-wrap: wrap; gap: 0.75rem; }
   .importe input { position: absolute; opacity: 0; width: 1px; height: 1px; }
   .importe span {
-    display: inline-flex; align-items: center; justify-content: center; min-width: 6.5rem; min-height: 48px; padding: 0.5em 1.2em;
-    border: 2px solid var(--c-line); border-radius: var(--radius); font: 600 1.4rem var(--f-display); cursor: pointer;
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+    min-width: 7.5rem; min-height: 48px; padding: 0.6em 1.1em; text-align: center;
+    border: 2px solid var(--c-line); border-radius: var(--radius); cursor: pointer;
   }
+  .importe strong { font: 600 1.4rem var(--f-display); }
+  .importe small { font-size: 0.8rem; color: var(--c-muted); max-width: 12rem; }
+  .importe input:checked + span small { color: inherit; }
   .importe input:checked + span { border-color: var(--c-accent); background: var(--c-accent); color: var(--c-accent-text); }
   .importe input:focus-visible + span { outline: 3px solid var(--c-accent); outline-offset: 3px; }
   .campo { display: grid; gap: 0.4rem; }

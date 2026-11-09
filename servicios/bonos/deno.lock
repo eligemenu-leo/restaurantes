@@ -1,7 +1,8 @@
 {
   "version": "5",
   "specifiers": {
-    "npm:@supabase/supabase-js@2.49.4": "2.49.4"
+    "npm:@supabase/supabase-js@2.49.4": "2.49.4",
+    "npm:qrcode-generator@1.4.4": "1.4.4"
   },
   "npm": {
     "@supabase/auth-js@2.69.1": {
@@ -68,6 +69,9 @@
       "dependencies": [
         "@types/node"
       ]
+    },
+    "qrcode-generator@1.4.4": {
+      "integrity": "sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw=="
     },
     "tr46@0.0.3": {
       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw=="

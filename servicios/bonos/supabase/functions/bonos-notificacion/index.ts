@@ -1,8 +1,9 @@
 // Notificación online de Redsys: llega cuando el cliente termina el pago, con éxito o sin él.
 // Comprueba la firma, marca el pedido, crea el bono y envía los correos. Se puede repetir sin efectos duplicados.
-import { db, claveRedsys, type Comercio } from '../_shared/db.ts';
+import { db, claveRedsys, caducidad, type Bono, type Comercio, type TipoBono } from '../_shared/db.ts';
 import { decodeParams, verificarNotificacion, pagoAutorizado, codigoBono } from '../_shared/redsys.ts';
-import { enviarCorreo, esc, euros } from '../_shared/correo.ts';
+import { enviarCorreo } from '../_shared/correo.ts';
+import { correoAviso, correoBono } from '../_shared/plantillas.ts';
 
 const texto = (body: string, status = 200) => new Response(body, { status, headers: { 'Content-Type': 'text/plain' } });
 
@@ -41,45 +42,29 @@ Deno.serve(async (req) => {
     .eq('id', pedido.id).eq('estado', 'pendiente').select('id');
   if (!cambiado?.length || !pagado) return texto('OK');
 
-  const caduca = new Date();
-  caduca.setUTCMonth(caduca.getUTCMonth() + comercio.validez_meses);
-  const caducaISO = caduca.toISOString().slice(0, 10);
-  let codigo = '';
-  for (let i = 0; i < 5 && !codigo; i++) {
-    const c = codigoBono(comercio.prefijo_codigo);
-    const { error } = await supabase.from('bonos').insert({
-      codigo: c, pedido_id: pedido.id, comercio_id: comercio.id, importe_cent: pedido.importe_cent, caduca: caducaISO,
-    });
-    if (!error) codigo = c;
+  const { data: tipo } = pedido.tipo_id
+    ? await supabase.from('tipos_bono').select('validez_meses, caduca_fija').eq('id', pedido.tipo_id).maybeSingle<TipoBono>()
+    : { data: null };
+  let bono: Bono | null = null;
+  for (let i = 0; i < 5 && !bono; i++) {
+    const { data, error } = await supabase.from('bonos').insert({
+      codigo: codigoBono(comercio.prefijo_codigo), pedido_id: pedido.id, comercio_id: comercio.id, tipo_id: pedido.tipo_id,
+      importe_cent: pedido.importe_cent, saldo_cent: pedido.importe_cent, caduca: caducidad(tipo), origen: 'web',
+      titular_nombre: pedido.comprador_nombre, titular_email: pedido.comprador_email,
+      destinatario_nombre: pedido.destinatario_nombre, mensaje: pedido.mensaje,
+    }).select().single<Bono>();
+    if (!error) bono = data;
     else if (error.code !== '23505') { console.error(error); break; }
   }
-  if (!codigo) { console.error(`Pedido ${numPedido} pagado pero sin bono creado`); return texto('OK'); }
-
-  const importe = euros(pedido.importe_cent);
-  const caducaTexto = caduca.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-  const para = pedido.destinatario_nombre ? `<p>Para: <strong>${esc(pedido.destinatario_nombre)}</strong></p>` : '';
-  const mensaje = pedido.mensaje ? `<p style="font-style:italic">«${esc(pedido.mensaje)}»</p>` : '';
-
-  await enviarCorreo({
-    para: pedido.comprador_email,
-    responderA: comercio.email_avisos,
-    asunto: `Tu bono regalo de ${comercio.nombre}`,
-    html: `<div style="font-family:Georgia,serif;max-width:32rem;margin:auto;padding:2rem;background:#131110;color:#f2ebe0">
-      <p style="letter-spacing:.16em;text-transform:uppercase;color:#e4c590;font:600 12px Arial,sans-serif">Bono regalo</p>
-      <h1 style="margin:.2em 0">${esc(comercio.nombre)}</h1>
-      <p style="font-size:2rem;color:#e4c590;margin:.5em 0">${importe}</p>
-      ${para}${mensaje}
-      <p>Código: <strong style="font-size:1.4rem;letter-spacing:.1em">${codigo}</strong></p>
-      <p>Válido hasta el ${caducaTexto}. Para usarlo, enseña este correo o di el código al pedir la cuenta.</p>
-      <p style="color:#b5aa9a;font-size:13px">Gracias por tu compra, ${esc(pedido.comprador_nombre)}. Pedido ${numPedido}.</p>
-    </div>`,
+  if (!bono) { console.error(`Pedido ${numPedido} pagado pero sin bono creado`); return texto('OK'); }
+  await supabase.from('eventos').insert({
+    comercio_id: comercio.id, bono_codigo: bono.codigo, tipo: 'venta_web',
+    detalle: { pedido: numPedido, importe_cent: bono.importe_cent, autorizacion: p.Ds_AuthorisationCode?.trim() },
   });
-  await enviarCorreo({
-    para: comercio.email_avisos,
-    asunto: `Bono vendido: ${importe} (${codigo})`,
-    html: `<p>Se ha vendido un bono regalo de <strong>${importe}</strong>.</p>
-      <p>Código: <strong>${codigo}</strong><br>Caduca: ${caducaTexto}<br>Comprador: ${esc(pedido.comprador_nombre)} (${esc(pedido.comprador_email)})<br>
-      ${pedido.destinatario_nombre ? `Para: ${esc(pedido.destinatario_nombre)}<br>` : ''}Pedido Redsys: ${numPedido} · autorización ${esc(p.Ds_AuthorisationCode ?? '')}</p>`,
-  });
+
+  const cliente = correoBono(comercio, bono, `Pedido ${numPedido}.`);
+  await enviarCorreo({ para: pedido.comprador_email, responderA: comercio.email_avisos, ...cliente });
+  const aviso = correoAviso(bono, { pedido: numPedido, autorizacion: p.Ds_AuthorisationCode?.trim() });
+  await enviarCorreo({ para: comercio.email_avisos, ...aviso });
   return texto('OK');
 });

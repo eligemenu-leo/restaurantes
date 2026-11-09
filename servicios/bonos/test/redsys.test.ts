@@ -64,3 +64,22 @@ test('número de pedido y código de bono con el formato esperado', () => {
   assert.match(n, /^2611[0-9A-Z]{8}$/);
   assert.match(codigoBono('VACA'), /^VACA-[2-9A-HJKMNP-TV-Z]{4}-[2-9A-HJKMNP-TV-Z]{4}$/);
 });
+
+import { caducidad, enVenta } from '../supabase/functions/_shared/fechas.ts';
+
+test('caducidad: meses desde la compra, fecha fija o 12 meses por defecto', () => {
+  assert.equal(caducidad({ validez_meses: 12, caduca_fija: null }, '2026-11-09'), '2027-11-09');
+  assert.equal(caducidad({ validez_meses: 1, caduca_fija: null }, '2027-01-31'), '2027-02-28');
+  assert.equal(caducidad({ validez_meses: null, caduca_fija: '2027-01-31' }, '2026-12-05'), '2027-01-31');
+  assert.equal(caducidad(null, '2026-11-09'), '2027-11-09');
+});
+
+test('enVenta respeta activo y el periodo de venta', () => {
+  const t = { activo: true, venta_desde: '2026-12-01', venta_hasta: '2026-12-31' } as Parameters<typeof enVenta>[0];
+  assert.ok(!enVenta(t, '2026-11-30'));
+  assert.ok(enVenta(t, '2026-12-01'));
+  assert.ok(enVenta(t, '2026-12-31'));
+  assert.ok(!enVenta(t, '2027-01-01'));
+  assert.ok(!enVenta({ ...t, activo: false }, '2026-12-10'));
+  assert.ok(enVenta({ ...t, venta_desde: null, venta_hasta: null }, '2030-01-01'));
+});

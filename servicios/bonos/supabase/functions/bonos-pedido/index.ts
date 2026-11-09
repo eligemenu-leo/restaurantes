@@ -1,7 +1,7 @@
 // Recibe el formulario de /bonos-regalo/, guarda el pedido y manda al cliente a pagar a Redsys.
 // Responde con una redirección 303 a la página /bonos-regalo/pago/ de la web, que envía el formulario firmado a Redsys.
 // (Supabase no sirve HTML desde sus funciones, por eso el formulario hacia Redsys lo monta la web.)
-import { db, claveRedsys, type Comercio } from '../_shared/db.ts';
+import { db, claveRedsys, enVenta, type Comercio, type TipoBono } from '../_shared/db.ts';
 import { encodeParams, firmar, numeroPedido, VERSION_FIRMA } from '../_shared/redsys.ts';
 
 const redirect = (url: string) => new Response(null, { status: 303, headers: { Location: url } });
@@ -20,11 +20,15 @@ Deno.serve(async (req) => {
   // Campo trampa: las personas no lo ven; si viene relleno es un robot.
   if (campo('web')) return volver('datos');
 
-  const importe = Math.round(Number(campo('importe').replace(',', '.')) * 100);
-  const permitido = comercio.importes_cent
-    ? comercio.importes_cent.includes(importe)
-    : Number.isInteger(importe) && importe >= comercio.importe_min_cent && importe <= comercio.importe_max_cent;
-  if (!permitido) return volver('importe');
+  if (!comercio.venta_activa) return volver('cerrado');
+
+  // El formulario manda el tipo de bono; si la web no pudo cargarlos, manda solo el importe.
+  const { data: tipos } = await supabase.from('tipos_bono').select('*').eq('comercio_id', comercio.id).returns<TipoBono[]>();
+  const importePedido = Math.round(Number(campo('importe').replace(',', '.')) * 100);
+  const tipo = (tipos ?? []).filter((t) => enVenta(t))
+    .find((t) => (campo('tipo') ? t.id === campo('tipo') : t.importe_cent === importePedido));
+  if (!tipo) return volver('importe');
+  const importe = tipo.importe_cent;
 
   const nombre = campo('nombre'), email = campo('email').toLowerCase();
   const para = campo('para') || null, mensaje = campo('mensaje') || null;
@@ -44,7 +48,7 @@ Deno.serve(async (req) => {
   for (let i = 0; i < 3 && !numPedido; i++) {
     const n = numeroPedido();
     const { error } = await supabase.from('pedidos').insert({
-      comercio_id: comercio.id, num_pedido: n, importe_cent: importe,
+      comercio_id: comercio.id, num_pedido: n, importe_cent: importe, tipo_id: tipo.id,
       comprador_nombre: nombre, comprador_email: email, destinatario_nombre: para, mensaje,
     });
     if (!error) numPedido = n;
@@ -60,7 +64,7 @@ Deno.serve(async (req) => {
     DS_MERCHANT_CURRENCY: '978',
     DS_MERCHANT_TRANSACTIONTYPE: '0',
     DS_MERCHANT_MERCHANTNAME: comercio.nombre,
-    DS_MERCHANT_PRODUCTDESCRIPTION: 'Bono regalo',
+    DS_MERCHANT_PRODUCTDESCRIPTION: tipo.nombre.slice(0, 125),
     DS_MERCHANT_TITULAR: nombre.slice(0, 60),
     DS_MERCHANT_CONSUMERLANGUAGE: '001',
     DS_MERCHANT_MERCHANTURL: `${Deno.env.get('SUPABASE_URL')}/functions/v1/bonos-notificacion`,
