@@ -5,7 +5,7 @@ import Photo from '@rea/core/components/Photo.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
 import { price, telHref, mapsHref } from '@rea/core/lib/format.ts';
 import { groupHours } from '@rea/core/lib/hours.ts';
-import { site, sugerencias, destacados, local } from '../data/index.ts';
+import { site, sugerencias, especialidades, local } from '../data/index.ts';
 import heroCulin from '../assets/hero-culin.jpg';
 import heroAlmejas from '../assets/hero-almejas.jpg';
 import bacalao from '../assets/bacalao.jpg';
@@ -13,7 +13,6 @@ import botellas from '../assets/botellas.jpg';
 import rotulo from '../assets/rotulo-movimiento.jpg';
 import reservasFoto from '../assets/reservas-luis.jpg';
 
-const especialidades = destacados.filter((d) => d.item);
 const horario = groupHours(local);
 const a = local.address;
 ---
@@ -79,7 +78,7 @@ const a = local.address;
             {especialidades.map((d) => (
               <li>
                 <span class="dots-list__n">{d.item!.name}</span><span class="dots-list__l" aria-hidden="true"></span>{d.item!.price != null && <span class="dots-list__p">{price(d.item!.price, d.item!.unit).replace(/\s/, '')}</span>}
-                <span class="esp__t">{d.tagline}</span>
+                {d.tagline && <span class="esp__t">{d.tagline}</span>}
               </li>
             ))}
           </ul>

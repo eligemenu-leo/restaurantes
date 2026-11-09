@@ -66,7 +66,10 @@ export const MenuItem = z.object({
   price2: z.number().nonnegative().optional(),
   price2Label: z.string().optional(),
   allergens: z.array(z.enum(Object.keys(ALLERGENS) as [keyof typeof ALLERGENS, ...(keyof typeof ALLERGENS)[]])).optional(),
+  /** Especialidad de la casa (en Eligemenú, "especialidad"). */
   featured: z.boolean().default(false),
+  /** Sugerencia del chef (en Eligemenú, "sugerencia"). */
+  suggestion: z.boolean().default(false),
   tagline: z.string().optional(),
   image: z.string().optional(),
 });

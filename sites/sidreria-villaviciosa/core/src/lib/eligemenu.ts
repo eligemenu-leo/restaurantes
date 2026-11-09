@@ -101,6 +101,7 @@ export function toItem(d: EMDish, group: Pick<EMMenuGroup, 'prices_visible' | 'h
     ...(showPrices && group.has_dual_pricing && d.price_2 != null ? { price2: Number(d.price_2), ...(suffixLabel(d.price_unit_2_suffix, d.price_unit_2) ? { price2Label: suffixLabel(d.price_unit_2_suffix, d.price_unit_2) } : {}) } : {}),
     ...(allergens.length ? { allergens: [...new Set(allergens)] } : {}),
     featured: Boolean(d.is_specialty),
+    suggestion: Boolean(d.is_suggestion),
     ...(d.image_url ? { image: d.image_url } : {}),
   };
 }

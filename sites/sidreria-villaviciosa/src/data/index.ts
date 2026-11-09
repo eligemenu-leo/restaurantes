@@ -30,17 +30,33 @@ const pick = (re: RegExp) => {
   return m;
 };
 const cartaCompleta = pick(/^carta$/i);
-/** Sugerencias del día: el grupo "Sugerencias" de la carta en Eligemenú. */
-export const sugerencias = cartaCompleta.sections.find((s) => s.id === 'sugerencias');
+const todos = cartaCompleta.sections.flatMap((s) => s.items);
+/**
+ * Sugerencias del chef: los platos marcados como "sugerencia" en Eligemenú (lo mismo
+ * que mostraba la web anterior). Si no hay ninguno marcado, el grupo "Sugerencias" de la carta.
+ */
+const marcadas = todos.filter((i) => i.suggestion);
+export const sugerencias = marcadas.length
+  ? { items: marcadas }
+  : cartaCompleta.sections.find((s) => s.id === 'sugerencias');
 export const carta: MenuData = { ...cartaCompleta, sections: cartaCompleta.sections.filter((s) => s.id !== 'sugerencias') };
 export const bodega = pick(/bodega/i);
 
 const platos = carta.sections.flatMap((s) => s.items);
-/** Platos destacados de la portada: se buscan por nombre en la carta de Eligemenú. */
-export const destacados = [
+/** Platos destacados de reserva: se buscan por nombre en la carta de Eligemenú. */
+const destacadosFijos = [
   { match: /^tomates seleccionados/i, tagline: 'Fresca y sabrosa' },
   { match: /^fabada/i, tagline: 'La mejor tradición' },
   { match: /^pix[ií]n/i, tagline: 'De nuestro mar Cantábrico' },
   { match: /^cachopo de ternera/i, tagline: 'Grande, tierno y jugoso' },
   { match: /^arroz con leche/i, tagline: 'Auténticamente delicioso' },
 ].map((d) => ({ tagline: d.tagline, item: platos.find((i) => d.match.test(i.name)) }));
+
+/**
+ * Especialidades de la portada: los platos marcados como "especialidad" en Eligemenú.
+ * Mientras no haya ninguno marcado, se muestran los cinco platos fijos de arriba
+ * (nombre y precio salen igualmente de Eligemenú).
+ */
+const especialidadesEM = platos.filter((i) => i.featured).map((item) => ({ item, tagline: item.tagline }));
+export const especialidades = especialidadesEM.length ? especialidadesEM : destacadosFijos.filter((d) => d.item);
+export const especialidadesDesdeEligemenu = especialidadesEM.length > 0;
