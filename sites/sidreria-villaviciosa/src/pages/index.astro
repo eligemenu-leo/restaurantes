@@ -63,8 +63,8 @@ const turnos = (t: string[]) => [...new Set(t.map((x) => TURNO[x] ?? x))].join('
   <div data-live="menu-del-dia">
   {menuDelDia.map((m, n) => (
     <section class="mdd" id={n === 0 ? 'menu-del-dia' : undefined} aria-labelledby={`mdd-h-${n}`}>
+      <Photo src={mddFondo} alt="" sizes="100vw" widths={[640, 960, 1280, 1920]} class="mdd__bg" />
       <div class="wrap"><div class="mdd__in">
-        <Photo src={mddFondo} alt="" sizes="(min-width: 75rem) 72rem, 100vw" widths={[480, 800, 1200, 1600]} class="mdd__bg" />
         <header class="mdd__head">
           <p class="kicker kicker--lines">Hoy, {fechaLarga(m.date)}</p>
           <h2 id={`mdd-h-${n}`}>{m.name}</h2>
@@ -253,12 +253,12 @@ const turnos = (t: string[]) => [...new Set(t.map((x) => TURNO[x] ?? x))].join('
 
   /* Menú del día: destacado con marco naranja; botón en la portada. */
   .hero__mdd { margin: 1.75rem 0 1.5rem; }
-  .mdd { padding-block: clamp(4rem, 9vw, 7rem) 0; }
+  .mdd { position: relative; isolation: isolate; overflow: hidden; margin-top: clamp(3rem, 7vw, 5rem); padding-block: clamp(3rem, 7vw, 5rem); }
   .mdd__in {
-    position: relative; isolation: isolate; overflow: hidden; max-width: 72rem; margin-inline: auto; padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
-    background: var(--c-surface-2); border: 1px solid var(--c-accent); box-shadow: 0 0 0 6px var(--c-bg), 0 0 0 7px rgb(221 89 3 / 0.45);
+    position: relative; max-width: 72rem; margin-inline: auto; padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+    background: rgb(21 19 24 / 0.72); border: 1px solid var(--c-accent); box-shadow: 0 0 0 6px rgb(11 10 8 / 0.6), 0 0 0 7px rgb(221 89 3 / 0.45);
   }
-  :global(.mdd__bg) { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.18; pointer-events: none; }
+  :global(.mdd__bg) { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; pointer-events: none; }
   .mdd__head { text-align: center; }
   .mdd h2 { font-size: clamp(2.25rem, 4.6vw, 3.5rem); margin-bottom: 0.75rem; }
   .mdd__precio { margin: 0 0 2.5rem; font-size: 1.0625rem; }
