@@ -30,15 +30,14 @@ const pick = (re: RegExp) => {
   return m;
 };
 const cartaCompleta = pick(/^carta$/i);
-const todos = cartaCompleta.sections.flatMap((s) => s.items);
 /**
- * Sugerencias del chef: los platos marcados como "sugerencia" en Eligemenú (lo mismo
- * que mostraba la web anterior). Si no hay ninguno marcado, el grupo "Sugerencias" de la carta.
+ * Sugerencias para hoy: los platos visibles del grupo "Sugerencias" de la carta en Eligemenú
+ * (los ocultos no llegan en la API). La bombilla de "sugerencia" de cada plato no se usa aquí.
  */
-const marcadas = todos.filter((i) => i.suggestion);
-export const sugerencias = marcadas.length
-  ? { items: marcadas }
-  : cartaCompleta.sections.find((s) => s.id === 'sugerencias');
+const grupoSugerencias = cartaCompleta.sections.find((s) => s.id === 'sugerencias');
+export const sugerencias = grupoSugerencias?.items.length
+  ? grupoSugerencias
+  : { items: cartaCompleta.sections.flatMap((s) => s.items).filter((i) => i.suggestion) };
 export const carta: MenuData = { ...cartaCompleta, sections: cartaCompleta.sections.filter((s) => s.id !== 'sugerencias') };
 export const bodega = pick(/bodega/i);
 
