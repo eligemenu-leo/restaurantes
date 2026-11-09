@@ -59,3 +59,12 @@ const destacadosFijos = [
 const especialidadesEM = platos.filter((i) => i.featured).map((item) => ({ item, tagline: item.tagline }));
 export const especialidades = especialidadesEM.length ? especialidadesEM : destacadosFijos.filter((d) => d.item);
 export const especialidadesDesdeEligemenu = especialidadesEM.length > 0;
+
+/** Menú del día de hoy, de Eligemenú (vacío si hoy no hay). */
+import { loadMenuDelDia, type EMDailyMenu } from '../lib/menu-del-dia.ts';
+import menuDiaSnapshot from './eligemenu/menu-del-dia.json';
+export const menuDelDia = await loadMenuDelDia({
+  slug: ELIGEMENU_SLUG,
+  apiKey: import.meta.env.ELIGEMENU_API_KEY,
+  snapshot: menuDiaSnapshot as unknown as EMDailyMenu[],
+});
