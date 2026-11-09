@@ -59,6 +59,7 @@ const a = local.address;
         <p class="kicker kicker--lines">Recomendación del chef</p>
         <h2 id="sug-h">Sugerencias para hoy</h2>
       </header>
+      <div data-live="sugerencias">
       {sugerencias?.items.length ? (
         <ul class="dots-list sug__list">
           {sugerencias.items.map((i) => (
@@ -66,6 +67,7 @@ const a = local.address;
           ))}
         </ul>
       ) : <p class="sug__empty">Pregunta en sala por las sugerencias de hoy.</p>}
+      </div>
 
       <div class="duo">
         <div class="duo__fotos">
@@ -74,7 +76,7 @@ const a = local.address;
         </div>
         <div class="duo__esp">
           <h3 class="kicker duo__k">Especialidades de la casa</h3>
-          <ul class="dots-list esp">
+          <ul class="dots-list esp" data-live="especialidades">
             {especialidades.map((d) => (
               <li>
                 <span class="dots-list__n">{d.item!.name}</span><span class="dots-list__l" aria-hidden="true"></span>{d.item!.price != null && <span class="dots-list__p">{price(d.item!.price, d.item!.unit).replace(/\s/, '')}</span>}
@@ -117,7 +119,7 @@ const a = local.address;
       <h2 id="visita-h">Visítanos</h2>
       <p>{a.street.replace(/^C\/\s*/, '')}, {a.locality}, {a.region}, {a.postalCode}</p>
       <h3 class="info__h3">Horario de apertura</h3>
-      <ul class="info__horas">
+      <ul class="info__horas" data-live="horario">
         {horario.map((r) => (
           <li>{r.label}: {r.status === 'open' ? r.slots.map((s) => s.replace('–', ' – ')).join(' | ') : r.status === 'closed' ? 'cerrado' : 'consultar'}</li>
         ))}

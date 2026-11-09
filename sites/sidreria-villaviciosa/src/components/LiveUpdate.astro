@@ -1,0 +1,33 @@
+---
+// Actualización sin recargar: cada 2 minutos (solo con la pestaña a la vista) mira si hay
+// una compilación nueva y, si la hay, sustituye las zonas marcadas con data-live por las nuevas.
+// Sin cookies ni datos personales; sin JS la página funciona igual, solo que hay que recargar.
+import { BUILD_ID } from '../lib/build.ts';
+---
+<script is:inline define:vars={{ v: BUILD_ID }}>
+  (function () {
+    if (!document.querySelector('[data-live]') || !window.fetch || !window.DOMParser) return;
+    var current = v, busy = false, last = 0;
+    function check() {
+      if (busy || document.visibilityState !== 'visible' || Date.now() - last < 60000) return;
+      busy = true; last = Date.now();
+      fetch('/version.json', { cache: 'no-store' }).then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d || !d.v || d.v === current) return;
+          return fetch(location.pathname, { cache: 'no-store' }).then(function (r) { return r.text(); })
+            .then(function (html) {
+              var doc = new DOMParser().parseFromString(html, 'text/html');
+              document.querySelectorAll('[data-live]').forEach(function (el) {
+                var nuevo = doc.querySelector('[data-live="' + el.getAttribute('data-live') + '"]');
+                if (nuevo && nuevo.innerHTML !== el.innerHTML) el.innerHTML = nuevo.innerHTML;
+              });
+              current = d.v;
+            });
+        })
+        .catch(function () {})
+        .then(function () { busy = false; });
+    }
+    setInterval(check, 120000);
+    document.addEventListener('visibilitychange', check);
+  })();
+</script>
