@@ -14,7 +14,7 @@ const menu: EMMenu = {
   id: 'm', name: 'Carta', description: null, display_order: 0, prices_visible: true,
   menu_groups: [
     group({ id: 'b', name: 'Postres', display_order: 2, dishes: [dish({ name: 'Tarta', price_1: 6.5, dish_allergens: [{ allergen: { id: '1', name: 'Huevos', icon_url: null } }, { allergen: { id: '2', name: 'Lácteos', icon_url: null } }] })] }),
-    group({ id: 'a', name: 'Al carbón', display_order: 1, dishes: [dish({ name: 'T-bone', price_1: 76, price_unit: 'kg', display_order: 2 }), dish({ name: 'Chuleta', price_1: 94, price_unit: 'kg', display_order: 1, is_specialty: true })] }),
+    group({ id: 'a', name: 'Al carbón', display_order: 1, dishes: [dish({ name: 'T-bone', price_1: 76, price_unit: 'kg', display_order: 2, is_suggestion: true }), dish({ name: 'Chuleta', price_1: 94, price_unit: 'kg', display_order: 1, is_specialty: true })] }),
     group({ id: 'c', name: 'Vinos', display_order: 3, has_dual_pricing: true, price_header_1: 'Botella', price_header_2: 'Copa', dishes: [dish({ name: 'Rioja', price_1: 20, price_2: 4 })] }),
     group({ id: 'c1', name: 'Tintos', parent_group_id: 'c', dishes: [dish({ name: 'Ribera', price_1: 24 })] }),
     group({ id: 'v', name: 'Vacío', display_order: 9, dishes: [] }),
@@ -24,7 +24,7 @@ const menu: EMMenu = {
 test('ordena grupos y platos, mapea kg, alérgenos y precio doble; quita grupos vacíos', () => {
   const m = toMenu(menu, '2026-11-07');
   assert.deepEqual(m.sections.map((s) => [s.id, s.sub]), [['al-carbon', false], ['postres', false], ['vinos', false], ['tintos', true]]);
-  assert.deepEqual(m.sections[0].items.map((i) => [i.name, i.unit, i.featured]), [['Chuleta', 'kg', true], ['T-bone', 'kg', false]]);
+  assert.deepEqual(m.sections[0].items.map((i) => [i.name, i.unit, i.featured, i.suggestion]), [['Chuleta', 'kg', true, false], ['T-bone', 'kg', false, true]]);
   assert.deepEqual(m.sections[1].items[0].allergens, ['huevo', 'lacteos']);
   assert.equal(m.sections[2].items[0].price2, 4);
   assert.deepEqual(m.sections[2].priceHeaders, ['Botella', 'Copa']);

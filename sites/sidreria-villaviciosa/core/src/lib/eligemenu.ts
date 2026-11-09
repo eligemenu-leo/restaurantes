@@ -149,6 +149,8 @@ export async function loadMenus(opts: { slug: string; apiKey?: string; apiBase?:
   const updated = fromLive ? undefined : opts.snapshotDate;
   const menus = [...(data.menus ?? [])].sort(byOrder).map((m) => toMenu(m, updated)).filter((m) => m.sections.length);
   if (!menus.length) throw new Error(`Eligemenú (${opts.slug}): la respuesta no trae ninguna carta con platos`);
+  // Aparece en el registro de compilación de Cloudflare: así se ve de dónde salió la carta.
+  console.log(fromLive ? `[eligemenu] ${opts.slug}: carta en directo de Eligemenú` : `[eligemenu] ${opts.slug}: copia guardada del ${opts.snapshotDate ?? '?'} (no hay ELIGEMENU_API_KEY)`);
   return { source: fromLive ? 'eligemenu' : 'local', restaurant: data.restaurant as LoadedMenus['restaurant'], menus };
 }
 

@@ -101,6 +101,7 @@ export function toItem(d: EMDish, group: Pick<EMMenuGroup, 'prices_visible' | 'h
     ...(showPrices && group.has_dual_pricing && d.price_2 != null ? { price2: Number(d.price_2), ...(suffixLabel(d.price_unit_2_suffix, d.price_unit_2) ? { price2Label: suffixLabel(d.price_unit_2_suffix, d.price_unit_2) } : {}) } : {}),
     ...(allergens.length ? { allergens: [...new Set(allergens)] } : {}),
     featured: Boolean(d.is_specialty),
+    suggestion: Boolean(d.is_suggestion),
     ...(d.image_url ? { image: d.image_url } : {}),
   };
 }
@@ -148,6 +149,8 @@ export async function loadMenus(opts: { slug: string; apiKey?: string; apiBase?:
   const updated = fromLive ? undefined : opts.snapshotDate;
   const menus = [...(data.menus ?? [])].sort(byOrder).map((m) => toMenu(m, updated)).filter((m) => m.sections.length);
   if (!menus.length) throw new Error(`Eligemenú (${opts.slug}): la respuesta no trae ninguna carta con platos`);
+  // Aparece en el registro de compilación de Cloudflare: así se ve de dónde salió la carta.
+  console.log(fromLive ? `[eligemenu] ${opts.slug}: carta en directo de Eligemenú` : `[eligemenu] ${opts.slug}: copia guardada del ${opts.snapshotDate ?? '?'} (no hay ELIGEMENU_API_KEY)`);
   return { source: fromLive ? 'eligemenu' : 'local', restaurant: data.restaurant as LoadedMenus['restaurant'], menus };
 }
 
