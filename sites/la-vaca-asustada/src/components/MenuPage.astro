@@ -31,11 +31,11 @@ const other = locales.find((x) => x.id !== l.id)!;
       <Photo src={piquillos} alt="Piquillos confitados en cazuela de cobre" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
       <Photo src={emplatado} alt="Carne en lonchas emplatada con salsas" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
     </div>
-    <MenuSections menu={l.platos} hideZeroDecimals={HIDE_ZERO_DECIMALS} />
+    <div data-live="carta"><MenuSections menu={l.platos} hideZeroDecimals={HIDE_ZERO_DECIMALS} /></div>
     {l.bebidas && (
       <section id="bebidas" class="bebidas" aria-labelledby="bebidas-h">
         <h2 id="bebidas-h" class="bebidas__h">Bebidas y vinos</h2>
-        <MenuSections menu={l.bebidas} headingLevel={3} hideZeroDecimals={HIDE_ZERO_DECIMALS} toc={false} />
+        <div data-live="bebidas"><MenuSections menu={l.bebidas} headingLevel={3} hideZeroDecimals={HIDE_ZERO_DECIMALS} toc={false} /></div>
       </section>
     )}
   </div>

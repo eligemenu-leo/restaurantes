@@ -43,7 +43,7 @@ const top = topData.filter((t) => t.item).map((t) => ({ ...t, ...photos[t.photo]
       <p class="eyebrow">Garantía de calidad</p>
       <h2 id="top-h">Nuestras carnes TOP</h2>
       <p class="lead">Nos enorgullecemos de ofrecer una selección exclusiva de las mejores carnes del mundo. Cada corte ha sido cuidadosamente seleccionado y madurado para asegurar una experiencia gastronómica inigualable.</p>
-      <ul class="top__list">
+      <ul class="top__list" data-live="top">
         {top.map((c) => (
           <li>
             <Photo src={c.src} alt={c.alt} sizes="(min-width: 60rem) 30vw, 100vw" widths={[360, 540, 720]} class="top__img" />
@@ -76,7 +76,7 @@ const top = topData.filter((t) => t.item).map((t) => ({ ...t, ...photos[t.photo]
     <div class="wrap">
       <p class="eyebrow">Dónde encontrarnos</p>
       <h2 id="loc-h">Nuestros restaurantes</h2>
-      <div class="locs">
+      <div class="locs" data-live="locales">
         {site.locations.map((l) => <LocationCard location={l} />)}
       </div>
     </div>

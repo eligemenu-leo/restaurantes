@@ -1,0 +1,34 @@
+---
+// Actualización sin recargar. Cada 2 minutos, y solo con la pestaña a la vista, pide la
+// cabecera de la página. Si su ETag ha cambiado (hay una compilación nueva, p. ej. tras un
+// cambio en Eligemenú), descarga la página y sustituye las zonas marcadas con data-live="nombre".
+// No hace nada si la página no tiene zonas data-live. Sin cookies ni datos personales.
+---
+<script is:inline>
+  (function () {
+    if (!document.querySelector('[data-live]') || !window.fetch || !window.DOMParser) return;
+    var tag = null, busy = false, last = 0, url = location.pathname;
+    function repaint() {
+      return fetch(url, { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        document.querySelectorAll('[data-live]').forEach(function (el) {
+          var nuevo = doc.querySelector('[data-live="' + el.getAttribute('data-live') + '"]');
+          if (nuevo && nuevo.innerHTML !== el.innerHTML) el.innerHTML = nuevo.innerHTML;
+        });
+      });
+    }
+    function check() {
+      if (busy || document.visibilityState !== 'visible' || Date.now() - last < 60000) return;
+      busy = true; last = Date.now();
+      fetch(url, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+        var t = r.headers.get('etag') || r.headers.get('last-modified');
+        if (!t) return repaint();
+        if (tag === null) { tag = t; return; }
+        if (t !== tag) { tag = t; return repaint(); }
+      }).catch(function () {}).then(function () { busy = false; });
+    }
+    check();
+    setInterval(check, 120000);
+    document.addEventListener('visibilitychange', check);
+  })();
+</script>

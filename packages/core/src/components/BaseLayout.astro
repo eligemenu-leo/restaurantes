@@ -3,6 +3,7 @@ import type { SiteData } from '../lib/schema.ts';
 import type { ImageMetadata } from 'astro';
 import Header from './Header.astro';
 import Footer from './Footer.astro';
+import LiveUpdate from './LiveUpdate.astro';
 
 interface Props {
   site: SiteData;
@@ -50,5 +51,6 @@ const fullTitle = path === '/' ? title : `${title} | ${site.name}`;
       <slot />
     </main>
     <slot name="footer"><Footer site={site} /></slot>
+    <LiveUpdate />
   </body>
 </html>
