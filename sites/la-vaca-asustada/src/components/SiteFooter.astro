@@ -1,12 +1,11 @@
 ---
 // Pie de la web original: foto oscura de fondo con cuatro columnas (marca, Gijón, Oviedo y menú),
-// fila de enlaces legales, franja negra con el copyright y el sello del Kit Digital.
+// fila de enlaces legales, franja negra con el copyright y el sello del Kit Digital (retirado a petición de Leo, 2026-11-10).
 import { getImage, Image } from 'astro:assets';
 import { telHref } from '@rea/core/lib/format.ts';
 import { site } from '../data/index.ts';
 import logo from '../assets/web/Logo-vaca_doradoclaro-1.png';
 import fondo from '../assets/web/MG_6131.jpg';
-import kit from '../assets/web/kit-digital-1-1024x77-1.jpg';
 const bg = await getImage({ src: fondo, width: 1600, format: 'webp', quality: 60 });
 const [gijon, oviedo] = ['gijon', 'oviedo'].map((id) => site.locations.find((l) => l.id === id)!);
 const addr = (l: typeof gijon) => `${l.address.street.replace(/ bajo$/i, ' Bajo')} - ${l.address.postalCode} ${l.address.locality} (Asturias)`;
@@ -51,9 +50,6 @@ const year = new Date().getFullYear();
     <li><a href="/declaracion-de-accesibilidad/">Accesibilidad</a></li>
   </ul>
   <p class="sf__copy">© {year} · <a href="https://eligemenu.com/">Diseño web ELIGEMENU</a></p>
-  <div class="sf__kit">
-    <Image src={kit} alt="Financiado por la Unión Europea, NextGenerationEU. Plan de Recuperación, Transformación y Resiliencia. Kit Digital" loading="lazy" />
-  </div>
 </footer>
 <style>
   .sf { position: relative; isolation: isolate; background: #212323 var(--sf-bg) top center / cover no-repeat; padding-top: 3rem; color: #fff; font-size: 1rem; line-height: 28.8px; }
@@ -79,7 +75,4 @@ const year = new Date().getFullYear();
   .sf__legal { width: min(100% - 2 * var(--space), var(--w-max)); margin: 1rem auto 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 3rem; color: var(--c-text-2); font: 300 0.8125rem/1.8 var(--f-body); letter-spacing: 2px; text-transform: uppercase; }
   .sf__legal a:hover { color: var(--c-accent-2); }
   .sf__copy { margin: 0; background: #000; color: #c5c5c5; text-align: center; padding: 1.25rem var(--space); font-size: 1rem; }
-  .sf__kit { background: #fff; display: flex; justify-content: center; }
-  .sf__kit img { width: min(57%, 640px); }
-  @media (max-width: 64rem) { .sf__kit img { width: 95%; } }
 </style>
