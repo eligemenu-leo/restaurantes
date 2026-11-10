@@ -1,112 +1,339 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import LocationCard from '@rea/core/components/LocationCard.astro';
-import Reviews from '@rea/core/components/Reviews.astro';
+// Portada: réplica de la portada de la web WordPress (tema Patiotime), sección a sección.
+import Layout from '../components/Layout.astro';
+import Photo from '@rea/core/components/Photo.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
-import { price, telHref } from '@rea/core/lib/format.ts';
-import { site, carta, sugerencias, local } from '../data/index.ts';
+import { price, telHref, mapsHref } from '@rea/core/lib/format.ts';
+import { groupHours } from '@rea/core/lib/hours.ts';
+import { site, sugerencias, especialidades, local, menuDelDia } from '../data/index.ts';
+import heroCulin from '../assets/hero-culin.jpg';
+import heroAlmejas from '../assets/hero-almejas.jpg';
+import bacalao from '../assets/bacalao.jpg';
+import botellas from '../assets/botellas.jpg';
+import rotulo from '../assets/rotulo-movimiento.jpg';
+import reservasFoto from '../assets/reservas-luis.jpg';
+import mddFondo from '../assets/mdd-fondo.jpg';
 
-const destacados = carta.sections.flatMap((s) => s.items.filter((i) => i.featured));
+const horario = groupHours(local);
+const a = local.address;
+const fechaLarga = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).replace(',', '');
+const TURNO: Record<string, string> = { almuerzo: 'al mediodía', comida: 'al mediodía', cena: 'por la noche' };
+const hoyMenu = menuDelDia[0];
+const turnos = (t: string[]) => [...new Set(t.map((x) => TURNO[x] ?? x))].join(' y ');
 ---
-<BaseLayout
-  site={site}
+<Layout
   title="Sidrería Villaviciosa · Cocina asturiana y sidra en la calle Gascona, Oviedo"
   path="/"
+  overlayHeader
   jsonLd={[restaurantGraph(site, `${site.url}/nuestra-carta/`)]}
 >
-  <section class="hero">
-    <div class="wrap hero__in">
-      <p class="eyebrow">Calle Gascona, 7 · Oviedo</p>
-      <h1>Sidra escanciada y cocina asturiana de siempre</h1>
-      <p class="lead">En pleno Bulevar de la Sidra. Fabada, cachopo, pixín y producto de aquí, cocinado sin prisas y como en casa.</p>
-      <div class="btn-row">
-        <a class="btn" href={telHref(local.phone)}>Reservar · {local.phone}</a>
-        <a class="btn btn--ghost" href="/nuestra-carta/">Ver la carta</a>
+  <section class="hero" aria-roledescription="carrusel" aria-label="Presentación" data-slider data-autoplay="5000">
+    <div class="hero__slide" data-slide>
+      <Photo src={heroCulin} alt="" loading="eager" sizes="100vw" widths={[640, 960, 1280, 1920, 2560]} class="hero__bg" />
+      <div class="hero__in">
+        <h1 class="hero__t"><em>Tu sidrería</em> en pleno<br /><strong>Corazón</strong> de Gascona</h1>
+        <p class="hero__p">Un lugar para celebrar, picar algo rico y sentir el espíritu de la sidra asturiana.</p>
+        {hoyMenu && <p class="hero__mdd"><a class="btn" href="#menu-del-dia">Menú del día{hoyMenu.price != null && <> · {price(hoyMenu.price)}</>}</a></p>}
+        <p class="hero__links">
+          <a class="link-line" href="/nuestra-carta/">Ver nuestra carta</a>
+          <a class="link-line" href="/bodega/">Ver nuestra bodega</a>
+          <a class="link-line" href="#sugerencias">Sugerencias del chef</a>
+        </p>
       </div>
+    </div>
+    <div class="hero__slide" data-slide hidden>
+      <Photo src={heroAlmejas} alt="" sizes="100vw" widths={[640, 960, 1280, 1920, 2560]} class="hero__bg" />
+      <div class="hero__in">
+        <p class="hero__t"><em>Bienvenido a la</em><br /><strong>Sidrería Villaviciosa</strong></p>
+        <p class="hero__p">Cocina casera, auténtica y hecha con cariño, como siempre se ha comido en casa.</p>
+        {hoyMenu && <p class="hero__mdd"><a class="btn" href="#menu-del-dia">Menú del día{hoyMenu.price != null && <> · {price(hoyMenu.price)}</>}</a></p>}
+        <p class="hero__links">
+          <a class="link-line" href="/nuestra-carta/">Ver nuestra carta</a>
+          <a class="link-line" href="/bodega/">Ver nuestra bodega</a>
+          <a class="link-line" href="#sugerencias">Sugerencias del chef</a>
+        </p>
+      </div>
+    </div>
+    <div class="slider-ctrl hero__ctrl" data-controls hidden>
+      <button type="button" class="slider-pause" data-pause aria-label="Pausar el carrusel"></button>
+      <span data-dots></span>
     </div>
   </section>
 
-  <section class="section sug" id="sugerencias" aria-labelledby="sug-h">
-    <div class="wrap sug__in">
-      <div>
-        <p class="eyebrow">Hoy en cocina</p>
-        <h2 id="sug-h">Sugerencias del día</h2>
-        <p>Platos fuera de carta que cambian según mercado. Pregunta en sala por los de hoy.</p>
+  <div data-live="menu-del-dia">
+  {menuDelDia.map((m, n) => (
+    <section class="mdd" id={n === 0 ? 'menu-del-dia' : undefined} aria-labelledby={`mdd-h-${n}`}>
+      <Photo src={mddFondo} alt="" sizes="100vw" widths={[640, 960, 1280, 1920]} class="mdd__bg" />
+      <div class="wrap"><div class="mdd__in">
+        <header class="mdd__head">
+          <p class="kicker kicker--lines">Hoy, {fechaLarga(m.date)}</p>
+          <h2 id={`mdd-h-${n}`}>{m.name}</h2>
+          {(m.price != null || m.mealTimes.length > 0) && (
+            <p class="mdd__precio">
+              {m.price != null && <strong>{price(m.price)}</strong>}
+              {m.halfPrice != null && <span> · Medio menú {price(m.halfPrice)}</span>}
+              {m.mealTimes.length > 0 && <span class="mdd__turno">{m.price != null ? ' · ' : ''}Servimos {turnos(m.mealTimes)}</span>}
+            </p>
+          )}
+        </header>
+        <div class="mdd__grupos">
+          {m.groups.map((g) => (
+            <div class="mdd__g">
+              <h3 class="mdd__gh">{g.name}</h3>
+              {g.note && <p class="mdd__nota">{g.note}</p>}
+              <ul>
+                {g.dishes.map((d) => <li>{d.name}{d.description && <span class="mdd__desc">{d.description}</span>}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+        {m.note && <p class="mdd__nota mdd__obs">{m.note}</p>}
+      </div></div>
+    </section>
+  ))}
+  </div>
+
+  <section class="sug" id="sugerencias" aria-labelledby="sug-h">
+    <div class="wrap">
+      <header class="sug__head">
+        <p class="kicker kicker--lines">Recomendación del chef</p>
+        <h2 id="sug-h">Sugerencias para hoy</h2>
+      </header>
+      <div data-live="sugerencias">
+      {sugerencias?.items.length ? (
+        <ul class="dots-list sug__list">
+          {sugerencias.items.map((i) => (
+            <li><span class="dots-list__n">{i.name}</span><span class="dots-list__l" aria-hidden="true"></span>{i.price != null && <span class="dots-list__p">{price(i.price, i.unit).replace(/\s/, '')}</span>}</li>
+          ))}
+        </ul>
+      ) : <p class="sug__empty">Pregunta en sala por las sugerencias de hoy.</p>}
       </div>
-      <ul class="sug__list">
-        {sugerencias.sections[0].items.map((i) => (
-          <li><span>{i.name}</span><span class="sug__p">{price(i.price)}</span></li>
+
+      <div class="duo">
+        <div class="duo__fotos">
+          <Photo src={bacalao} alt="Bacalao a la portuguesa con aceitunas negras" sizes="(min-width: 64rem) 16rem, 45vw" widths={[320, 480, 760]} class="duo__f1" />
+          <Photo src={botellas} alt="Botellas verdes de sidra iluminadas en la barra" sizes="(min-width: 64rem) 19rem, 45vw" widths={[320, 480, 800]} class="duo__f2" />
+        </div>
+        <div class="duo__esp">
+          <h3 class="kicker duo__k">Especialidades de la casa</h3>
+          <ul class="dots-list esp" data-live="especialidades">
+            {especialidades.map((d) => (
+              <li>
+                <span class="dots-list__n">{d.item!.name}</span><span class="dots-list__l" aria-hidden="true"></span>{d.item!.price != null && <span class="dots-list__p">{price(d.item!.price, d.item!.unit).replace(/\s/, '')}</span>}
+                {d.tagline && <span class="esp__t">{d.tagline}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <p class="sug__btns">
+        <a class="btn" href="/nuestra-carta/">Ver carta completa</a>
+        <a class="btn btn--ghost" href="/bodega/">Ver bodega</a>
+      </p>
+    </div>
+  </section>
+
+  <div class="banda">
+    <Photo src={rotulo} alt="" sizes="100vw" widths={[640, 960, 1280, 1920]} class="banda__img" />
+  </div>
+
+  {site.reviews.length > 0 && (
+    <section class="opi" aria-label="Opiniones de clientes" aria-roledescription="carrusel" data-slider>
+      <div class="opi__in">
+        <p class="opi__q" aria-hidden="true">“</p>
+        {site.reviews.map((r) => (
+          <figure class="opi__item" data-slide>
+            <blockquote><p>{r.text}</p></blockquote>
+            <figcaption><span class="opi__a">{r.author}</span><span class="opi__s">reseña en {r.source === 'google' ? 'Google' : r.source === 'tripadvisor' ? 'Tripadvisor' : 'persona'}</span></figcaption>
+          </figure>
+        ))}
+        <div class="slider-ctrl" data-controls hidden><span data-dots></span></div>
+      </div>
+    </section>
+  )}
+
+  <div class="info">
+    <section class="info__col info__visita" aria-labelledby="visita-h">
+      <p class="kicker">Dónde estamos</p>
+      <h2 id="visita-h">Visítanos</h2>
+      <p>{a.street.replace(/^C\/\s*/, '')}, {a.locality}, {a.region}, {a.postalCode}</p>
+      <h3 class="info__h3">Horario de apertura</h3>
+      <ul class="info__horas" data-live="horario">
+        {horario.map((r) => (
+          <li>{r.label}: {r.status === 'open' ? r.slots.map((s) => s.replace('–', ' – ')).join(' | ') : r.status === 'closed' ? 'cerrado' : 'consultar'}</li>
         ))}
       </ul>
-    </div>
-  </section>
-
-  <section class="section dest" aria-labelledby="dest-h">
-    <div class="wrap">
-      <p class="eyebrow">De la carta</p>
-      <h2 id="dest-h">Los imprescindibles de la casa</h2>
-      <ol class="dest__list">
-        {destacados.map((d, n) => (
-          <li>
-            <span class="dest__n" aria-hidden="true">{String(n + 1).padStart(2, '0')}</span>
-            <p class="dest__t">{d.tagline}</p>
-            <h3>{d.name}</h3>
-            <p class="dest__p">{price(d.price)}</p>
-          </li>
-        ))}
-      </ol>
-      <a class="btn btn--ghost" href="/nuestra-carta/">Carta completa</a>
-    </div>
-  </section>
-
-  <section class="section casa" aria-labelledby="casa-h">
-    <div class="wrap casa__in">
-      <h2 id="casa-h">Un sitio para sentirse en casa</h2>
-      <div>
-        <p>Sidrería Villaviciosa es un local cercano y familiar en la calle Gascona. Rocío pone la hospitalidad; Luis, el cariño por los sabores tradicionales.</p>
-        <p>Aquí la sidra no es solo una bebida: es encuentro y celebración, y se escancia con orgullo.</p>
-        <a href="/quienes-somos/">Conoce nuestra historia</a>
+      <a class="link-line link-line--accent" href={mapsHref(local.mapsQuery ?? `${site.name}, ${a.street}, ${a.locality}`)} target="_blank" rel="noopener">Cómo llegar<span class="visually-hidden"> (abre Google Maps)</span></a>
+    </section>
+    <section class="info__col info__res" aria-labelledby="res-h">
+      <Photo src={reservasFoto} alt="" sizes="(min-width: 64rem) 50vw, 100vw" widths={[480, 800, 1200, 1715]} class="info__bg" />
+      <div class="info__res-in">
+        <p class="kicker">Ven, te esperamos</p>
+        <h2 id="res-h">Reservas</h2>
+        <p>Reserva tu mesa, asegúrate de poder disfrutar de un momento único. Tú eliges la compañía.</p>
+        <h3 class="info__h3">Reservas</h3>
+        <p class="info__datos">
+          {local.email && <>Email: <a href={`mailto:${local.email}`}>{local.email}</a><br /></>}
+          Llámanos: <a href={telHref(local.phone)}>{local.phone}</a>
+        </p>
+        <a class="link-line link-line--accent" href={telHref(local.phone)}>Reserva tu mesa</a>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
+</Layout>
 
-  <Reviews reviews={site.reviews} />
-
-  <section class="section" id="reservas" aria-labelledby="res-h">
-    <div class="wrap res">
-      <div>
-        <p class="eyebrow">Reservas</p>
-        <h2 id="res-h">Reserva tu mesa</h2>
-        <p class="lead">Llámanos o escríbenos y te guardamos sitio. Para grupos, mejor con unos días de antelación.</p>
-      </div>
-      <LocationCard location={local} title="Horario y ubicación" />
-    </div>
-  </section>
-</BaseLayout>
+<script is:inline>
+  // Carruseles de la portada (como los de la web original). Sin JS se ve la primera
+  // portada y todas las opiniones. Con "reducir movimiento" no pasan solos.
+  (function () {
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll('[data-slider]').forEach(function (root) {
+      var slides = [].slice.call(root.querySelectorAll('[data-slide]'));
+      if (slides.length < 2) return;
+      var ctrl = root.querySelector('[data-controls]');
+      var dotsBox = root.querySelector('[data-dots]');
+      var pauseBtn = root.querySelector('[data-pause]');
+      var current = 0, timer = null, paused = false;
+      var dots = slides.map(function (_, i) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'slider-dot';
+        b.setAttribute('aria-label', 'Mostrar ' + (i + 1) + ' de ' + slides.length);
+        b.addEventListener('click', function () { show(i); restart(); });
+        dotsBox.appendChild(b); return b;
+      });
+      function show(i, first) {
+        slides.forEach(function (s, n) { s.hidden = n !== i; s.classList.toggle('is-in', n === i && !first); });
+        dots.forEach(function (d, n) { d.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+        current = i;
+      }
+      var every = Number(root.getAttribute('data-autoplay')) || 0;
+      function stop() { clearInterval(timer); timer = null; }
+      function restart() { stop(); if (every && !reduce && !paused) timer = setInterval(function () { show((current + 1) % slides.length); }, every); }
+      if (pauseBtn) {
+        if (!every || reduce) pauseBtn.remove();
+        else pauseBtn.addEventListener('click', function () {
+          paused = !paused; pauseBtn.setAttribute('aria-label', paused ? 'Reanudar el carrusel' : 'Pausar el carrusel');
+          pauseBtn.classList.toggle('is-paused', paused); restart();
+        });
+      }
+      root.addEventListener('mouseenter', stop); root.addEventListener('mouseleave', restart);
+      root.addEventListener('focusin', stop); root.addEventListener('focusout', restart);
+      show(0, true); ctrl.hidden = false; restart();
+    });
+  })();
+</script>
 
 <style>
-  .hero { padding-block: clamp(4rem, 14vw, 10rem) clamp(3rem, 8vw, 6rem); background:
-    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--c-accent) 14%, transparent), transparent 60%); }
-  .hero h1 { max-width: 14ch; }
-  .hero .lead { margin-bottom: 2rem; }
-  .sug { background: var(--c-accent); color: var(--c-accent-text); }
-  .sug .eyebrow { color: inherit; opacity: 0.8; }
-  .sug__in { display: grid; gap: 2rem; align-items: center; }
-  @media (min-width: 52rem) { .sug__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .sug__list { list-style: none; margin: 0; padding: 0; font: 500 1.4rem/1.3 var(--f-display); }
-  .sug__list li { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
-  .sug__p { white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .dest__list { list-style: none; margin: 2.5rem 0; padding: 0; display: grid; gap: 1px; background: var(--c-line); grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); border: 1px solid var(--c-line); }
-  .dest__list li { background: var(--c-bg); padding: 1.75rem 1.5rem; display: flex; flex-direction: column; }
-  .dest__n { font: 400 2.5rem/1 var(--f-display); color: var(--c-accent); margin-bottom: 1.5rem; }
-  .dest__t { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--c-muted); margin: 0 0 0.5rem; }
-  .dest__list h3 { flex: 1; }
-  .dest__p { margin: 0; font-weight: 600; }
-  .casa { background: var(--c-surface); border-block: 1px solid var(--c-line); }
-  .casa__in { display: grid; gap: 1.5rem; }
-  @media (min-width: 52rem) { .casa__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .casa__in > div { font-size: 1.15rem; }
-  .res { display: grid; gap: 2rem; }
-  @media (min-width: 60rem) { .res { grid-template-columns: 1fr 1.1fr; gap: 4rem; align-items: start; } }
+  /* Portada a pantalla completa con dos diapositivas. */
+  .hero { position: relative; background: #000; }
+  .hero__slide { position: relative; min-height: max(36rem, min(100svh, 62rem)); display: grid; place-items: center; overflow: hidden; }
+  .hero__slide[hidden] { display: none; }
+  .hero__slide.is-in { animation: fade 0.9s ease both; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  :global(.hero__bg) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero__slide::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.5); }
+  .hero__in { position: relative; z-index: 2; text-align: center; padding: 10rem var(--space) 5rem; max-width: 56rem; }
+  .hero__t { font: 400 clamp(2.75rem, 7.2vw, 5.25rem)/1.02 var(--f-display); margin: 0 0 1.25rem; color: #fff; }
+  .hero__t em { font-style: italic; }
+  .hero__t strong { font-weight: 600; color: var(--c-accent); }
+  .hero__p { font-size: clamp(1.125rem, 1.6vw, 1.3125rem); margin: 0 auto; max-width: 40rem; }
+  .hero__links { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; margin: 2.5rem 0 0; }
+  @media (min-width: 48rem) { .hero__links { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 1.25rem 2.5rem; } }
+  .hero__ctrl { position: absolute; left: 0; right: 0; bottom: 1.75rem; z-index: 3; }
+
+  .slider-ctrl { display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+  .slider-ctrl[hidden] { display: none; }
+  .slider-ctrl :global(.slider-dot) { width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: inline-grid; place-items: center; }
+  .slider-ctrl :global(.slider-dot)::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: rgb(255 255 255 / 0.45); }
+  .slider-ctrl :global(.slider-dot[aria-current='true'])::before { background: #fff; width: 8px; height: 8px; }
+  .slider-pause { width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; color: #fff; opacity: 0.7; display: inline-grid; place-items: center; }
+  .slider-pause::before { content: ''; width: 8px; height: 10px; border-inline: 3px solid currentColor; box-sizing: border-box; }
+  .slider-pause:global(.is-paused)::before { width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent currentColor; }
+
+  /* Menú del día: destacado con marco naranja; botón en la portada. */
+  .hero__mdd { margin: 1.75rem 0 1.5rem; }
+  .mdd { position: relative; isolation: isolate; overflow: hidden; margin-top: clamp(3rem, 7vw, 5rem); padding-block: clamp(3rem, 7vw, 5rem); }
+  .mdd__in {
+    position: relative; max-width: 72rem; margin-inline: auto; padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+    background: rgb(21 19 24 / 0.55); border: 1px solid var(--c-accent); box-shadow: 0 0 0 6px rgb(11 10 8 / 0.6), 0 0 0 7px rgb(221 89 3 / 0.45);
+  }
+  :global(.mdd__bg) { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; pointer-events: none; }
+  .mdd__head { text-align: center; }
+  .mdd h2 { font-size: clamp(2.25rem, 4.6vw, 3.5rem); margin-bottom: 0.75rem; }
+  .mdd__precio { margin: 0 0 2.5rem; font-size: 1.0625rem; }
+  .mdd__precio strong { font: 600 1.75rem/1 var(--f-display); color: var(--c-accent); }
+  .mdd__grupos { display: grid; gap: 2rem 2.5rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); max-width: 66rem; margin-inline: auto; text-align: center; }
+  .mdd__gh { font: 500 0.8125rem/1.2 var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-accent); margin: 0 0 1rem; }
+  .mdd__g ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+  .mdd__g li { font: 400 1.25rem/1.3 var(--f-display); }
+  .mdd__desc { display: block; font: 400 0.9375rem/1.4 var(--f-body); color: var(--c-muted); }
+  .mdd__nota { color: var(--c-muted); font-size: 0.9375rem; margin: 0 0 0.75rem; }
+  .mdd__obs { text-align: center; margin-top: 2rem; }
+
+  /* Sugerencias y especialidades. */
+  .sug { padding-block: clamp(4rem, 9vw, 7.5rem) 2.5rem; }
+  .sug__head { text-align: center; }
+  .sug h2 { font-size: clamp(2.25rem, 4.6vw, 3.5rem); margin-bottom: 1.5rem; }
+  .sug__list { max-width: 26rem; margin-inline: auto; }
+  .sug__empty { text-align: center; color: var(--c-muted); }
+  .dots-list { list-style: none; padding: 0; display: grid; gap: 1.6rem; }
+  .dots-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.5rem; }
+  .dots-list__n { font: 400 1.25rem/1.25 var(--f-display); }
+  .dots-list__l { flex: 1; min-width: 2rem; border-bottom: 2px dotted #5c5151; transform: translateY(-0.3em); }
+  .dots-list__p { font: 400 1.125rem/1.25 var(--f-display); white-space: nowrap; }
+  .duo { display: grid; gap: 3rem; align-items: center; margin-top: clamp(3rem, 6vw, 4.5rem); }
+  .duo__fotos { display: grid; grid-template-columns: 0.87fr 1fr; gap: 0.75rem; align-items: start; max-width: 36rem; justify-self: center; width: 100%; }
+  .duo__fotos :global(.duo__f1) { margin-top: 2rem; aspect-ratio: 743 / 1004; object-fit: cover; width: 100%; }
+  .duo__fotos :global(.duo__f2) { aspect-ratio: 2 / 3; object-fit: cover; width: 100%; }
+  .duo__k { justify-content: flex-start; margin-bottom: 1.5rem; }
+  .esp { gap: 2.25rem; margin: 0; }
+  .esp .dots-list__n { font-size: 1.5rem; font-weight: 600; line-height: 1.05; }
+  .esp .dots-list__l { border-bottom: 0; height: 4px; background: radial-gradient(circle, #ccc 1px, transparent 1.5px) 0 0 / 6px 4px repeat-x; transform: translateY(-0.35em); }
+  .esp__t { flex-basis: 100%; color: var(--c-muted); font-size: 0.875rem; margin-top: 0.4rem; }
+  .sug__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.25rem; margin: clamp(3rem, 6vw, 4.5rem) 0 0; }
+  @media (min-width: 64rem) {
+    .duo { grid-template-columns: 55% 1fr; gap: 0; }
+    .duo__fotos { max-width: 31rem; }
+    .duo__esp { padding-left: 3.75rem; }
+  }
+
+  /* Banda de foto. */
+  .banda { position: relative; height: clamp(15rem, 27vw, 31.25rem); overflow: hidden; }
+  .banda::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.2); }
+  :global(.banda__img) { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Opiniones. */
+  .opi { padding-block: clamp(4rem, 8vw, 5rem) 4rem; }
+  .opi__in { position: relative; width: min(100% - 2 * var(--space), 75rem); margin-inline: auto; text-align: center; }
+  @media (min-width: 64rem) {
+    .opi__in::before, .opi__in::after { content: ''; position: absolute; top: 50%; width: 2.5rem; height: 1px; background: rgb(255 255 255 / 0.6); }
+    .opi__in::before { left: 0; } .opi__in::after { right: 0; }
+  }
+  .opi__q { font: 600 5rem/0.6 var(--f-display); color: var(--c-accent); margin: 0 0 0.5rem; height: 2.25rem; }
+  .opi__item { margin: 0 auto 2.5rem; max-width: 36rem; }
+  .opi__item.is-in { animation: fade 0.6s ease both; }
+  .opi__item blockquote { margin: 0 0 1.25rem; font: 400 clamp(1.3rem, 2.1vw, 1.5rem)/1.5 var(--f-display); }
+  .opi__item blockquote p { margin: 0; }
+  .opi__item figcaption { display: grid; gap: 0.15rem; }
+  .opi__a { font-size: 0.875rem; }
+  .opi__s { font-size: 0.75rem; color: var(--c-muted); }
+
+  /* Visítanos y reservas. */
+  .info { display: grid; }
+  .info__col { position: relative; display: grid; place-content: center; text-align: center; padding: clamp(4rem, 8vw, 6rem) var(--space); min-height: 32rem; }
+  .info__visita { background: var(--c-surface); }
+  .info__col h2 { font-size: clamp(2.25rem, 3.6vw, 2.75rem); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1rem; }
+  .info__col p { margin-bottom: 1rem; }
+  .info__h3 { font: 700 0.875rem/1.3 var(--f-body); text-transform: uppercase; letter-spacing: 0.04em; margin: 0.75rem 0 0.4rem; }
+  .info__horas { list-style: none; margin: 0 0 1.5rem; padding: 0; font-size: 0.9375rem; line-height: 1.75; }
+  .info__res { overflow: hidden; background: #000; }
+  :global(.info__bg) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .info__res::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.6); }
+  .info__col > .link-line, .info__res-in > .link-line { justify-self: center; }
+  .info__res-in { position: relative; z-index: 1; max-width: 32rem; }
+  .info__res .kicker { color: #fff; }
+  .info__datos a { text-decoration: none; }
+  .info .kicker { margin-bottom: 0.5rem; }
+  @media (min-width: 64rem) { .info { grid-template-columns: 1fr 1fr; } .info__col { min-height: 36rem; } }
 </style>

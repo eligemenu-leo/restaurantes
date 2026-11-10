@@ -1,0 +1,47 @@
+---
+// Carrusel de la cabecera de las páginas de menú (en la original, un slider de cuatro pizarras).
+// Desplazamiento horizontal con CSS; los navegadores recientes añaden las flechas sin JavaScript.
+import Photo from '@rea/core/components/Photo.astro';
+import type { Lang } from '../data/cartas.ts';
+import s17 from '../assets/web/slide-17.jpg';
+import s18 from '../assets/web/slide-18.jpg';
+import s20 from '../assets/web/slide-20.jpg';
+import s21 from '../assets/web/slide-21.jpg';
+interface Props { lang?: Lang; eager?: boolean }
+const { lang = 'es', eager = true } = Astro.props;
+const TXT: Record<Lang, [string, string][]> = {
+  es: [['Ribeye Holstein', 'Lomo alto central de raza Holstein, procedencia de Holanda, con una maduración de más 30 días.'], ['Piquillos asados al horno', 'Confitados en su jugo con tomillo, romero y naranja'], ['T-Bone de Vaca Retinta', 'Entrecot y solomillo con hueso en forma de T, de origen extremeño y andaluz, con una maduración de más de 30 días'], ['Lingote de ribeye wagyu', 'Certificado nakayama A5']],
+  en: [['Holstein Ribeye', 'Centre-cut Holstein ribeye from the Netherlands, dry-aged for over 30 days.'], ['Oven-roasted piquillo peppers', 'Confit in their own juices with thyme, rosemary and orange'], ['Retinta T-Bone', 'Sirloin and tenderloin on a T-shaped bone, from Extremadura and Andalusia, dry-aged for over 30 days'], ['Wagyu ribeye ingot', 'Nakayama A5 certified']],
+  fr: [['Ribeye Holstein', 'Entrecôte centrale de race Holstein, origine Pays-Bas, maturée plus de 30 jours.'], ['Piquillos rôtis au four', 'Confits dans leur jus au thym, romarin et orange'], ['T-Bone de vache Retinta', 'Faux-filet et filet sur un os en T, d’Estrémadure et d’Andalousie, maturé plus de 30 jours'], ['Lingot de ribeye wagyu', 'Certifié Nakayama A5']],
+  de: [['Holstein-Ribeye', 'Mittelstück vom Holstein-Rind aus den Niederlanden, über 30 Tage gereift.'], ['Im Ofen geröstete Piquillos', 'Im eigenen Saft mit Thymian, Rosmarin und Orange confiert'], ['T-Bone vom Retinta-Rind', 'Roastbeef und Filet am T-Knochen, aus Extremadura und Andalusien, über 30 Tage gereift'], ['Wagyu-Ribeye-Barren', 'Nakayama A5 zertifiziert']],
+  it: [['Ribeye Holstein', 'Controfiletto centrale di razza Holstein, dall’Olanda, frollato oltre 30 giorni.'], ['Piquillos al forno', 'Confit nel loro succo con timo, rosmarino e arancia'], ['T-Bone di vacca Retinta', 'Controfiletto e filetto con osso a T, dall’Estremadura e dall’Andalusia, frollato oltre 30 giorni'], ['Lingotto di ribeye wagyu', 'Certificato Nakayama A5']],
+};
+const imgs = [s17, s18, s20, s21];
+const alts = ['Ribeye Holstein madurado', 'Piquillos asados en cazuela', 'T-bone de vaca Retinta', 'Lingote de ribeye wagyu'];
+---
+<ul class="msl" tabindex="0" aria-label={lang === 'es' ? 'Algunos de nuestros platos' : 'Dishes'}>
+  {TXT[lang].map(([t, d], i) => (
+    <li class="msl__item">
+      <Photo src={imgs[i]} alt={alts[i]} sizes="100vw" widths={[640, 960, 1440, 1920]} loading={eager && i === 0 ? 'eager' : 'lazy'} class="msl__img" />
+      <div class="msl__txt">
+        <p class="msl__t">{t}</p>
+        <p class="msl__d">{d}</p>
+      </div>
+    </li>
+  ))}
+</ul>
+<style>
+  .msl { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; anchor-name: --msl; }
+  .msl::-webkit-scrollbar { display: none; }
+  .msl__item { position: relative; isolation: isolate; height: 499px; scroll-snap-align: start; display: flex; align-items: center; }
+  :global(.msl__img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .msl__item::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgb(3 4 16 / 0.58); }
+  .msl__txt { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; }
+  .msl__t { max-width: 296px; margin: 0 0 1rem; font: 400 clamp(1.75rem, 4vw, 2.8125rem)/1.2 var(--f-display); letter-spacing: -0.027em; text-transform: capitalize; color: var(--c-accent-2); }
+  .msl__d { max-width: 296px; margin: 0; font: 400 1rem/23px var(--f-body); color: #d3d3d3; }
+  @media (max-width: 47.99rem) { .msl__item { height: 348px; } .msl__t, .msl__d { max-width: 278px; } .msl__txt { padding-inline: 3rem; } }
+  .msl::scroll-button(*) { position: absolute; position-anchor: --msl; top: anchor(center); translate: 0 -50%; border: 0; background: none; color: var(--c-accent-2); font-size: 2.2rem; width: 48px; height: 48px; cursor: pointer; }
+  .msl::scroll-button(*):disabled { opacity: 0.3; }
+  .msl::scroll-button(left) { content: '‹' / 'Anterior'; left: calc(anchor(left) + 10px); }
+  .msl::scroll-button(right) { content: '›' / 'Siguiente'; right: calc(anchor(right) + 10px); }
+</style>

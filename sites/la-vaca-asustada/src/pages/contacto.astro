@@ -1,23 +1,127 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import LocationCard from '@rea/core/components/LocationCard.astro';
+// Contacto, como en la original: título, tres columnas (presentación con vídeo, foto y recuadro
+// con horarios y direcciones), cifras y el bloque "Escríbenos".
+// Diferencias: el formulario se sustituye por correo y teléfono (una web estática no puede enviarlo
+// sin un servicio externo) y los mapas de Google se abren en una pestaña nueva en lugar de
+// incrustarse, porque el mapa incrustado pone cookies de Google sin consentimiento.
+import { Image, getImage } from 'astro:assets';
+import Layout from '../components/Layout.astro';
+import Reserva from '../components/Reserva.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { telHref, mapsHref } from '@rea/core/lib/format.ts';
 import { site } from '../data/index.ts';
+import cuchillos from '../assets/web/Cuchillos.png';
+import vaca from '../assets/web/Recurso-5.png';
+import foto from '../assets/web/Pizarra-Vaca-Asustada-7-1.png';
+import circulo from '../assets/web/Diseno-sin-titulo-32.png';
+import poster from '../assets/web/carne-poster.jpg';
+const posterImg = await getImage({ src: poster, width: 960, format: 'webp', quality: 60 });
+const [gijon, oviedo] = ['gijon', 'oviedo'].map((id) => site.locations.find((l) => l.id === id)!);
+const addr = (l: typeof gijon) => `${l.address.street.replace(/ bajo$/i, ' Bajo')} - ${l.address.postalCode} ${l.address.locality} (Asturias)`;
+const hm = (t: string) => t.replace(':', '.');
+const [comida, cena] = gijon.hours;
+const cifras = [['1200', 'Críticas positivas'], ['13', 'Carnes especiales'], ['35', 'Mesas dentro y terraza'], ['10', 'Eventos y catas']];
 ---
-<BaseLayout site={site} title="Locales y reservas" path="/contacto/"
-  description="Reserva en La Vaca Asustada: Gijón (C/ San Bernardo, 79 · 663 20 06 15) y Oviedo (C/ Melquiades Álvarez, 24 · 984 29 86 60)."
+<Layout title="Contacto" path="/contacto/"
+  description="Reserva en La Vaca Asustada: Gijón (C/ San Bernardo, 79 · 663 20 06 15) y Oviedo (C/ Melquiades Álvarez, 24 · 984 29 86 60). Lunes a domingo, comidas y cenas."
   jsonLd={[restaurantGraph(site)]}>
-  <div class="wrap section">
-    <p class="eyebrow">Contacto</p>
-    <h1>Locales y reservas</h1>
-    <p class="lead">Reserva online en el local que prefieras o llámanos. Para grupos y eventos escríbenos a <a href="mailto:info@lavacaasustada.com">info@lavacaasustada.com</a>.</p>
-    <div class="locs">
-      {site.locations.map((l) => <LocationCard location={l} headingLevel={2} />)}
+  <section class="ct">
+    <h1>La Vaca Asustada</h1>
+    <p class="ct__sub">Información</p>
+    <Image src={cuchillos} width={200} alt="" class="ct__knives" />
+
+    <div class="ct__cols">
+      <div class="ct__intro">
+        <p>En <strong>La Vaca Asustada</strong>, seleccionamos cuidadosamente cada pieza de carne y la sometemos a un proceso de maduración que resalta su sabor y ternura. Nuestro compromiso es ofrecerte lo mejor en cada bocado</p>
+        <Image src={vaca} width={135} alt="" class="ct__vaca" />
+        <video class="ct__video" autoplay muted loop playsinline preload="none" poster={posterImg.src} aria-hidden="true">
+          <source src="/video/carne.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <Image src={foto} alt="Sala de La Vaca Asustada" class="ct__foto" loading="eager" />
+      <div class="ct__box">
+        <h2>Horario de comidas</h2>
+        {comida ? <p>De lunes a domingo<br />{hm(comida.open)} - {hm(comida.close)}</p> : <p>Consultar</p>}
+        <h2>Horario de cenas</h2>
+        {cena ? <p>De lunes a domingo<br />{hm(cena.open)} - {hm(cena.close)}</p> : <p>Consultar</p>}
+        <Image src={circulo} width={80} height={80} alt="" class="ct__dot" />
+        <h2>Contacto</h2>
+        {[gijon, oviedo].map((l) => (
+          <>
+            <h3>{l.name}</h3>
+            <ul>
+              <li><a href={mapsHref(l.mapsQuery ?? addr(l))} target="_blank" rel="noopener">{addr(l)}<span class="visually-hidden"> (abre Google Maps)</span></a></li>
+              <li><a href={telHref(l.phone)}>+34 {l.phone}</a></li>
+            </ul>
+          </>
+        ))}
+      </div>
     </div>
-  </div>
-</BaseLayout>
+
+    <ul class="ct__nums">
+      {cifras.map(([n, t]) => <li><span class="ct__n">{n}</span><span class="ct__t">{t}</span></li>)}
+    </ul>
+  </section>
+
+  <section class="esc" id="reservas" aria-labelledby="esc-h">
+    <div class="esc__in">
+      <div class="esc__txt">
+        <h2 id="esc-h">Escríbenos</h2>
+        <p>No dudes en contactar con nosotros para resolver cualquier cuestión o reservar.</p>
+        <p><a class="btn" href={`mailto:${gijon.email}`}>{gijon.email}</a></p>
+        <div class="esc__res"><Reserva id="contacto" /></div>
+      </div>
+      <ul class="esc__maps">
+        {[gijon, oviedo].map((l) => (
+          <li>
+            <p class="esc__city">{l.name}</p>
+            <p>{addr(l)}</p>
+            <a class="esc__map" href={mapsHref(l.mapsQuery ?? addr(l))} target="_blank" rel="noopener">Cómo llegar<span class="visually-hidden"> a {l.name} (abre Google Maps)</span></a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Layout>
 <style>
-  .locs { display: grid; gap: 1.5rem; margin-top: 2.5rem; }
-  @media (min-width: 60rem) { .locs { grid-template-columns: 1fr 1fr; } }
+  .ct { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; padding-block: clamp(3rem, 8vw, 6.25rem); text-align: center; }
+  .ct h1 { margin: 30px 0 0; font: 200 clamp(2rem, 6vw, 2.8125rem)/1.2 var(--f-body); letter-spacing: 0; text-transform: uppercase; color: #fff; }
+  .ct__sub { margin: 0.5rem 0 1rem; font: 700 0.875rem/1.4 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
+  :global(.ct__knives) { width: 100px; height: auto; margin: 0 auto; }
+  .ct__cols { display: grid; gap: 2rem; margin-top: 3rem; text-align: left; align-items: center; }
+  @media (min-width: 64rem) { .ct__cols { grid-template-columns: 1fr 0.8fr 1.1fr; gap: 1.25rem; } }
+  .ct__intro p { font-size: 1rem; line-height: 23px; color: var(--c-text-2); }
+  .ct__intro strong { font-weight: 700; }
+  :global(.ct__vaca) { width: 70px; height: auto; margin: 1.5rem 0; }
+  .ct__video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+  @media (max-width: 47.99rem) { :global(.ct__vaca), .ct__video { display: none; } }
+  :global(.ct__foto) { width: 100%; max-width: 424px; height: auto; margin-inline: auto; }
+  .ct__box { margin: 9px; padding: 70px 43px 63px 48px; border: 3px double var(--c-accent); }
+  @media (max-width: 47.99rem) { .ct__box { padding: 2.5rem 1.5rem; margin: 0; } }
+  .ct__box h2 { font: 400 1.875rem/1.2 var(--f-display); letter-spacing: -0.027em; text-transform: none; color: #fff; margin: 0 0 0.5rem; }
+  .ct__box p { margin: 0 0 20px; font-size: 0.875rem; color: var(--c-text-2); }
+  :global(.ct__dot) { width: 40px; height: 40px; margin: 0.5rem 0 1.25rem; }
+  .ct__box h3 { margin: 20px 0 0.5rem; font: 400 1.625rem/1.3 var(--f-display); letter-spacing: -0.027em; color: var(--c-accent); }
+  .ct__box ul { list-style: none; margin: 0; padding: 0; }
+  .ct__box li { margin-bottom: 0.4rem; }
+  .ct__box a { text-decoration: none; }
+  .ct__box a:hover { color: var(--c-accent); }
+  .ct__nums { list-style: none; margin: 4rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
+  @media (min-width: 48rem) { .ct__nums { grid-template-columns: repeat(4, 1fr); } }
+  .ct__nums li { display: flex; flex-direction: column; }
+  .ct__n { font: 400 3.75rem/1 var(--f-display); color: #fff; }
+  .ct__t { margin-top: 0.5rem; font: 300 0.8125rem/1.3 var(--f-body); letter-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
+
+  .esc { background: var(--c-surface); padding: clamp(2rem, 6vw, 4rem) var(--space); }
+  .esc__in { max-width: var(--w-max); margin-inline: auto; background: var(--c-bg); padding: 30px; display: grid; gap: 2rem; }
+  @media (min-width: 48rem) { .esc__in { grid-template-columns: 1fr 1fr; } .esc__txt { padding-right: 60px; } }
+  .esc h2 { font: 400 clamp(2.4rem, 5vw, 3.125rem)/1.2 var(--f-display); letter-spacing: -0.027em; color: var(--c-accent-2); }
+  .esc__txt > p:first-of-type { font: 700 0.75rem/1.8 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: #fff; }
+  .esc .btn { text-transform: none; letter-spacing: 0.05em; font-size: 0.9rem; }
+  .esc__res { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
+  .esc__maps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
+  .esc__maps li { border: 1px solid var(--c-line); padding: 1.5rem; }
+  .esc__city { margin: 0 0 0.25rem; font: 400 1.625rem/1.2 var(--f-display); color: var(--c-accent); }
+  .esc__map { font: 700 0.75rem/1.4 var(--f-label); letter-spacing: 2.4px; text-transform: uppercase; color: var(--c-accent); text-decoration: none; display: inline-block; padding-block: 0.6rem; }
+  .esc__map::after { content: ' →'; }
 </style>

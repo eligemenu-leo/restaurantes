@@ -1,21 +1,56 @@
-@import '@fontsource-variable/playfair-display';
-@import '@fontsource-variable/inter';
+@import '@fontsource/forum';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/open-sans';
+@import '@fontsource/poppins/200.css';
+@import '@fontsource/poppins/300.css';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/700.css';
 @import '@rea/core/styles/base.css';
 
-/* La Vaca Asustada: brasa, carbón y papel de carnicería. */
+/* La Vaca Asustada: los colores y tipografías del kit de la web original
+   (Forum en títulos, DM Sans en etiquetas y botones, Poppins en el texto). */
 :root {
-  --c-bg: #141110;
-  --c-surface: #1d1917;
-  --c-text: #f1e9de;
-  --c-muted: #b3a797;
-  --c-accent: #e0633a;
-  --c-accent-text: #141110;
-  --c-line: #3a322d;
-  --c-footer-bg: #0c0a09;
-  --c-footer-text: #e8dfd3;
-  --f-display: 'Playfair Display Variable', Georgia, serif;
-  --f-body: 'Inter Variable', system-ui, sans-serif;
+  --c-bg: #0e0d0c;          /* "dark" del kit */
+  --c-surface: #151616;     /* "light" del kit */
+  --c-band: #211f1e;        /* fondo de la sección de carnes TOP */
+  --c-band-2: #171819;      /* fondo de las opiniones */
+  --c-text: #a3998b;        /* texto de los párrafos */
+  --c-text-2: #a7a7a7;      /* texto secundario (descripciones, legales) */
+  --c-head: #ffffff;        /* títulos */
+  --c-muted: #a3998b;
+  --c-accent: #e4c590;      /* dorado principal */
+  --c-accent-2: #ab9066;    /* dorado secundario */
+  --c-accent-text: #0e0d0c;
+  --c-line: rgb(255 255 255 / 0.12);
+  --c-footer-bg: #000;
+  --c-footer-text: #fff;
+  --f-display: 'Forum', Georgia, serif;
+  --f-label: 'DM Sans Variable', 'DM Sans', system-ui, sans-serif;
+  --f-body: 'Poppins', system-ui, sans-serif;
+  --f-alt: 'Open Sans Variable', 'Open Sans', system-ui, sans-serif;
   --radius: 0;
+  --w-max: 73.125rem;       /* contenedor de 1170px */
 }
-h1 { font-weight: 700; }
+/* Medidas tomadas de la web original a 1440 px. */
+body { font-size: 1rem; line-height: 23px; }
+strong, b { font-weight: 700; }
+/* Títulos en Forum: letras algo juntas (-0,027em), interlineado 1,2; los h2 con mayúscula inicial. */
+h1, h2, h3 { font-weight: 400; color: var(--c-head); letter-spacing: -0.027em; line-height: 1.2; }
+h2 { font-size: clamp(2rem, 4.5vw, 2.875rem); text-transform: capitalize; }
+a:hover { color: var(--c-accent-2); }
+
+/* Etiqueta pequeña en mayúsculas sobre los títulos. */
+.eyebrow { font: 700 0.75rem/1.3 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
+
+/* Botón del kit: transparente, borde y texto dorados; al pasar, fondo dorado. */
+.btn {
+  min-height: 48px; padding: 1.1em 2.5em; background: transparent; color: var(--c-accent);
+  border: 1px solid var(--c-accent); border-radius: 0;
+  font: 700 0.75rem/1 var(--f-display); letter-spacing: 3.6px; text-transform: uppercase;
+  justify-content: center; text-align: center; cursor: pointer;
+  transition: background-color .2s, color .2s;
+}
+.btn:hover, .btn:focus-visible { background: var(--c-accent); color: #000; }
+.btn--ghost { color: var(--c-accent); border-color: var(--c-accent); }
 .menu__h { border-bottom-color: var(--c-accent) !important; }
+.legal__body h2, .legal h2 { text-transform: none; }

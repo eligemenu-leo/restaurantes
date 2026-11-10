@@ -1,0 +1,87 @@
+---
+import type { MenuData, MenuItemData } from '../lib/schema.ts';
+import { ALLERGENS } from '../lib/schema.ts';
+import { price } from '../lib/format.ts';
+interface Props { menu: MenuData; headingLevel?: 2 | 3; hideZeroDecimals?: boolean; toc?: boolean }
+const { menu, headingLevel = 2, hideZeroDecimals = false, toc = true } = Astro.props;
+const H = `h${headingLevel}` as 'h2' | 'h3';
+const Hsub = `h${headingLevel + 1}` as 'h3' | 'h4';
+const hasAllergens = menu.sections.some((s) => s.items.some((i) => i.allergens?.length));
+const updated = new Date(menu.updated + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+const fmt = (v: number, unit: string, label?: string) => price(v, unit, { hideZeroDecimals }) + (label ? ` ${label}` : '');
+const prices = (i: MenuItemData) => [
+  i.price != null ? fmt(i.price, i.unit, i.priceLabel) : null,
+  i.price2 != null ? fmt(i.price2, 'racion', i.price2Label) : null,
+].filter(Boolean) as string[];
+const mainSections = menu.sections.filter((s) => !s.sub);
+---
+<div class="menu">
+  {toc && mainSections.length > 2 && (
+    <nav class="menu__toc" aria-label="Secciones de la carta">
+      <ul>{mainSections.map((s) => <li><a href={`#${s.id}`}>{s.name}</a></li>)}</ul>
+    </nav>
+  )}
+  {menu.sections.map((s) => {
+    const Tag = s.sub ? Hsub : H;
+    return (
+      <section class:list={['menu__sec', { 'menu__sec--sub': s.sub }]} id={s.id} aria-labelledby={`${s.id}-h`}>
+        <Tag id={`${s.id}-h`} class="menu__h">{s.name}</Tag>
+        {s.note && <p class="menu__note">{s.note}</p>}
+        {s.priceHeaders && <p class="menu__ph" aria-hidden="true">{s.priceHeaders.filter(Boolean).join(' · ')}</p>}
+        <ul class="menu__list">
+          {s.items.map((i) => {
+            const p = prices(i);
+            return (
+              <li class="menu__item">
+                <div class="menu__row">
+                  <span class="menu__name">{i.name}</span>
+                  {p.length > 0 && <span class="menu__dots" aria-hidden="true"></span>}
+                  {p.length > 0 && (
+                    <span class="menu__price">
+                      {p.map((t, n) => (
+                        <span class:list={{ 'menu__price2': n > 0 }}>
+                          {s.priceHeaders?.[n] && <span class="visually-hidden">{s.priceHeaders[n]}: </span>}{t}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </div>
+                {i.description && <p class="menu__desc">{i.description}</p>}
+                {i.allergens?.length ? (
+                  <p class="menu__all"><span class="visually-hidden">Alérgenos: </span>{i.allergens.map((a) => ALLERGENS[a]).join(' · ')}</p>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  })}
+  <footer class="menu__foot">
+    {menu.notes.map((n) => <p>{n}</p>)}
+    <p>Precios en euros. Carta actualizada en {updated}.</p>
+    {!hasAllergens && <p>Si tienes alguna alergia o intolerancia, pregúntanos: te informamos de los alérgenos de cada plato.</p>}
+  </footer>
+</div>
+<style>
+  .menu__toc { position: sticky; top: 4.25rem; z-index: 5; background: var(--c-bg); border-bottom: 1px solid var(--c-line); margin-bottom: 2rem; overflow-x: auto; }
+  .menu__toc ul { display: flex; gap: 1.5rem; list-style: none; margin: 0; padding: 0.9rem 0; white-space: nowrap; }
+  .menu__toc a { text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  .menu__sec { padding-block: 2rem; scroll-margin-top: 8rem; }
+  .menu__sec--sub { padding-top: 0.5rem; }
+  .menu__h { font-size: clamp(1.6rem, 3.5vw, 2.25rem); border-bottom: 2px solid var(--c-text); padding-bottom: 0.5rem; margin-bottom: 1.25rem; }
+  .menu__sec--sub .menu__h { font-size: 1.3rem; border-bottom-width: 1px; }
+  .menu__note { color: var(--c-muted); font-style: italic; }
+  .menu__ph { text-align: right; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--c-muted); margin: -0.5rem 0 0.75rem; }
+  .menu__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.1rem; }
+  @media (min-width: 60rem) { .menu__list { grid-template-columns: 1fr 1fr; column-gap: 4rem; } }
+  .menu__row { display: flex; align-items: baseline; gap: 0.6rem; }
+  .menu__name { font-weight: 600; font-size: 1.05rem; }
+  .menu__dots { flex: 1; border-bottom: 1px dotted var(--c-muted); min-width: 1.5rem; transform: translateY(-0.3em); }
+  .menu__price { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; display: inline-flex; flex-direction: column; align-items: flex-end; }
+  .menu__price2 { font-weight: 400; color: var(--c-muted); font-size: 0.95em; }
+  .menu__desc { color: var(--c-muted); font-size: 0.95rem; margin: 0.25rem 0 0; max-width: 34rem; }
+  .menu__all { font-size: 0.8rem; color: var(--c-muted); margin: 0.2rem 0 0; }
+  .menu__foot { margin-top: 2rem; color: var(--c-muted); font-size: 0.9rem; }
+  .menu__foot p { margin: 0 0 0.4rem; }
+</style>

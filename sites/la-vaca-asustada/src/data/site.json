@@ -2,17 +2,49 @@
   "name": "La Vaca Asustada",
   "url": "https://lavacaasustada.com",
   "description": "Restaurante de carne madurada en Gijón y Oviedo: chuletas, T-bone, tomahawk y wagyu a la brasa. Reserva en Gijón (663 20 06 15) u Oviedo (984 29 86 60).",
-  "cuisine": ["Carnes a la brasa", "Carne madurada", "Asador"],
+  "cuisine": [
+    "Carnes a la brasa",
+    "Carne madurada",
+    "Asador"
+  ],
   "locations": [
     {
       "id": "gijon",
       "name": "Gijón",
-      "address": { "street": "C/ San Bernardo, 79 bajo", "postalCode": "33201", "locality": "Gijón" },
+      "address": {
+        "street": "C/ San Bernardo, 79 bajo",
+        "postalCode": "33201",
+        "locality": "Gijón"
+      },
       "phone": "663 20 06 15",
       "email": "info@lavacaasustada.com",
       "hours": [
-        { "days": ["mo", "tu", "we", "th", "fr", "sa", "su"], "open": "12:30", "close": "18:00" },
-        { "days": ["mo", "tu", "we", "th", "fr", "sa", "su"], "open": "19:30", "close": "01:00" }
+        {
+          "days": [
+            "mo",
+            "tu",
+            "we",
+            "th",
+            "fr",
+            "sa",
+            "su"
+          ],
+          "open": "12:30",
+          "close": "18:00"
+        },
+        {
+          "days": [
+            "mo",
+            "tu",
+            "we",
+            "th",
+            "fr",
+            "sa",
+            "su"
+          ],
+          "open": "19:30",
+          "close": "01:00"
+        }
       ],
       "reservationUrl": "https://www.restaurantic.es/integraciones/index.php?hash=c1e5242f-ca1b-4312-8b14-994121d21f58",
       "mapsQuery": "La Vaca Asustada, Calle San Bernardo 79, Gijón"
@@ -20,22 +52,99 @@
     {
       "id": "oviedo",
       "name": "Oviedo",
-      "address": { "street": "C/ Melquiades Álvarez, 24", "postalCode": "33003", "locality": "Oviedo" },
+      "address": {
+        "street": "C/ Melquiades Álvarez, 24",
+        "postalCode": "33003",
+        "locality": "Oviedo"
+      },
       "phone": "984 29 86 60",
       "email": "info@lavacaasustada.com",
       "hours": [
-        { "days": ["mo", "tu", "we", "th", "fr", "sa", "su"], "open": "12:30", "close": "18:00" },
-        { "days": ["mo", "tu", "we", "th", "fr", "sa", "su"], "open": "19:30", "close": "01:00" }
+        {
+          "days": [
+            "mo",
+            "tu",
+            "we",
+            "th",
+            "fr",
+            "sa",
+            "su"
+          ],
+          "open": "12:30",
+          "close": "18:00"
+        },
+        {
+          "days": [
+            "mo",
+            "tu",
+            "we",
+            "th",
+            "fr",
+            "sa",
+            "su"
+          ],
+          "open": "19:30",
+          "close": "01:00"
+        }
       ],
       "reservationUrl": "https://www.restaurantic.es/integraciones/index.php?hash=a01e32f6-93c8-4799-adcb-39f198db68b4",
       "mapsQuery": "La Vaca Asustada, Calle Melquiades Álvarez 24, Oviedo"
     }
   ],
   "nav": [
-    { "label": "Inicio", "href": "/" },
-    { "label": "Menú", "href": "/menu/" },
-    { "label": "Sobre nosotros", "href": "/sobre-nosotros/" },
-    { "label": "Locales y reservas", "href": "/contacto/" }
+    {
+      "label": "Inicio",
+      "href": "/"
+    },
+    {
+      "label": "Menú",
+      "href": "/menu/"
+    },
+    {
+      "label": "Sobre nosotros",
+      "href": "/sobre-nosotros/"
+    },
+    {
+      "label": "Contacto",
+      "href": "/contacto/"
+    }
   ],
-  "reviews": []
+  "reviews": [
+    {
+      "author": "Germán Valverde",
+      "date": "Julio, 2024",
+      "text": "Una experiencia desde que entras al local, con su decoración, la amabilidad del personal y por supuesto la carne. La carta no es extensa, pero hay una variedad de carnes que acertarás seguro, en caso de duda te explican cada plato, con la procedencia y el corte. Cuando te van a traer la carne tienes que escoger qué cuchillo quieres de una bandeja. Es conveniente reservar.",
+      "source": "google"
+    },
+    {
+      "author": "José Jiménez",
+      "date": "Junio, 2024",
+      "text": "La atención de 10 y la carne espectacular. Nosotros comimos primero una carne más suave y después una más potente siguiendo la recomendación del camarero y no pudo estar más acertado. Todas son como mantequilla y el sabor te dura en la boca hasta cuando vuelves a casa. Brutal.",
+      "source": "google"
+    },
+    {
+      "author": "Igna Halcón",
+      "date": "Mayo, 2024",
+      "text": "Se come muy bien, a todos nos gusto y eramos un grupo de 5 personas. La cecina de entrante y el foie estaban increíbles. La carne bien hecha, roja por dentro como debería ser en todos lados. De acompañante los pimientos estan para llorar. La atención es muy buena. El postre de chocolate para mi gusto es muy dulce (y 9€... Para mi gusto no merece la pena). Luego llega la dolorosa (elevada), pero pagas por la calidad (es alta y tipos de carne que no se encuentran) y merece la pena ir a probarlo. ¡Volveremos!",
+      "source": "google"
+    },
+    {
+      "author": "Ricardo Díaz García",
+      "date": "Mayo, 2024",
+      "text": "La atención de 10 y la carne espectacular. Nosotros comimos primero una carne más suave y después una más potente siguiendo la recomendación del camarero y no pudo estar más acertado. Todas son como mantequilla y el sabor te dura en la boca hasta cuando vuelves a casa. Brutal.",
+      "source": "google"
+    },
+    {
+      "author": "José Bodalbo",
+      "date": "Mayo, 2024",
+      "text": "Pedimos el T-Bone poco hecho, y de guarniciones boniato a la mantequilla y piquillos confitados. De postre la tarta de queso de Afuegal Pitu. Increible, para 3 personas. Sobre los 56 euros por cabeza, muy recomendado",
+      "source": "google"
+    },
+    {
+      "author": "Manuel Soto Braña",
+      "date": "Febrero, 2024",
+      "text": "Muy buena atención por parte d los camareros. El producto es muy bueno, a excepción de las guarniciones, que por ejemplo, son patatas congeladas, también hay que decir que sólo cuestan 5 euros. Carne madurada muy buena y te explican muy bien todo, hasta te dan a escoger el cuchillo que quieres. Un detalle que no me gustó, cobrarme el café cuando dejé alli 250€ para 4, pero volveré sin duda",
+      "source": "google"
+    }
+  ]
 }

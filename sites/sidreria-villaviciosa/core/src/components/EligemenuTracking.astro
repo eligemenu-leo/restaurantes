@@ -1,0 +1,15 @@
+---
+// Aviso de visita a la carta para las estadísticas de Eligemenú (lo mismo que hace
+// su plugin y su componente). Sin cookies ni almacenamiento; si falla, no pasa nada.
+interface Props { restaurantId?: string; apiBase?: string }
+const { restaurantId, apiBase = 'https://jcfiarsoqvczjavikgoh.supabase.co/functions/v1' } = Astro.props;
+---
+{restaurantId && (
+  <script is:inline define:vars={{ restaurantId, url: `${apiBase}/wordpress-api/track-view` }}>
+    try {
+      if (!/\.pages\.dev$|localhost/.test(location.hostname)) {
+        navigator.sendBeacon(url, JSON.stringify({ event_type: 'carta_view', restaurant_id: restaurantId, metadata: { source: 'web-astro' } }));
+      }
+    } catch (e) {}
+  </script>
+)}

@@ -1,26 +1,57 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import { site } from '../data/index.ts';
+// Sobre nosotros, como en la original: tres bandas a dos columnas (foto y texto), alternando el lado.
+import Layout from '../components/Layout.astro';
+import Photo from '@rea/core/components/Photo.astro';
+import historia from '../assets/web/Pizarra-Vaca-Asustada-4.jpg';
+import equipo from '../assets/web/6.jpg';
+import filosofia from '../assets/web/CU5A9723-scaled.jpg';
+
+const bands = [
+  {
+    img: historia, alt: 'Detalle del comedor de La Vaca Asustada', label: 'sobre nosotros', title: 'Nuestra historia', h1: true,
+    html: 'Luis y Rocío, apasionados por la gastronomía, soñaban con crear un restaurante donde la carne de vaca fuera la protagonista. Originarios de Amarante, Portugal, y con una trayectoria en el mundo de la hostelería en Asturias, decidieron llevar su pasión al siguiente nivel en <strong>La Vaca Asustada</strong>. <strong>Con la experiencia de Luis en lugares como La Teyera y El Guarapu, y el conocimiento empresarial de Rocío</strong>, crearon un espacio donde se rinde homenaje a las mejores carnes del mundo, fusionando tradición y modernidad en cada plato.',
+  },
+  {
+    img: equipo, alt: 'Personal de La Vaca Asustada', label: 'inovación y tradición', title: 'Nuestro equipo', flip: true,
+    html: 'Con un profundo respeto por las <strong>técnicas tradicionales y un enfoque innovador</strong>, nuestro equipo garantiza que cada plato sea una experiencia excepcional. Cada miembro de nuestro equipo comparte el compromiso de ofrecerte la perfección en cada bocado.',
+  },
+  {
+    img: filosofia, alt: 'Corte de carne madurada en la cocina', label: '20 años de experiencia', title: 'Nuestra filosofía',
+    html: '<strong>En Vaca Asustada</strong>, redefinimos el arte de la carne madurada. Nuestra dedicación a la calidad y la perfección se refleja en cada detalle. Utilizamos técnicas tradicionales combinadas con innovación para ofrecer una experiencia gastronómica única. Sostenibilidad y elegancia son nuestros pilares, garantizando que cada visita sea memorable.',
+  },
+];
 ---
-<BaseLayout site={site} title="Sobre nosotros" path="/sobre-nosotros/"
-  description="Luis y Rocío crearon La Vaca Asustada para celebrar las mejores carnes del mundo, con técnicas tradicionales y una mirada actual. Gijón y Oviedo.">
-  <article class="wrap section about">
-    <p class="eyebrow">Desde nuestros inicios</p>
-    <h1>Locos por la carne</h1>
-    <div class="about__body">
-      <p class="lead">Luis y Rocío compartían una pasión: la buena mesa. De ahí nació La Vaca Asustada, un restaurante con la carne como protagonista.</p>
-      <h2>Nuestra historia</h2>
-      <p>Originarios de Amarante (Portugal) y con años de oficio en la hostelería asturiana, unieron la experiencia de Luis en casas como La Teyera y El Guarapu con el conocimiento de empresa de Rocío.</p>
-      <h2>Nuestra filosofía</h2>
-      <p>Carne madurada, técnicas tradicionales y una mirada innovadora. Cuidamos el origen de cada pieza y el respeto por el producto.</p>
-      <h2>Nuestro equipo</h2>
-      <p>Un equipo que combina oficio y ganas de sorprender para que cada plato sea una experiencia.</p>
-      <div class="btn-row"><a class="btn" href="/contacto/">Reserva tu mesa</a><a class="btn btn--ghost" href="/menu/">Ver el menú</a></div>
-    </div>
-  </article>
-</BaseLayout>
+<Layout title="Sobre nosotros" path="/sobre-nosotros/"
+  description="Luis y Rocío crearon La Vaca Asustada para rendir homenaje a las mejores carnes del mundo, fusionando tradición y modernidad. Gijón y Oviedo.">
+  {bands.map((b, i) => {
+    const H = b.h1 ? 'h1' : 'h2';
+    return (
+      <section class:list={['band', { 'band--flip': b.flip }]} aria-labelledby={`b${i}`}>
+        <Photo src={b.img} alt={b.alt} sizes="(min-width: 48rem) 50vw, 100vw" widths={[480, 720, 960, 1280]} loading={i === 0 ? 'eager' : 'lazy'} class="band__img" />
+        <div class="band__txt">
+          <p class="eyebrow">{b.label}</p>
+          <H id={`b${i}`}>{b.title}</H>
+          <p set:html={b.html} />
+        </div>
+      </section>
+    );
+  })}
+</Layout>
 <style>
-  .about__body { max-width: var(--w-text); }
-  .about__body h2 { font-size: 1.75rem; margin-top: 2.5rem; }
+  .band { display: grid; background: var(--c-bg); }
+  .band:nth-of-type(2n) { background: var(--c-surface); }
+  @media (min-width: 48rem) {
+    .band { grid-template-columns: 1fr 1fr; min-height: 36rem; }
+    .band--flip .band__txt { order: -1; }
+  }
+  :global(.band__img) { width: 100%; height: 100%; max-height: 52rem; object-fit: cover; }
+  @media (max-width: 47.99rem) { :global(.band__img) { aspect-ratio: 4 / 3; height: auto; } }
+  .band__txt { align-self: center; padding: clamp(3rem, 8vw, 6.25rem) clamp(1.25rem, 6vw, 5rem); max-width: 40rem; }
+  .band--flip .band__txt { justify-self: end; }
+  /* Como en la original: Poppins fina en mayúsculas; el primer título a 45 px, los otros a 60 px. */
+  .band h1, .band h2 { font: 200 clamp(2.2rem, 5vw, 3.75rem)/1.2 var(--f-body); letter-spacing: 0; text-transform: uppercase; color: #fff; margin-bottom: 1.5rem; }
+  .band h1 { font-size: clamp(2rem, 4.5vw, 2.8125rem); }
+  .band:nth-of-type(2) h2 { font-family: var(--f-alt); font-weight: 300; letter-spacing: -0.027em; }
+  .band p:last-child { margin: 0; font-size: 1rem; line-height: 23px; }
+  .band :global(strong) { font-weight: 700; }
 </style>

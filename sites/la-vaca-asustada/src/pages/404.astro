@@ -1,12 +1,11 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import { site } from '../data/index.ts';
+import Layout from '../components/Layout.astro';
 ---
-<BaseLayout site={site} title="Página no encontrada" path="/404/" noindex>
-  <div class="wrap section">
+<Layout title="Página no encontrada" path="/404/" noindex>
+  <div class="wrap section nf">
     <h1>Esta página no existe</h1>
-    <p class="lead">Puede que la dirección haya cambiado con la nueva web.</p>
-    <div class="btn-row"><a class="btn" href="/menu/">Ver el menú</a><a class="btn btn--ghost" href="/">Ir al inicio</a></div>
+    <p>Puede que la dirección haya cambiado con la nueva web.</p>
+    <div class="btn-row"><a class="btn" href="/menu/">Ver el menú</a><a class="btn" href="/">Ir al inicio</a></div>
   </div>
-</BaseLayout>
+</Layout>
+<style>.nf { text-align: center; } .nf .btn-row { justify-content: center; margin-top: 2rem; }</style>

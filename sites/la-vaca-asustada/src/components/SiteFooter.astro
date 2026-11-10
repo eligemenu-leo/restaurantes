@@ -1,0 +1,78 @@
+---
+// Pie de la web original: foto oscura de fondo con cuatro columnas (marca, Gijón, Oviedo y menú),
+// fila de enlaces legales, franja negra con el copyright y el sello del Kit Digital (retirado a petición de Leo, 2026-11-10).
+import { getImage, Image } from 'astro:assets';
+import { telHref } from '@rea/core/lib/format.ts';
+import { site } from '../data/index.ts';
+import logo from '../assets/web/Logo-vaca_doradoclaro-1.png';
+import fondo from '../assets/web/MG_6131.jpg';
+const bg = await getImage({ src: fondo, width: 1600, format: 'webp', quality: 60 });
+const [gijon, oviedo] = ['gijon', 'oviedo'].map((id) => site.locations.find((l) => l.id === id)!);
+const addr = (l: typeof gijon) => `${l.address.street.replace(/ bajo$/i, ' Bajo')} - ${l.address.postalCode} ${l.address.locality} (Asturias)`;
+const links = [
+  { label: 'Inicio', href: '/' },
+  { label: 'Menú Gijón', href: '/menu-gijon/' },
+  { label: 'Menú Oviedo', href: '/menu-oviedo/' },
+  { label: 'Sobre nosotros', href: '/sobre-nosotros/' },
+  { label: 'Contacto', href: '/contacto/' },
+];
+const pin = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z';
+const phone = 'M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8Z';
+const year = new Date().getFullYear();
+---
+<footer class="sf" style={`--sf-bg: url(${bg.src})`}>
+  <div class="sf__cols">
+    <div class="sf__col sf__brand">
+      <Image src={logo} alt="" />
+      <p class="sf__name">La Vaca Asustada</p>
+      <ul class="sf__list">
+        <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm9 7.2L4.4 7H4v.6l8 5.4 8-5.4V7h-.4L12 12.2Z"/></svg><a href={`mailto:${gijon.email}`}>{gijon.email}</a></li>
+        <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 10.6V6h-2v7.4l5 3 1-1.7-4-2.1Z"/></svg>Lunes a domingo: 12:30–18:00 | 19:30–1:00</li>
+      </ul>
+    </div>
+    {[gijon, oviedo].map((l) => (
+      <div class="sf__col">
+        <h2 class="sf__h">{l.name}</h2>
+        <ul class="sf__list">
+          <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d={pin}/></svg>{addr(l)}</li>
+          <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d={phone}/></svg><a href={telHref(l.phone)}>+34 {l.phone}</a></li>
+        </ul>
+      </div>
+    ))}
+    <nav class="sf__col sf__nav" aria-label="Pie de página">
+      <ul>{links.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+    </nav>
+  </div>
+  <ul class="sf__legal">
+    <li><a href="/aviso-legal/">Aviso legal</a></li>
+    <li><a href="/politica-de-privacidad/">Política de privacidad</a></li>
+    <li><a href="/politica-de-cookies/">Política de cookies</a></li>
+    <li><a href="/declaracion-de-accesibilidad/">Accesibilidad</a></li>
+  </ul>
+  <p class="sf__copy">© {year} · <a href="https://eligemenu.com/">Diseño web ELIGEMENU</a></p>
+</footer>
+<style>
+  .sf { position: relative; isolation: isolate; background: #212323 var(--sf-bg) top center / cover no-repeat; padding-top: 3rem; color: #fff; font-size: 1rem; line-height: 28.8px; }
+  .sf::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(183deg, rgb(0 0 0 / 0.23) 0%, #000 100%); opacity: 0.84; }
+  @media (min-width: 64.0625rem) { .sf { background-attachment: fixed; } }
+  .sf__cols { width: min(100% - 2 * var(--space), var(--w-max)); margin: 2rem auto 0; display: grid; gap: 0 2rem; }
+  @media (min-width: 48rem) { .sf__cols { grid-template-columns: 1fr 1fr; } .sf__brand, .sf__nav { grid-column: 1 / -1; } }
+  @media (min-width: 64.0625rem) { .sf__cols { grid-template-columns: 1.15fr 1fr 1fr 0.9fr; } .sf__brand, .sf__nav { grid-column: auto; } }
+  .sf__col { padding: 2rem 0; }
+  @media (min-width: 64.0625rem) { .sf__col { padding: 3.125rem 0; } }
+  .sf__brand img { width: 73px; height: auto; }
+  @media (max-width: 64rem) { .sf__brand img { width: 100px; } }
+  .sf__name { margin: 1.25rem 0 1rem; font: 300 1.5625rem/1.2 var(--f-alt); text-transform: uppercase; color: var(--c-accent); letter-spacing: -0.027em; }
+  .sf__h { margin: 1.25rem 0 1rem; font: 400 1.625rem/1.2 var(--f-display); letter-spacing: -0.027em; text-transform: none; color: var(--c-accent); }
+  .sf ul { list-style: none; margin: 0; padding: 0; }
+  .sf__list li { display: flex; gap: 0.6rem; align-items: baseline; margin-bottom: 0.6rem; }
+  .sf__list svg { flex: none; color: #fff; transform: translateY(2px); }
+  .sf a { text-decoration: none; }
+  .sf a:hover { color: var(--c-accent); }
+  .sf__nav { align-self: end; }
+  .sf__nav li + li { margin-top: 1.5rem; }
+  .sf__nav a { font: 400 0.75rem/1.8 var(--f-body); letter-spacing: 3.6px; text-transform: uppercase; }
+  .sf__legal { width: min(100% - 2 * var(--space), var(--w-max)); margin: 1rem auto 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 3rem; color: var(--c-text-2); font: 300 0.8125rem/1.8 var(--f-body); letter-spacing: 2px; text-transform: uppercase; }
+  .sf__legal a:hover { color: var(--c-accent-2); }
+  .sf__copy { margin: 0; background: #000; color: #c5c5c5; text-align: center; padding: 1.25rem var(--space); font-size: 1rem; }
+</style>

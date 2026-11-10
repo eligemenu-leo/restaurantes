@@ -1,15 +1,16 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Layout from '../components/Layout.astro';
 import MenuSections from '@rea/core/components/MenuSections.astro';
-import { site, bodega } from '../data/index.ts';
+import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
+import { restaurantId, site, bodega } from '../data/index.ts';
 ---
-<BaseLayout site={site} title="Bodega" path="/bodega/"
+<Layout title="Bodega" path="/bodega/"
   description="Vinos de Sidrería Villaviciosa: espumosos, blancos de Rías Baixas y Rueda, rosado de Navarra y tintos de Rioja, Ribera del Duero, Bierzo y Toro.">
   <div class="wrap section">
     <p class="eyebrow">Para acompañar</p>
     <h1>Nuestra bodega</h1>
-    <p class="lead">Además de sidra natural, una selección corta de vinos para cada plato. Precios por botella.</p>
+    <p class="lead">Además de sidra natural, una selección corta de vinos para cada plato.</p>
     <MenuSections menu={bodega} />
   </div>
-</BaseLayout>
+  <EligemenuTracking restaurantId={restaurantId} />
+</Layout>

@@ -2,10 +2,16 @@
   "name": "restaurantes",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*", "sites/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm test --workspace @rea/core"
+    "test": "npm test --workspace @rea/core",
+    "build": "for s in sites/*/; do (cd \"$s\" && npm ci && npm run build) || exit 1; done",
+    "core:status": "node scripts/sync-core.mjs --status",
+    "core:sync": "node scripts/sync-core.mjs"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }
