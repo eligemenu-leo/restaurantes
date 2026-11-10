@@ -40,9 +40,12 @@ crear bonos a mano, tipos de bono con validez y periodo de venta, ajustes y usua
 
 - Lee con RLS (cada usuario solo ve su restaurante) y modifica con funciones SQL que comprueban el rol y dejan
   registro en `eventos`. Usuarios y reenvío de correos van por la función `bonos-api`.
-- Despliegue: proyecto de Cloudflare Pages con directorio raíz `servicios/bonos/panel`, sin comando de
-  compilación y salida `.`. En `config.js` va la clave publicable de Supabase (es pública por diseño).
-- Secreto `PANEL_URL` en las funciones (la URL del panel): el QR del correo abre `PANEL_URL/#/bono/<código>`.
+- Se publica dentro de cada web que vende bonos, en `/gestion/`. El original está aquí; cada web lleva su copia
+  en `public/gestion/`, igual que con el núcleo: `node servicios/bonos/scripts/copiar-panel.mjs <web>`
+  (y `--comprobar <web>`, que usa la CI). Las cabeceras de seguridad de `/gestion/*` van en el `_headers` de la web.
+  El `_headers` de esta carpeta es para publicarlo suelto, si algún día se prefiere un panel único.
+- El QR del correo abre `<web del restaurante>/gestion/#/bono/<código>` (o `PANEL_URL`, si se define ese secreto).
+- `config.js` lleva la clave publicable de Supabase (es pública por diseño).
 - En Supabase → Authentication: desactivar el registro público ("Allow new users to sign up") y poner la URL
   del panel como Site URL, para que funcione "He olvidado la contraseña".
 - Primer administrador: crearlo en Authentication → Users → Add user y darle acceso con

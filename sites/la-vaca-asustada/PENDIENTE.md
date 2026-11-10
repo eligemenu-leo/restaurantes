@@ -18,3 +18,4 @@
 - [ ] Bonos regalo: confirmar importes (ahora 50, 100 y 150 €), validez (ahora 12 meses), locales donde valen y condiciones de devolución. Están en `src/data/bonos.json` y en la tabla `comercios` del servicio de bonos; tienen que coincidir.
 - [ ] Bonos regalo: poner en marcha el servicio (`servicios/bonos/README.md`), rellenar `endpoint` y `activo: true`. Datos reales del TPV del banco (FUC, terminal, clave).
 - [ ] Bonos regalo: página para que el personal compruebe un código y lo marque como usado.
+- [ ] Panel de bonos en /gestion/: es una copia de `servicios/bonos/panel`. Tras cambiarlo allí: `node servicios/bonos/scripts/copiar-panel.mjs la-vaca-asustada`.

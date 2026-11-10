@@ -1,6 +1,6 @@
 // API del servicio de bonos, todo en una función para no tener que desplegar muchas:
 //   GET  /bonos-api/config?comercio=…   tipos de bono en venta (público, lo lee la web)
-//   GET  /bonos-api/qr?c=VACA-XXXX-XXXX imagen del QR del bono (público, va en el correo)
+//   GET  /bonos-api/qr?c=VACA-XXXX-XXXX imagen del QR del bono (público, va en el correo; abre /gestion/ de la web)
 //   POST /bonos-api/reenviar            reenvía el correo del bono (panel, administrador)
 //   POST /bonos-api/usuarios            listar, crear, cambiar rol y quitar usuarios (panel, administrador)
 import qrcode from 'npm:qrcode-generator@1.4.4';
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   const ruta = url.pathname.split('/').filter(Boolean).pop();
   try {
     if (req.method === 'GET' && ruta === 'config') return await config(url);
-    if (req.method === 'GET' && ruta === 'qr') return qr(url);
+    if (req.method === 'GET' && ruta === 'qr') return await qr(url);
     if (req.method === 'POST' && ruta === 'reenviar') return await reenviar(req);
     if (req.method === 'POST' && ruta === 'usuarios') return await usuarios(req);
     return error('No encontrado', 404);
@@ -50,11 +50,13 @@ async function config(url: URL) {
   }, 200, { 'Cache-Control': 'public, max-age=60' });
 }
 
-function qr(url: URL) {
+async function qr(url: URL) {
   const codigo = (url.searchParams.get('c') ?? '').toUpperCase();
   if (!FORMATO_CODIGO.test(codigo)) return error('Código no válido');
-  // El QR lleva a la ficha del bono en el panel; sin panel configurado, lleva solo el código.
-  const panel = Deno.env.get('PANEL_URL')?.replace(/\/$/, '');
+  // El QR lleva a la ficha del bono en el panel, que está en /gestion/ de la web del restaurante
+  // (o en PANEL_URL si se configura). Si no se encuentra el restaurante, lleva solo el código.
+  const { data: c } = await db().from('comercios').select('web').eq('prefijo_codigo', codigo.split('-')[0]).limit(1).maybeSingle();
+  const panel = Deno.env.get('PANEL_URL')?.replace(/\/$/, '') || (c?.web ? `${c.web.replace(/\/$/, '')}/gestion` : '');
   const q = qrcode(0, 'M');
   q.addData(panel ? `${panel}/#/bono/${codigo}` : codigo);
   q.make();
