@@ -1,10 +1,7 @@
 ---
-import '../../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import { logo } from '../../layouts.ts';
-import { site } from '../../data/index.ts';
+import Layout from '../../components/Layout.astro';
 ---
-<BaseLayout site={site} logo={logo} title="Pago del bono" path="/bonos-regalo/pago/" noindex>
+<Layout title="Pago del bono" path="/bonos-regalo/pago/" noindex>
   <div class="wrap section">
     <p class="eyebrow">Bonos regalo</p>
     <h1>Te llevamos al pago</h1>
@@ -18,7 +15,7 @@ import { site } from '../../data/index.ts';
       <button class="btn" type="submit" id="seguir">Continuar al pago</button>
     </form>
   </div>
-</BaseLayout>
+</Layout>
 <script is:inline>
   (function () {
     var URLS = { pruebas: 'https://sis-t.redsys.es:25443/sis/realizarPago', real: 'https://sis.redsys.es/sis/realizarPago' };

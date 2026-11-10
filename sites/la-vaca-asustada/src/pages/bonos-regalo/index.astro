@@ -1,8 +1,5 @@
 ---
-import '../../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import { logo } from '../../layouts.ts';
-import { site } from '../../data/index.ts';
+import Layout from '../../components/Layout.astro';
 import { bonos } from '../../data/bonos.ts';
 
 const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
@@ -13,7 +10,7 @@ const validez = bonos.validezMeses % 12 === 0
 // Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
 const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
 ---
-<BaseLayout site={site} logo={logo} title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo}
+<Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo}
   description={`Regala una comida en La Vaca Asustada. Bonos regalo válidos en ${locales}, con pago seguro con tarjeta.`}>
   <div class="wrap section">
     <p class="eyebrow">Bonos regalo</p>
@@ -73,7 +70,7 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
       </ul>
     </section>
   </div>
-</BaseLayout>
+</Layout>
 {bonos.activo && (
   <script is:inline>
     // Si el pedido vuelve con un error, lo explica encima del formulario.
