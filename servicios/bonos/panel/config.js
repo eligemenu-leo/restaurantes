@@ -2,5 +2,5 @@
 // lo que cada usuario puede ver y hacer lo deciden los permisos de la base de datos.
 window.BONOS_CONFIG = {
   supabaseUrl: 'https://itbczgolpjezaiitjnno.supabase.co',
-  supabaseKey: 'PEGAR_AQUI_LA_CLAVE_PUBLICABLE', // Project Settings → API Keys → Publishable key (sb_publishable_…)
+  supabaseKey: 'sb_publishable_sHiBYTyicvap8BrT-R6Clg_YSQJl4mX', // Project Settings → API Keys → Publishable key
 };
