@@ -1,0 +1,8 @@
+---
+// Carta de Gijon en otro idioma (/menu-gijon/en/, /fr/, /de/, /it/).
+import MenuPage from '../../components/MenuPage.astro';
+import { LANGS } from '../../data/cartas.ts';
+export const getStaticPaths = () => LANGS.filter((l) => l !== 'es').map((lang) => ({ params: { lang } }));
+const { lang } = Astro.params as { lang: 'en' | 'fr' | 'de' | 'it' };
+---
+<MenuPage id="gijon" lang={lang} />

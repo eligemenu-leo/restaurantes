@@ -1,0 +1,34 @@
+---
+// Botones "Reserva tu mesa en Oviedo / Gijón". Como en la web original, abren una ventana
+// con el formulario de reservas de Restaurantic. Usa el atributo popover del navegador: sin JavaScript.
+// Si el navegador no admite popover, el enlace lleva directamente a Restaurantic.
+import { site } from '../data/index.ts';
+interface Props { id: string }
+const { id } = Astro.props;
+const locs = ['oviedo', 'gijon'].map((l) => site.locations.find((x) => x.id === l)!);
+---
+{locs.map((l) => (
+  <>
+    <button type="button" class="btn res__btn" popovertarget={`reserva-${id}-${l.id}`}>Reserva tu mesa en {l.name}</button>
+    <div class="res__pop" id={`reserva-${id}-${l.id}`} popover>
+      <div class="res__head">
+        <p class="res__title">Reserva en {l.name}</p>
+        <button type="button" class="res__close" popovertarget={`reserva-${id}-${l.id}`} popovertargetaction="hide">
+          <span aria-hidden="true">×</span><span class="visually-hidden">Cerrar</span>
+        </button>
+      </div>
+      <iframe src={l.reservationUrl} title={`Reservas de La Vaca Asustada ${l.name}`} loading="lazy"></iframe>
+      <p class="res__alt"><a href={l.reservationUrl} target="_blank" rel="noopener">Abrir el formulario en otra pestaña</a> · o llama al <a href={`tel:+34${l.phone.replace(/\s/g, '')}`}>{l.phone}</a></p>
+    </div>
+  </>
+))}
+<style>
+  .res__pop { width: min(100% - 2rem, 40rem); max-height: calc(100dvh - 2rem); padding: 0; border: 1px solid var(--c-accent); background: var(--c-bg); color: var(--c-text); overflow: auto; }
+  .res__pop::backdrop { background: rgb(0 0 0 / 0.75); }
+  .res__head { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.5rem 0.5rem 1.25rem; border-bottom: 1px solid var(--c-line); }
+  .res__title { margin: 0; font: 400 1.4rem/1.2 var(--f-display); color: #fff; }
+  .res__close { width: 48px; height: 48px; background: none; border: 0; color: #fff; font-size: 2rem; line-height: 1; cursor: pointer; }
+  .res__close:hover { color: var(--c-accent); }
+  .res__pop iframe { display: block; width: 100%; height: min(70dvh, 640px); border: 0; background: #fff; }
+  .res__alt { margin: 0; padding: 0.75rem 1.25rem; font-size: 0.875rem; }
+</style>
