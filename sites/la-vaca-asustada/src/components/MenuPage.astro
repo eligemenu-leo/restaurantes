@@ -1,50 +1,216 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import MenuSections from '@rea/core/components/MenuSections.astro';
+// Página de menú de un local, como la de la web original: carrusel de pizarras, cuchillos,
+// título, selector de idioma con banderas, pestañas por sección y el texto final sobre fondo dorado.
+// Cada idioma es una página estática (/menu-gijon/en/…) con la carta traducida por Eligemenú.
+import { Image } from 'astro:assets';
+import Layout from './Layout.astro';
+import MenuSlider from './MenuSlider.astro';
 import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
-import Photo from '@rea/core/components/Photo.astro';
 import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
-import { logo } from '../layouts.ts';
+import { price } from '@rea/core/lib/format.ts';
+import { ALLERGENS, type MenuData } from '@rea/core/lib/schema.ts';
 import { site, locales, HIDE_ZERO_DECIMALS } from '../data/index.ts';
-import lomo from '../assets/lomo-brasa.jpg';
-import piquillos from '../assets/piquillos.jpg';
-import emplatado from '../assets/emplatado.jpg';
-interface Props { id: 'oviedo' | 'gijon' }
-const l = locales.find((x) => x.id === Astro.props.id)!;
-const loc = site.locations.find((x) => x.id === l.id)!;
-const other = locales.find((x) => x.id !== l.id)!;
+import { carta, cartaPath, LANGS, T, ALLERGEN_NAMES, type Lang, type LocalId } from '../data/cartas.ts';
+import cuchillos from '../assets/web/Cuchillos.png';
+import vacaNegra from '../assets/web/Logo-vaca-negro.png';
+
+interface Props { id: LocalId; lang?: Lang }
+const { id, lang = 'es' } = Astro.props;
+const l = locales.find((x) => x.id === id)!;
+const loc = site.locations.find((x) => x.id === id)!;
+const other = locales.find((x) => x.id !== id)!;
+const c = await carta(id, lang);
+const t = T[lang];
+const shownLang: Lang = c.translated ? lang : 'es';
+const allergen = (a: keyof typeof ALLERGENS) => (shownLang === 'es' ? ALLERGENS[a] : ALLERGEN_NAMES[shownLang][a] ?? ALLERGENS[a]);
+const fmt = (v: number, unit: string) => price(v, unit, { hideZeroDecimals: HIDE_ZERO_DECIMALS });
+
+// Pestañas: las secciones de la carta de platos y, al final, las bebidas.
+type Tab = { id: string; name: string; sections: MenuData['sections'] };
+const tabs: Tab[] = [];
+for (const s of c.platos.sections) {
+  if (s.sub && tabs.length) tabs[tabs.length - 1].sections.push(s);
+  else tabs.push({ id: s.id, name: s.name, sections: [s] });
+}
+if (c.bebidas) tabs.push({ id: 'bebidas', name: t.drinks, sections: c.bebidas.sections });
+
+const flags: Record<Lang, string> = {
+  es: '<rect width="30" height="20" fill="#c60b1e"/><rect y="5" width="30" height="10" fill="#ffc400"/>',
+  en: '<clipPath id="u"><path d="M0 0v20h30V0z"/></clipPath><g clip-path="url(#u)"><path d="M0 0v20h30V0z" fill="#012169"/><path d="M0 0l30 20m0-20L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20m0-20L0 20" stroke="#C8102E" stroke-width="1.6"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.6"/></g>',
+  fr: '<rect width="10" height="20" fill="#002395"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ed2939"/>',
+  de: '<rect width="30" height="7" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>',
+  it: '<rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ce2b37"/>',
+};
+const title = lang === 'es' ? `Menú de La Vaca Asustada ${l.name}` : `${t.menu} · La Vaca Asustada ${l.name}`;
+const description = lang === 'es'
+  ? `Menú de La Vaca Asustada en ${l.name}: carnes maduradas a la brasa, wagyu, Black Angus, T-bone, tomahawk y chuletas. Carta de vinos y bebidas.`
+  : `${t.sub} · La Vaca Asustada ${l.name}`;
 ---
-<BaseLayout site={site} logo={logo} title={`Menú de La Vaca Asustada ${l.name}`} path={l.path}
-  description={`Menú de La Vaca Asustada en ${l.name}: carnes maduradas a la brasa, wagyu, Black Angus, T-bone, tomahawk y chuletas. Carta de vinos y bebidas.`}
-  jsonLd={[menuJsonLd(site, l.platos, site.url + l.path)]}>
-  <div class="wrap section">
-    <p class="eyebrow">{loc.address.street} · {l.name}</p>
-    <h1>Menú {l.name}</h1>
-    <p class="lead">Carnes de distintas razas y orígenes, maduradas en casa y terminadas al carbón. ¿Vas a {other.name}? <a href={other.path}>Ver el menú de {other.name}</a>.</p>
-    <div class="btn-row">
-      {loc.reservationUrl && <a class="btn" href={loc.reservationUrl} target="_blank" rel="noopener">Reservar en {l.name}<span class="visually-hidden"> (abre en otra pestaña)</span></a>}
-      {l.bebidas && <a class="btn btn--ghost" href="#bebidas">Carta de bebidas</a>}
+<Layout title={title} path={cartaPath(id, lang)} description={description} lang={shownLang} noindex={!c.translated}
+  jsonLd={lang === 'es' ? [menuJsonLd(site, l.platos, site.url + l.path)] : []}>
+  <Fragment slot="head">
+    {LANGS.map((x) => <link rel="alternate" hreflang={x} href={new URL(cartaPath(id, x), site.url).href} />)}
+  </Fragment>
+  <MenuSlider lang={lang} />
+
+  <section class="mh">
+    <Image src={cuchillos} width={200} alt="" class="mh__knives" />
+    <h1>{t.menu} {l.name}</h1>
+    <p class="mh__sub">{t.sub}</p>
+    <hr />
+    <nav class="lang" aria-label={t.lang}>
+      <ul>
+        {LANGS.map((x) => (
+          <li>
+            <a href={cartaPath(id, x)} hreflang={x} lang={x} aria-current={x === lang ? 'page' : undefined}>
+              <svg aria-hidden="true" viewBox="0 0 30 20" width="24" height="16" set:html={flags[x]} />
+              <span class="lang__code" aria-hidden="true">{x.toUpperCase()}</span>
+              <span class="visually-hidden">{T[x].name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    {!c.translated && <p class="mh__fallback" lang={lang}>{t.fallback}</p>}
+  </section>
+
+  <div class="carta" lang={shownLang} data-live="carta">
+    <div class="tabs" role="tablist" aria-label={t.tabs} hidden>
+      {tabs.map((tab, i) => (
+        <button type="button" role="tab" id={`tab-${tab.id}`} aria-controls={`panel-${tab.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>{tab.name}</button>
+      ))}
     </div>
-    <div class="strip">
-      <Photo src={lomo} alt="Lomo madurado a la brasa cortado en lonchas" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
-      <Photo src={piquillos} alt="Piquillos confitados en cazuela de cobre" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
-      <Photo src={emplatado} alt="Carne en lonchas emplatada con salsas" sizes="(min-width: 52rem) 33vw, 50vw" widths={[400, 640, 960]} />
-    </div>
-    <div data-live="carta"><MenuSections menu={l.platos} hideZeroDecimals={HIDE_ZERO_DECIMALS} /></div>
-    {l.bebidas && (
-      <section id="bebidas" class="bebidas" aria-labelledby="bebidas-h">
-        <h2 id="bebidas-h" class="bebidas__h">Bebidas y vinos</h2>
-        <div data-live="bebidas"><MenuSections menu={l.bebidas} headingLevel={3} hideZeroDecimals={HIDE_ZERO_DECIMALS} toc={false} /></div>
+    <nav class="tabs tabs--nojs" aria-label={t.tabs}>
+      {tabs.map((tab) => <a href={`#panel-${tab.id}`}>{tab.name}</a>)}
+    </nav>
+    {tabs.map((tab) => (
+      <section class="panel" id={`panel-${tab.id}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`}>
+        <h2 class="panel__h">{tab.name}</h2>
+        {tab.sections.map((s, j) => (
+          <>
+            {(j > 0 || tab.id === 'bebidas') && <h3 class="panel__sub">{s.name}</h3>}
+            {s.note && <p class="panel__note">{s.note}</p>}
+            <ul class="dishes">
+              {s.items.map((i) => (
+                <li class="dish">
+                  <p class="dish__head">
+                    <span class="dish__name">{i.name}</span>
+                    {i.price != null && <span class="dish__lead" aria-hidden="true"></span>}
+                    {i.price != null && <span class="dish__price">{fmt(i.price, i.unit)}{i.price2 != null && <> · {fmt(i.price2, 'racion')}</>}</span>}
+                  </p>
+                  {i.description && <p class="dish__desc">{i.description}</p>}
+                  {i.allergens?.length ? <p class="dish__all"><span class="visually-hidden">{t.allergens}: </span>{i.allergens.map(allergen).join(' · ')}</p> : null}
+                </li>
+              ))}
+            </ul>
+          </>
+        ))}
       </section>
-    )}
+    ))}
   </div>
+
+  <section class="mend" style={`--vaca: url(${vacaNegra.src})`} lang="es">
+    <div class="mend__in">
+      <div class="mend__txt">
+        <p>En La Vaca Asustada, nos apasiona la carne madurada. Cada uno de nuestros cortes ha sido <strong>cuidadosamente seleccionado y tratado para alcanzar su máxima expresión de sabor.</strong></p>
+        <p>Desde la intensidad de nuestra chuleta de vaca madurada hasta la sutileza de los cortes más exclusivos, cada plato es una experiencia sensorial única.</p>
+        <p>Nuestro menú está diseñado para los que buscan mucho más que una simple comida: es para quienes valoran <strong>la calidad, el tiempo y la dedicación</strong> detrás de cada pieza de carne. Te invitamos a sumergirte en esta celebración gastronómica, donde el respeto por el producto y la excelencia en la cocina son los protagonistas.</p>
+        <p><strong>Buen provecho.</strong></p>
+      </div>
+      <div class="mend__logo" aria-hidden="true"></div>
+    </div>
+  </section>
+  <p class="mother"><a href={cartaPath(other.id, lang)}>{t.other} {other.name} →</a></p>
   <EligemenuTracking restaurantId={l.em.restaurant.id} />
-</BaseLayout>
+</Layout>
+
+<script>
+  // Pestañas: sin JavaScript se ven todas las secciones seguidas con un índice de enlaces.
+  // Si la carta se actualiza en directo (data-live), se vuelven a montar conservando la pestaña abierta.
+  const init = (root: HTMLElement, keep?: string) => {
+    const list = root.querySelector<HTMLElement>('[role=tablist]');
+    if (!list || !list.hidden) return;
+    const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role=tab]')];
+    const panels = tabs.map((b) => document.getElementById(b.getAttribute('aria-controls')!)!);
+    const show = (i: number, focus = false) => {
+      tabs.forEach((b, j) => { b.setAttribute('aria-selected', String(i === j)); b.tabIndex = i === j ? 0 : -1; });
+      panels.forEach((p, j) => { p.hidden = i !== j; });
+      root.dataset.tab = panels[i].id;
+      if (focus) tabs[i].focus();
+    };
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => show(i));
+      b.addEventListener('keydown', (e) => {
+        const k = ({ ArrowRight: 1, ArrowLeft: -1 } as Record<string, number>)[e.key];
+        if (k) { e.preventDefault(); show((i + k + tabs.length) % tabs.length, true); }
+        if (e.key === 'Home') { e.preventDefault(); show(0, true); }
+        if (e.key === 'End') { e.preventDefault(); show(tabs.length - 1, true); }
+      });
+    });
+    const want = keep ?? location.hash.slice(1);
+    const start = panels.findIndex((p) => p.id === want);
+    root.classList.add('carta--tabs');
+    list.hidden = false;
+    show(start >= 0 ? start : 0);
+  };
+  for (const root of document.querySelectorAll<HTMLElement>('.carta')) {
+    init(root);
+    new MutationObserver(() => init(root, root.dataset.tab)).observe(root, { childList: true });
+  }
+</script>
+
 <style>
-  .strip { display: grid; gap: 0.75rem; grid-template-columns: repeat(3, 1fr); margin-block: 2.5rem 1rem; }
-  .strip :global(img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-  @media (max-width: 40rem) { .strip { grid-template-columns: 1fr 1fr; } .strip > :global(picture:last-child) { display: none; } }
-  .bebidas { margin-top: var(--section); padding-top: 2rem; border-top: 1px solid var(--c-line); scroll-margin-top: 5rem; }
-  .bebidas__h { font-size: clamp(2rem, 5vw, 3rem); }
+  .mh { width: min(100% - 2 * var(--space), var(--w-max)); margin: 20px auto 0; padding: 0 0 10px; text-align: center; }
+  @media (max-width: 64rem) { .mh { padding-top: 3rem; } }
+  :global(.mh__knives) { width: 100px; height: auto; margin: 0 auto; }
+  @media (max-width: 47.99rem) { :global(.mh__knives) { width: 80px; } }
+  .mh h1 { margin: 0; padding: 8px; font: 200 clamp(2rem, 6vw, 2.8125rem)/1.2 var(--f-body); text-transform: uppercase; color: #fff; }
+  .mh__sub { margin: 0; font: 700 0.75rem/1.5 var(--f-label); letter-spacing: 2.4px; text-transform: uppercase; color: var(--c-accent-2); }
+  .mh hr { margin: 12px 0 0; border: 0; border-top: 1px solid #444; }
+  .mh__fallback { margin: 1rem auto 0; max-width: 40rem; padding: 0.75rem 1rem; border: 1px dashed var(--c-accent-2); font-size: 0.875rem; }
+
+  .lang ul { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 5px; }
+  @media (max-width: 47.99rem) { .lang ul { justify-content: center; } }
+  .lang a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 4px 10px; border: 1px solid transparent; border-radius: 9999px; text-decoration: none; }
+  .lang svg { border-radius: 2px; }
+  .lang__code { font: 700 0.875rem/1 var(--f-label); color: #fff; }
+  .lang a[aria-current='page'] { border-color: var(--c-accent-2); }
+  .lang a[aria-current='page'] .lang__code, .lang a:hover .lang__code { color: var(--c-accent-2); }
+
+  .carta { width: min(100% - 2 * var(--space), var(--w-max)); margin: 1.5rem auto 4rem; }
+  .tabs { display: flex; overflow-x: auto; gap: 0; margin-bottom: 2rem; border-bottom: 1px solid var(--c-line); scrollbar-width: thin; }
+  .tabs[hidden] { display: none; }
+  .carta--tabs .tabs--nojs { display: none; }
+  .tabs button, .tabs a {
+    flex: none; padding: 0 1.25rem; min-height: 48px; background: transparent; border: 0; border-bottom: 2px solid transparent;
+    font: 400 1.3125rem/38px var(--f-display); text-transform: uppercase; white-space: nowrap; color: #fff; text-decoration: none; cursor: pointer;
+  }
+  @media (max-width: 47.99rem) { .tabs button, .tabs a { font-size: 1rem; padding-inline: 0.85rem; } }
+  .tabs button:hover, .tabs a:hover { color: var(--c-accent-2); }
+  .tabs [aria-selected='true'] { color: var(--c-accent); border-bottom-color: var(--c-accent); }
+  .panel { scroll-margin-top: 8rem; }
+  .panel + .panel { margin-top: 3rem; }
+  .carta--tabs .panel + .panel { margin-top: 0; }
+  .panel__h { font-size: 2rem; margin-bottom: 1.5rem; }
+  .carta--tabs .panel__h { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .panel__sub { margin: 2.5rem 0 1.25rem; font-size: 1.6rem; color: var(--c-accent); }
+  .panel__note { color: var(--c-muted); }
+  .dishes { list-style: none; margin: 0; padding: 0; display: grid; gap: 27px; }
+  @media (min-width: 48rem) { .dishes { grid-template-columns: repeat(2, 1fr); column-gap: 3rem; } }
+  .dish__head { display: flex; align-items: baseline; margin: 0; }
+  .dish__name { font: 400 clamp(1.4rem, 2.6vw, 1.6875rem)/1.15 var(--f-display); color: #fff; }
+  .dish__lead { flex: 1 0 20px; margin: 0 8px; border-bottom: 2px dotted #d1d5db; transform: translateY(-0.25em); }
+  .dish__price { flex: none; font: 500 1.25rem/1.2 var(--f-body); color: var(--c-accent); white-space: nowrap; }
+  .dish__desc { margin: 4px 0 0; font-size: 0.9375rem; }
+  .dish__all { margin: 4px 0 0; font: 400 0.75rem/1.4 var(--f-label); letter-spacing: 0.05em; color: var(--c-muted); }
+
+  .mend { background: rgb(228 197 144 / 0.73); padding: clamp(2rem, 6vw, 62px); }
+  .mend__in { max-width: 1193px; margin-inline: auto; display: flex; gap: 2rem; }
+  .mend__txt { flex: 1; color: var(--c-bg); font-size: 1rem; }
+  .mend__txt strong { font-weight: 500; }
+  .mend__txt p:last-child { margin-bottom: 0; }
+  .mend__logo { display: none; }
+  @media (min-width: 48rem) { .mend__logo { display: block; flex: 0 0 30%; background: var(--vaca) center / contain no-repeat; opacity: 0.42; } }
+  .mother { text-align: center; margin: 2.5rem 0; font: 700 0.75rem/1.4 var(--f-label); letter-spacing: 2.4px; text-transform: uppercase; }
+  .mother a { color: var(--c-accent); text-decoration: none; }
 </style>
