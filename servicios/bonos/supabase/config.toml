@@ -1,0 +1,9 @@
+# Las funciones las llaman la web, Redsys y el panel; las que lo necesitan comprueban el usuario por su cuenta.
+[functions.bonos-pedido]
+verify_jwt = false
+
+[functions.bonos-notificacion]
+verify_jwt = false
+
+[functions.bonos-api]
+verify_jwt = false

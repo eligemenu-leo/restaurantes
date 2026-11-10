@@ -1,0 +1,162 @@
+---
+import Layout from '../../components/Layout.astro';
+import { bonos } from '../../data/bonos.ts';
+
+const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
+const locales = lista(bonos.locales);
+const validez = bonos.validezMeses % 12 === 0
+  ? `${bonos.validezMeses / 12} ${bonos.validezMeses === 12 ? 'año' : 'años'}`
+  : `${bonos.validezMeses} meses`;
+// Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
+const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
+---
+<Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo}
+  description={`Regala una comida en La Vaca Asustada. Bonos regalo válidos en ${locales}, con pago seguro con tarjeta.`}>
+  <div class="wrap section">
+    <p class="eyebrow">Bonos regalo</p>
+    <h1>Regala La Vaca Asustada</h1>
+    <p class="lead">Un bono para disfrutar de nuestras carnes a la brasa en {locales}. Lo pagas con tarjeta y te llega al momento por correo, listo para regalar.</p>
+
+    {!bonos.activo ? (
+      <p class="aviso">Muy pronto podrás comprar los bonos aquí. Mientras tanto, pregúntanos en el restaurante o escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</p>
+    ) : (
+      <p class="aviso" id="cerrado" hidden>Ahora mismo no hay bonos a la venta. Escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a> si quieres uno.</p>
+      <form id="comprar" class="bono" method="post" action={bonos.endpoint}>
+        <input type="hidden" name="comercio" value={bonos.comercio} />
+        <p class="error" id="error" role="alert" hidden></p>
+
+        <fieldset>
+          <legend>Importe</legend>
+          <div class="importes" id="importes" data-api={api} data-comercio={bonos.comercio}>
+            {bonos.importes.map((e, i) => (
+              <label class="importe"><input type="radio" name="importe" value={e} required checked={i === 0} /><span><strong>{e} €</strong><small>Válido {validez}</small></span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Tus datos</legend>
+          <div class="campo"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required maxlength="120" autocomplete="name" /></div>
+          <div class="campo"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="200" autocomplete="email" aria-describedby="email-ayuda" />
+            <p class="ayuda" id="email-ayuda">Aquí te enviaremos el bono.</p></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>El regalo <span class="opcional">(opcional)</span></legend>
+          <div class="campo"><label for="para">Para quién es</label><input id="para" name="para" maxlength="120" autocomplete="off" /></div>
+          <div class="campo"><label for="mensaje">Mensaje</label><textarea id="mensaje" name="mensaje" maxlength="500" rows="3" aria-describedby="mensaje-ayuda"></textarea>
+            <p class="ayuda" id="mensaje-ayuda">Saldrá en el bono. Máximo 500 caracteres.</p></div>
+        </fieldset>
+
+        <div class="trampa" aria-hidden="true"><label for="web">No rellenes este campo</label><input id="web" name="web" tabindex="-1" autocomplete="off" /></div>
+
+        <div class="acepto">
+          <input type="checkbox" id="acepto" name="acepto" value="si" required />
+          <label for="acepto">He leído las <a href="#condiciones">condiciones de los bonos</a> y la <a href="/politica-de-privacidad/">política de privacidad</a>.</label>
+        </div>
+
+        <button class="btn" type="submit">Pagar con tarjeta</button>
+        <p class="ayuda">El pago se hace en la pasarela segura de Redsys. Nunca vemos los datos de tu tarjeta.</p>
+      </form>
+    )}
+
+    <section id="condiciones" class="condiciones" aria-labelledby="condiciones-h">
+      <h2 id="condiciones-h">Condiciones</h2>
+      <ul>
+        <li>El bono se puede usar en nuestros locales de {locales} hasta la fecha de caducidad que aparece junto a cada importe y en el propio bono.</li>
+        <li>Se puede gastar de una vez o en varias visitas hasta agotar el saldo.</li>
+        <li>Para usarlo, enseña el correo o di el código al pedir la cuenta.</li>
+        <li>Si tienes cualquier duda, escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</li>
+      </ul>
+    </section>
+  </div>
+</Layout>
+{bonos.activo && (
+  <script is:inline>
+    // Si el pedido vuelve con un error, lo explica encima del formulario.
+    (function () {
+      var msgs = {
+        importe: 'Elige uno de los importes disponibles.',
+        datos: 'Revisa tu nombre y tu correo electrónico.',
+        condiciones: 'Tienes que aceptar las condiciones para continuar.',
+        servicio: 'Ahora mismo no podemos procesar el pedido. Inténtalo en unos minutos.',
+        cerrado: 'Ahora mismo no hay bonos a la venta.'
+      };
+      var code = new URLSearchParams(location.search).get('error');
+      var el = document.getElementById('error');
+      if (el && code && Object.prototype.hasOwnProperty.call(msgs, code)) { el.textContent = msgs[code]; el.hidden = false; }
+
+      // Tipos de bono vigentes, desde el panel de gestión. Si falla, se quedan los importes de la página.
+      var box = document.getElementById('importes');
+      if (!box || !window.fetch) return;
+      var euros = function (c) { return (c % 100 ? (c / 100).toFixed(2).replace('.', ',') : String(c / 100)) + ' €'; };
+      var fecha = function (iso) { return new Date(iso + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }); };
+      var validez = function (t) {
+        if (t.caduca_fija) return 'Válido hasta el ' + fecha(t.caduca_fija);
+        var m = t.validez_meses;
+        return 'Válido ' + (m % 12 ? m + ' meses' : (m / 12) + (m === 12 ? ' año' : ' años'));
+      };
+      fetch(box.dataset.api + '/config?comercio=' + encodeURIComponent(box.dataset.comercio))
+        .then(function (r) { if (!r.ok) throw r; return r.json(); })
+        .then(function (cfg) {
+          if (!cfg.venta_activa) {
+            document.getElementById('comprar').hidden = true;
+            document.getElementById('cerrado').hidden = false;
+            return;
+          }
+          box.textContent = '';
+          cfg.tipos.forEach(function (t, i) {
+            var label = document.createElement('label'); label.className = 'importe';
+            var input = document.createElement('input');
+            input.type = 'radio'; input.name = 'tipo'; input.value = t.id; input.required = true; input.checked = i === 0;
+            var span = document.createElement('span');
+            var strong = document.createElement('strong'); strong.textContent = euros(t.importe_cent);
+            var small = document.createElement('small');
+            small.textContent = (t.nombre && t.nombre !== 'Bono ' + euros(t.importe_cent) ? t.nombre + ' · ' : '') + validez(t);
+            span.append(strong, small);
+            if (t.descripcion) { var d = document.createElement('small'); d.textContent = t.descripcion; span.append(d); }
+            label.append(input, span); box.append(label);
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+)}
+<!-- Global: los importes se crean con JavaScript y no llevan el atributo de estilos de Astro. Solo afecta a esta página. -->
+<style is:global>
+  .aviso { margin-top: 2rem; padding: 1.25rem 1.5rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); max-width: var(--w-text); }
+  .bono { margin-top: 2.5rem; max-width: var(--w-text); display: grid; gap: 2rem; }
+  .bono[hidden], .aviso[hidden] { display: none; }
+  fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 1rem; }
+  legend { font: 600 1.35rem/1.2 var(--f-display); margin-bottom: 1rem; padding: 0; }
+  .opcional { font: 400 1rem var(--f-body); color: var(--c-muted); }
+  .importes { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .importe input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .importe span {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+    min-width: 7.5rem; min-height: 48px; padding: 0.6em 1.1em; text-align: center;
+    border: 2px solid var(--c-line); border-radius: var(--radius); cursor: pointer;
+  }
+  .importe strong { font: 600 1.4rem var(--f-display); }
+  .importe small { font-size: 0.8rem; color: var(--c-muted); max-width: 12rem; }
+  .importe input:checked + span small { color: inherit; }
+  .importe input:checked + span { border-color: var(--c-accent); background: var(--c-accent); color: var(--c-accent-text); }
+  .importe input:focus-visible + span { outline: 3px solid var(--c-accent); outline-offset: 3px; }
+  .campo { display: grid; gap: 0.4rem; }
+  .campo label { font-weight: 600; }
+  input:not([type="radio"]):not([type="checkbox"]), textarea {
+    font: inherit; color: var(--c-text); background: var(--c-surface); border: 1px solid var(--c-muted);
+    border-radius: var(--radius); padding: 0.7rem 0.85rem; min-height: 48px; width: 100%;
+  }
+  textarea { resize: vertical; }
+  .ayuda { color: var(--c-muted); font-size: 0.95rem; margin: 0; }
+  .acepto { display: flex; gap: 0.75rem; align-items: flex-start; }
+  .acepto input { width: 1.4rem; height: 1.4rem; margin: 0.15rem 0 0; accent-color: var(--c-accent); flex: none; }
+  .trampa { position: absolute; left: -9999px; }
+  .error { padding: 1rem 1.25rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); margin: 0; }
+  .bono .btn { justify-self: start; font: inherit; font-weight: 600; cursor: pointer; }
+  .condiciones { margin-top: 4rem; max-width: var(--w-text); }
+  .condiciones h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); }
+  .condiciones ul { padding-left: 1.2rem; color: var(--c-muted); }
+  .condiciones li { margin-bottom: 0.5rem; }
+</style>

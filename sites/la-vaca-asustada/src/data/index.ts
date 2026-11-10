@@ -33,3 +33,9 @@ export const top = [
   { item: find(/^t-bone/i), title: 'T-bone', origin: 'Angus nacional', photo: 't-bone' },
   { item: find(/^tomahawk/i), title: 'Tomahawk', origin: 'Escocia', photo: 'tomahawk' },
 ] as const;
+
+// Los bonos regalo salen en el menú solo cuando están activos.
+import { bonos } from './bonos.ts';
+if (bonos.activo && !site.nav.some((n) => n.href === '/bonos-regalo/')) {
+  site.nav.splice(site.nav.length - 1, 0, { label: 'Bonos regalo', href: '/bonos-regalo/' });
+}
