@@ -85,23 +85,23 @@ const cifras = [['1200', 'Críticas positivas'], ['13', 'Carnes especiales'], ['
 </Layout>
 <style>
   .ct { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; padding-block: clamp(3rem, 8vw, 6.25rem); text-align: center; }
-  .ct h1 { margin: 30px 0 0; font: 200 clamp(2rem, 6vw, 2.8125rem)/1.2 var(--f-body); text-transform: uppercase; color: #fff; }
+  .ct h1 { margin: 30px 0 0; font: 200 clamp(2rem, 6vw, 2.8125rem)/1.2 var(--f-body); letter-spacing: 0; text-transform: uppercase; color: #fff; }
   .ct__sub { margin: 0.5rem 0 1rem; font: 700 0.875rem/1.4 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
   :global(.ct__knives) { width: 100px; height: auto; margin: 0 auto; }
   .ct__cols { display: grid; gap: 2rem; margin-top: 3rem; text-align: left; align-items: center; }
   @media (min-width: 64rem) { .ct__cols { grid-template-columns: 1fr 0.8fr 1.1fr; gap: 1.25rem; } }
-  .ct__intro p { font-size: 1rem; }
-  .ct__intro strong { color: #fff; font-weight: 500; }
+  .ct__intro p { font-size: 1rem; line-height: 23px; color: var(--c-text-2); }
+  .ct__intro strong { font-weight: 700; }
   :global(.ct__vaca) { width: 70px; height: auto; margin: 1.5rem 0; }
   .ct__video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
   @media (max-width: 47.99rem) { :global(.ct__vaca), .ct__video { display: none; } }
   :global(.ct__foto) { width: 100%; max-width: 424px; height: auto; margin-inline: auto; }
   .ct__box { margin: 9px; padding: 70px 43px 63px 48px; border: 3px double var(--c-accent); }
   @media (max-width: 47.99rem) { .ct__box { padding: 2.5rem 1.5rem; margin: 0; } }
-  .ct__box h2 { font: 400 1.875rem/1.2 var(--f-display); color: #fff; margin: 0 0 0.5rem; }
-  .ct__box p { margin: 0 0 20px; }
+  .ct__box h2 { font: 400 1.875rem/1.2 var(--f-display); letter-spacing: -0.027em; text-transform: none; color: #fff; margin: 0 0 0.5rem; }
+  .ct__box p { margin: 0 0 20px; font-size: 0.875rem; color: var(--c-text-2); }
   :global(.ct__dot) { width: 40px; height: 40px; margin: 0.5rem 0 1.25rem; }
-  .ct__box h3 { margin: 20px 0 0.5rem; font: 400 1.625rem/1.2 var(--f-display); color: var(--c-accent); }
+  .ct__box h3 { margin: 20px 0 0.5rem; font: 400 1.625rem/1.3 var(--f-display); letter-spacing: -0.027em; color: var(--c-accent); }
   .ct__box ul { list-style: none; margin: 0; padding: 0; }
   .ct__box li { margin-bottom: 0.4rem; }
   .ct__box a { text-decoration: none; }
@@ -110,12 +110,13 @@ const cifras = [['1200', 'Críticas positivas'], ['13', 'Carnes especiales'], ['
   @media (min-width: 48rem) { .ct__nums { grid-template-columns: repeat(4, 1fr); } }
   .ct__nums li { display: flex; flex-direction: column; }
   .ct__n { font: 400 3.75rem/1 var(--f-display); color: #fff; }
-  .ct__t { margin-top: 0.5rem; font: 700 0.75rem/1.4 var(--f-label); letter-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
+  .ct__t { margin-top: 0.5rem; font: 300 0.8125rem/1.3 var(--f-body); letter-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
 
   .esc { background: var(--c-surface); padding: clamp(2rem, 6vw, 4rem) var(--space); }
   .esc__in { max-width: var(--w-max); margin-inline: auto; background: var(--c-bg); padding: 30px; display: grid; gap: 2rem; }
   @media (min-width: 48rem) { .esc__in { grid-template-columns: 1fr 1fr; } .esc__txt { padding-right: 60px; } }
-  .esc h2 { font: 400 clamp(2.4rem, 5vw, 3.125rem)/1.1 var(--f-display); color: var(--c-accent-2); }
+  .esc h2 { font: 400 clamp(2.4rem, 5vw, 3.125rem)/1.2 var(--f-display); letter-spacing: -0.027em; color: var(--c-accent-2); }
+  .esc__txt > p:first-of-type { font: 700 0.75rem/1.8 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: #fff; }
   .esc .btn { text-transform: none; letter-spacing: 0.05em; font-size: 0.9rem; }
   .esc__res { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
   .esc__maps { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
