@@ -37,7 +37,7 @@ const alts = ['Ribeye Holstein madurado', 'Piquillos asados en cazuela', 'T-bone
   :global(.msl__img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
   .msl__item::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgb(3 4 16 / 0.58); }
   .msl__txt { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; }
-  .msl__t { max-width: 296px; margin: 0 0 1rem; font: 400 clamp(1.75rem, 4vw, 2.8125rem)/1.1 var(--f-display); color: var(--c-accent-2); }
+  .msl__t { max-width: 296px; margin: 0 0 1rem; font: 400 clamp(1.75rem, 4vw, 2.8125rem)/1.2 var(--f-display); letter-spacing: -0.027em; text-transform: capitalize; color: var(--c-accent-2); }
   .msl__d { max-width: 296px; margin: 0; font: 400 1rem/23px var(--f-body); color: #d3d3d3; }
   @media (max-width: 47.99rem) { .msl__item { height: 348px; } .msl__t, .msl__d { max-width: 278px; } .msl__txt { padding-inline: 3rem; } }
   .msl::scroll-button(*) { position: absolute; position-anchor: --msl; top: anchor(center); translate: 0 -50%; border: 0; background: none; color: var(--c-accent-2); font-size: 2.2rem; width: 48px; height: 48px; cursor: pointer; }

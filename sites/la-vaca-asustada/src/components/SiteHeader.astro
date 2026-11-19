@@ -44,8 +44,8 @@ const pin = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5
   </div>
 </header>
 <style>
-  .tb { background: var(--c-bg); color: var(--c-text); font: 400 0.8125rem/1 var(--f-body); display: none; }
-  .tb__in { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.9rem; }
+  .tb { background: var(--c-bg); color: #fff; font: 400 0.75rem/1 var(--f-body); display: none; }
+  .tb__in { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; display: flex; justify-content: space-between; gap: 1rem; padding-block: 19px; }
   .tb p { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
   .tb span, .tb a { display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none; }
   .tb a + a { margin-left: 1.6rem; }
@@ -62,10 +62,11 @@ const pin = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5
   @supports not (animation-timeline: scroll()) {
     .sh--overlay { background: linear-gradient(rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.25)); }
   }
-  :root { --sh-h: 6.5rem; }
+  /* Original: barra de 160 px de alto, logo de 100 px con 30 px arriba y abajo. */
+  :root { --sh-h: 10rem; }
   .sh__in { width: min(100% - 2 * var(--space), var(--w-max)); margin-inline: auto; height: var(--sh-h); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  .sh__brand { align-self: stretch; display: flex; align-items: flex-start; padding-top: 0.75rem; }
-  .sh__brand img { height: 5.25rem; width: auto; }
+  .sh__brand { display: flex; align-items: center; padding-right: 20px; }
+  .sh__brand img { height: 100px; width: auto; }
   .sh__menu summary { list-style: none; cursor: pointer; display: grid; place-items: center; width: 48px; height: 48px; }
   .sh__menu summary::-webkit-details-marker { display: none; }
   .sh__burger, .sh__burger::before, .sh__burger::after { display: block; width: 24px; height: 2px; background: #fff; position: relative; }
@@ -74,16 +75,18 @@ const pin = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5
   .sh__menu ul { list-style: none; margin: 0; padding: 0; }
   .sh__menu a {
     display: block; padding: 0.9rem 0; text-decoration: none; color: #fff;
-    font: 700 0.75rem/1.2 var(--f-label); letter-spacing: 0.2em; text-transform: uppercase;
+    font: 400 0.75rem/1.2 var(--f-body); letter-spacing: 3.6px; text-transform: uppercase;
   }
   .sh__menu a[aria-current='page'], .sh__menu a:hover { color: var(--c-accent); }
   .sh__menu nav { position: absolute; left: 0; right: 0; top: 100%; background: var(--c-bg); border-bottom: 1px solid var(--c-line); padding: 0.5rem var(--space) 1rem; }
-  @media (max-width: 63.99rem) { :root { --sh-h: 5rem; } .sh__brand img { height: 4rem; } .sh__brand { padding-top: 0.5rem; } }
+  @media (max-width: 63.99rem) { :root { --sh-h: 5.5rem; } .sh__brand img { height: 4rem; } }
   @media (min-width: 64rem) {
     .sh__menu summary { display: none; }
     .sh__menu nav { position: static; padding: 0; border: 0; background: none; }
-    .sh__menu ul { display: flex; gap: 2.5rem; }
-    .sh__menu a { padding: 0.5rem 0; }
+    .sh__menu ul { display: flex; gap: 0; }
+    .sh__menu li a { padding-inline: 25px; line-height: 160px; }
+    .sh__menu li:last-child a { padding-right: 0; }
+    .sh__menu a { padding-block: 0; }
   }
 </style>
 <script is:inline>

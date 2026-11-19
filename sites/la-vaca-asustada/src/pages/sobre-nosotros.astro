@@ -48,7 +48,10 @@ const bands = [
   @media (max-width: 47.99rem) { :global(.band__img) { aspect-ratio: 4 / 3; height: auto; } }
   .band__txt { align-self: center; padding: clamp(3rem, 8vw, 6.25rem) clamp(1.25rem, 6vw, 5rem); max-width: 40rem; }
   .band--flip .band__txt { justify-self: end; }
-  .band h1, .band h2 { font: 400 clamp(2.2rem, 4.5vw, 2.875rem)/1.05 var(--f-display); color: #fff; margin-bottom: 1.5rem; }
-  .band p:last-child { margin: 0; font-size: 1rem; }
-  .band :global(strong) { color: #fff; font-weight: 500; }
+  /* Como en la original: Poppins fina en mayúsculas; el primer título a 45 px, los otros a 60 px. */
+  .band h1, .band h2 { font: 200 clamp(2.2rem, 5vw, 3.75rem)/1.2 var(--f-body); letter-spacing: 0; text-transform: uppercase; color: #fff; margin-bottom: 1.5rem; }
+  .band h1 { font-size: clamp(2rem, 4.5vw, 2.8125rem); }
+  .band:nth-of-type(2) h2 { font-family: var(--f-alt); font-weight: 300; letter-spacing: -0.027em; }
+  .band p:last-child { margin: 0; font-size: 1rem; line-height: 23px; }
+  .band :global(strong) { font-weight: 700; }
 </style>

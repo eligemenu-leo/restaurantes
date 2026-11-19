@@ -27,7 +27,10 @@ async function build(id: LocalId, lang: Lang): Promise<Carta> {
     return { lang, translated: false, platos: l.platos, bebidas: l.bebidas };
   }
   try {
-    const em = await loadMenus({ slug: l.slug, apiKey, lang, snapshot: snapshots[id] as EMApiResponse });
+    // La primera vez, Eligemenú traduce con IA todo lo que falta y puede tardar: como mucho 2 minutos
+    // por carta; si no llega, esa carta sale en español y la siguiente compilación ya la tendrá en caché.
+    const conLimite: typeof fetch = (u, init) => fetch(u, { ...init, signal: AbortSignal.timeout(120_000) });
+    const em = await loadMenus({ slug: l.slug, apiKey, lang, snapshot: snapshots[id] as EMApiResponse, fetch: conLimite });
     // Mismo orden y misma elección de cartas que en español (los títulos ya vienen traducidos).
     const idx = (m?: MenuData) => (m ? l.em.menus.indexOf(m) : -1);
     const platos = em.menus[idx(l.platos)] ?? em.menus[0];
