@@ -11,7 +11,7 @@ const validez = bonos.validezMeses % 12 === 0
 // Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
 const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
 ---
-<Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo}
+<Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo || !bonos.publico}
   description={`Regala una comida en La Vaca Asustada. Bonos regalo válidos en ${locales}, con pago seguro con tarjeta.`}>
   <div class="wrap section">
     <p class="eyebrow">Bonos regalo</p>

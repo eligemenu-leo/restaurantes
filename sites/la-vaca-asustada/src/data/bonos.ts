@@ -9,6 +9,11 @@ import raw from './bonos.json';
 const Bonos = z.object({
   /** Mientras sea false la página dice "muy pronto", no admite pedidos y no sale en el menú. */
   activo: z.boolean(),
+  /**
+   * Mientras sea false la venta funciona, pero la página está oculta al público: no sale en el menú
+   * ni en el sitemap, no se indexa y solo se llega con la dirección directa (para probar Redsys).
+   */
+  publico: z.boolean().default(true),
   /** URL de la función bonos-pedido: https://<proyecto>.supabase.co/functions/v1/bonos-pedido */
   endpoint: z.union([z.literal(''), z.url()]),
   comercio: z.string(),
