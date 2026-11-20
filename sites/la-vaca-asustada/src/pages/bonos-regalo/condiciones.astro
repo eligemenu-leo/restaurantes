@@ -24,7 +24,7 @@ const asunto = encodeURIComponent('Desistimiento de un bono regalo de La Vaca As
     <ul class="datos">
       {titular.razonSocial && <li><strong>Razón social:</strong> {titular.razonSocial}</li>}
       <li><strong>CIF:</strong> {titular.cif}</li>
-      {titular.domicilio && <li><strong>Domicilio social:</strong> {titular.domicilio}</li>}
+      {titular.domicilio && <li><strong>Domicilio:</strong> {titular.domicilio}</li>}
       <li><strong>Nombre comercial:</strong> La Vaca Asustada</li>
       <li><strong>Correo:</strong> <a href={`mailto:${soporte.email}`}>{soporte.email}</a></li>
       <li><strong>Teléfono:</strong> <a href={telHref(soporte.telefono)}>+34 {soporte.telefono}</a></li>
