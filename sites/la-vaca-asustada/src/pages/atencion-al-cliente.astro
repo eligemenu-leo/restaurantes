@@ -1,0 +1,62 @@
+---
+// Atención al cliente de las compras en la web (bonos regalo). La piden las pasarelas de pago:
+// un correo y un teléfono visibles para cualquier incidencia con un pedido o un cobro.
+// Mismo estilo que las páginas de bonos regalo (etiqueta, título y recuadros de borde doble del Contacto).
+import Layout from '../components/Layout.astro';
+import { telHref } from '@rea/core/lib/format.ts';
+import { site } from '../data/index.ts';
+import { soporte } from '../data/soporte.ts';
+const asunto = encodeURIComponent('Consulta sobre un bono regalo de La Vaca Asustada');
+const [gijon, oviedo] = ['gijon', 'oviedo'].map((id) => site.locations.find((l) => l.id === id)!);
+---
+<Layout title="Atención al cliente" path="/atencion-al-cliente/"
+  description={`Atención al cliente de La Vaca Asustada para bonos regalo y pagos: ${soporte.email} · ${soporte.telefono}.`}>
+  <div class="wrap section">
+    <p class="eyebrow">Atención al cliente</p>
+    <h1>¿Te ayudamos?</h1>
+    <p class="lead">Si tienes un problema con la compra de un bono regalo, con un pago o con el correo de tu bono, escríbenos o llámanos y lo resolvemos contigo.</p>
+
+    <ul class="soporte">
+      <li>
+        <h2>Correo</h2>
+        <p><a href={`mailto:${soporte.email}?subject=${asunto}`}>{soporte.email}</a></p>
+      </li>
+      <li>
+        <h2>Teléfono</h2>
+        <p><a href={telHref(soporte.telefono)}>+34 {soporte.telefono}</a></p>
+      </li>
+    </ul>
+
+    <section class="ayudanos" aria-labelledby="ayudanos-h">
+      <h2 id="ayudanos-h">Para ayudarte antes</h2>
+      <p>Cuéntanos en tu mensaje:</p>
+      <ul>
+        <li>El código del bono o el número de pedido, si lo tienes.</li>
+        <li>El correo electrónico con el que hiciste la compra.</li>
+        <li>La fecha y el importe del pago.</li>
+      </ul>
+      <p>Nunca te pediremos los datos de tu tarjeta.</p>
+    </section>
+
+    <section class="ayudanos" aria-labelledby="reservas-h">
+      <h2 id="reservas-h">Reservas y dudas del restaurante</h2>
+      <p>Para reservar mesa o preguntar por la carta, llama a cada local: Gijón <a href={telHref(gijon.phone)}>+34 {gijon.phone}</a> y Oviedo <a href={telHref(oviedo.phone)}>+34 {oviedo.phone}</a>, o visita la página de <a href="/contacto/">contacto</a>.</p>
+    </section>
+
+    <div class="btn-row"><a class="btn" href="/bonos-regalo/">Bonos regalo</a><a class="btn btn--ghost" href="/contacto/">Contacto</a></div>
+  </div>
+</Layout>
+<style>
+  .soporte { list-style: none; margin: 2.5rem 0 0; padding: 0; display: grid; gap: 1.25rem; max-width: var(--w-text); }
+  @media (min-width: 40rem) { .soporte { grid-template-columns: 1fr 1fr; } }
+  .soporte li { padding: 2rem 1.75rem; border: 3px double var(--c-accent); }
+  .soporte h2 { margin: 0 0 0.5rem; font: 400 1.875rem/1.2 var(--f-display); text-transform: none; color: #fff; }
+  .soporte p { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+  .soporte a { color: var(--c-accent); text-decoration: none; display: inline-block; padding-block: 0.4rem; }
+  .soporte a:hover { color: var(--c-accent-2); text-decoration: underline; }
+  .ayudanos { margin-top: 3rem; max-width: var(--w-text); }
+  .ayudanos h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); text-transform: none; }
+  .ayudanos ul { padding-left: 1.2rem; }
+  .ayudanos li { margin-bottom: 0.5rem; }
+  .btn-row { margin-top: 3rem; }
+</style>

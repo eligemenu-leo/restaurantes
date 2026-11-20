@@ -1,6 +1,7 @@
 ---
 import Layout from '../../components/Layout.astro';
 import { bonos } from '../../data/bonos.ts';
+import { soporte } from '../../data/soporte.ts';
 
 const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
 const locales = lista(bonos.locales);
@@ -66,7 +67,7 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
         <li>El bono se puede usar en nuestros locales de {locales} hasta la fecha de caducidad que aparece junto a cada importe y en el propio bono.</li>
         <li>Se puede gastar de una vez o en varias visitas hasta agotar el saldo.</li>
         <li>Para usarlo, enseña el correo o di el código al pedir la cuenta.</li>
-        <li>Si tienes cualquier duda, escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</li>
+        <li>Si tienes cualquier duda o problema con la compra o el pago, ponte en contacto con <a href="/atencion-al-cliente/">atención al cliente</a> ({soporte.email} · {soporte.telefono}).</li>
       </ul>
     </section>
   </div>
