@@ -78,13 +78,13 @@ async function quien(req: Request, comercio: string) {
 async function reenviar(req: Request) {
   const body = await req.json().catch(() => ({}));
   const supabase = db();
-  const { data: b } = await supabase.from('bonos').select('*, comercios(nombre, email_avisos)').eq('codigo', String(body.codigo ?? '')).maybeSingle();
+  const { data: b } = await supabase.from('bonos').select('*, comercios(nombre, email_avisos, web, locales)').eq('codigo', String(body.codigo ?? '')).maybeSingle();
   if (!b) return error('Ese código no existe', 404);
   const yo = await quien(req, b.comercio_id);
   if (yo?.rol !== 'admin') return error('No tienes permiso para esto', 403);
   const para = String(body.email || b.titular_email || '').trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(para)) return error('El bono no tiene un correo válido');
-  const comercio = b.comercios as Pick<Comercio, 'nombre' | 'email_avisos'>;
+  const comercio = b.comercios as Pick<Comercio, 'nombre' | 'email_avisos' | 'web' | 'locales'>;
   const ok = await enviarCorreo({ para, responderA: comercio.email_avisos, ...correoBono(comercio, b as Bono) });
   if (!ok) return error('No se pudo enviar el correo', 502);
   await supabase.from('eventos').insert({ comercio_id: b.comercio_id, bono_codigo: b.codigo, tipo: 'reenviado',
