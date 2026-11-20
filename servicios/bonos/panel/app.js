@@ -109,7 +109,7 @@ function pintarCabecera() {
     estado.comercio = m.comercio; estado.rol = m.rol; location.hash = '#/'; router();
   };
   const enlaces = [['#/', 'Inicio'], ['#/bonos', 'Bonos'], ['#/escanear', 'Escanear QR']];
-  if (esAdmin()) enlaces.push(['#/nuevo', 'Nuevo bono'], ['#/tipos', 'Tipos de bono'], ['#/ajustes', 'Ajustes'], ['#/usuarios', 'Usuarios']);
+  if (esAdmin()) enlaces.push(['#/pagos', 'Pagos'], ['#/nuevo', 'Nuevo bono'], ['#/tipos', 'Tipos de bono'], ['#/ajustes', 'Ajustes'], ['#/usuarios', 'Usuarios']);
   const actual = location.hash.split('?')[0] || '#/';
   $nav.innerHTML = enlaces.map(([h, t]) => `<a href="${h}"${actual === h || (h !== '#/' && actual.startsWith(h)) ? ' aria-current="page"' : ''}>${t}</a>`).join('');
 }
@@ -120,6 +120,7 @@ const rutas = [
   [/^#\/bonos$/, vistaBonos],
   [/^#\/bono\/([^/?]+)$/, vistaBono],
   [/^#\/escanear$/, vistaEscanear],
+  [/^#\/pagos$/, vistaPagos, true],
   [/^#\/nuevo$/, vistaNuevo, true],
   [/^#\/tipos$/, vistaTipos, true],
   [/^#\/tipo\/([^/?]+)$/, vistaTipo, true],
@@ -243,6 +244,16 @@ async function vistaInicio() {
   enviar('#f-buscar', ({ q }) => { location.hash = `#/bonos?q=${encodeURIComponent(q.trim())}`; });
 }
 
+/** Descarga un CSV para Excel (separado por ;, con BOM). cols = [[campo, título], …]. */
+function descargarCsv(cols, filas, nombre) {
+  const celda = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = '\ufeff' + [cols.map((c) => celda(c[1])).join(';'), ...filas.map((f) => cols.map((c) => celda(f[c[0]])).join(';'))].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = nombre;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
 // ───────────── Lista de bonos ─────────────
 const FILTROS = [
   ['', 'Todos'], ['activos', 'Activos'], ['pronto', 'Caducan pronto'], ['canjeados', 'Canjeados'],
@@ -305,14 +316,85 @@ async function vistaBonos(_, params) {
       ['caduca_txt', 'Caduca'], ['origen', 'Origen'], ['titular_nombre', 'Titular'], ['titular_email', 'Correo'], ['destinatario_nombre', 'Para'], ['nota', 'Nota']];
     const filas = data.map((b) => ({ ...b, estado_txt: situacion(b).texto, importe: deCent(b.importe_cent), saldo: deCent(b.saldo_cent),
       creado_txt: fecha(b.creado), caduca_txt: fecha(b.caduca) }));
-    const celda = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const csv = '﻿' + [cols.map((c) => celda(c[1])).join(';'), ...filas.map((f) => cols.map((c) => celda(f[c[0]])).join(';'))].join('\r\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    a.download = `bonos-${estado.comercio.id}-${hoy()}.csv`;
-    a.click(); URL.revokeObjectURL(a.href);
+    descargarCsv(cols, filas, `bonos-${estado.comercio.id}-${hoy()}.csv`);
   };
   await cargar();
+}
+
+// ───────────── Pagos con tarjeta (Redsys) ─────────────
+// Cada intento de compra en la web es un pedido: pagado, denegado o sin terminar (el cliente no llegó a pagar).
+const FILTROS_PAGO = [['pagado', 'Cobrados'], ['denegado', 'Denegados'], ['pendiente', 'Sin terminar'], ['', 'Todos']];
+const RESPUESTAS_REDSYS = {
+  '0101': 'Tarjeta caducada', '0102': 'Tarjeta bloqueada', '0104': 'Operación no permitida', '0116': 'Saldo insuficiente',
+  '0118': 'Tarjeta no registrada', '0129': 'CVV incorrecto', '0180': 'Tarjeta no admitida', '0184': 'Fallo al autenticar al titular',
+  '0190': 'Denegada sin motivo', '0191': 'Caducidad incorrecta', '0195': 'Requiere autenticación', '9915': 'El cliente canceló el pago',
+};
+function textoRespuesta(p) {
+  const r = p.redsys_respuesta;
+  if (p.estado === 'pendiente') return 'El cliente no completó el pago';
+  if (!r) return '';
+  if (Number(r) <= 99) return `Autorizado${p.redsys_autorizacion ? ` · autorización ${p.redsys_autorizacion}` : ''}`;
+  return `${RESPUESTAS_REDSYS[r.padStart(4, '0')] ?? 'Denegado'} (código ${r})`;
+}
+const ESTADO_PAGO = { pagado: ['activo', 'Cobrado'], denegado: ['anulado', 'Denegado'], pendiente: ['caducado', 'Sin terminar'] };
+const etiquetaPago = (p) => { const [c, t] = ESTADO_PAGO[p.estado]; return `<span class="estado estado--${c}">${t}</span>`; };
+const codigoBonoDe = (p) => (Array.isArray(p.bonos) ? p.bonos[0]?.codigo : p.bonos?.codigo) ?? '';
+
+async function vistaPagos(_, params) {
+  const filtro = params.has('estado') ? params.get('estado') : 'pagado';
+  const mes = /^\d{4}-\d{2}$/.test(params.get('mes') ?? '') ? params.get('mes') : hoy().slice(0, 7);
+  const [a, m] = mes.split('-').map(Number);
+  // Límites del mes en hora de Madrid (margen de un día por el cambio de hora; se filtra después).
+  const desde = new Date(Date.UTC(a, m - 1, 1) - 864e5).toISOString();
+  const hasta = new Date(Date.UTC(a, m, 1) + 864e5).toISOString();
+  const enMes = (iso) => new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }).slice(0, 7) === mes;
+  const url = (e, ms) => `#/pagos?estado=${e}&mes=${ms}`;
+
+  pintar(`<h1>Pagos con tarjeta</h1>
+    ${estado.comercio.redsys_entorno === 'pruebas' ? '<p class="alerta">El pago está en <strong>modo de pruebas</strong>: estas operaciones no son cobros reales.</p>' : ''}
+    <form class="buscar" id="f-mes">
+      <label for="mes">Mes</label>
+      <input id="mes" name="mes" type="month" value="${mes}" max="${hoy().slice(0, 7)}" required>
+      <button class="btn" type="submit">Ver</button>
+    </form>
+    <nav class="chips" aria-label="Filtrar por resultado">${FILTROS_PAGO.map(([k, t]) => `<a href="${url(k, mes)}"${k === filtro ? ' aria-current="true"' : ''}>${t}</a>`).join('')}</nav>
+    <div class="rejilla" id="cifras"></div>
+    <ul class="lista" id="lista"><li class="vacio">Cargando…</li></ul>
+    <div class="acciones" style="margin-top:1rem"><button class="btn btn--sec" id="csv">Descargar CSV</button></div>
+    <p class="ayuda">El número de pedido es el mismo que aparece en el portal de Redsys, para cuadrar las operaciones con el banco.</p>`, 'Pagos');
+  enviar('#f-mes', ({ mes: nm }) => { location.hash = url(filtro, nm); });
+
+  const { data, error } = await sb.from('pedidos')
+    .select('num_pedido, importe_cent, comprador_nombre, comprador_email, destinatario_nombre, estado, redsys_respuesta, redsys_autorizacion, creado, actualizado, bonos(codigo)')
+    .eq('comercio_id', estado.comercio.id).gte('creado', desde).lt('creado', hasta)
+    .order('creado', { ascending: false }).limit(5000);
+  if (error) throw error;
+  const delMes = data.filter((p) => enMes(p.creado));
+  const lista = filtro ? delMes.filter((p) => p.estado === filtro) : delMes;
+  const cobrados = delMes.filter((p) => p.estado === 'pagado');
+  const n = (e) => delMes.filter((p) => p.estado === e).length;
+
+  $vista.querySelector('#cifras').innerHTML = `
+    <a class="cifra" href="${url('pagado', mes)}"><span>Cobrado</span><strong>${euros(cobrados.reduce((t, p) => t + p.importe_cent, 0))}</strong><small>${cobrados.length} ${cobrados.length === 1 ? 'pago' : 'pagos'}</small></a>
+    <a class="cifra" href="${url('denegado', mes)}"><span>Denegados</span><strong>${n('denegado')}</strong><small>pagos rechazados</small></a>
+    <a class="cifra" href="${url('pendiente', mes)}"><span>Sin terminar</span><strong>${n('pendiente')}</strong><small>no llegaron a pagar</small></a>`;
+
+  $vista.querySelector('#lista').innerHTML = lista.length ? lista.map((p) => {
+    const codigo = codigoBonoDe(p);
+    const cuerpo = `<span><span class="codigo">${esc(p.num_pedido)}</span> ${etiquetaPago(p)}</span>
+      <span class="der"><strong>${euros(p.importe_cent)}</strong></span>
+      <span class="sub">${fechaHora(p.creado)} · ${esc(p.comprador_nombre)} · ${esc(p.comprador_email)}</span>
+      <span class="sub">${esc(textoRespuesta(p))}${codigo ? ` · bono <strong>${esc(codigo)}</strong>` : ''}</span>`;
+    return `<li>${codigo ? `<a href="#/bono/${esc(codigo)}">${cuerpo}</a>` : `<div class="fila">${cuerpo}</div>`}</li>`;
+  }).join('') : '<li class="vacio">No hay pagos con estos filtros en este mes.</li>';
+
+  $vista.querySelector('#csv').onclick = () => {
+    const cols = [['num_pedido', 'Pedido Redsys'], ['fecha', 'Fecha'], ['estado_txt', 'Resultado'], ['importe', 'Importe'],
+      ['redsys_respuesta', 'Código respuesta'], ['redsys_autorizacion', 'Autorización'], ['comprador_nombre', 'Comprador'],
+      ['comprador_email', 'Correo'], ['destinatario_nombre', 'Para'], ['bono', 'Bono']];
+    const filas = lista.map((p) => ({ ...p, fecha: fechaHora(p.creado), estado_txt: ESTADO_PAGO[p.estado][1], importe: deCent(p.importe_cent), bono: codigoBonoDe(p) }));
+    descargarCsv(cols, filas, `pagos-${estado.comercio.id}-${mes}.csv`);
+  };
 }
 
 // ───────────── Ficha de un bono ─────────────
