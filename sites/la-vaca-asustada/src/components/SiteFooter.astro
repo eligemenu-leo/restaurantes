@@ -4,6 +4,7 @@
 import { getImage, Image } from 'astro:assets';
 import { telHref } from '@rea/core/lib/format.ts';
 import { site } from '../data/index.ts';
+import { titular } from '../data/titular.ts';
 import logo from '../assets/web/Logo-vaca_doradoclaro-1.png';
 import fondo from '../assets/web/MG_6131.jpg';
 const bg = await getImage({ src: fondo, width: 1600, format: 'webp', quality: 60 });
@@ -49,7 +50,9 @@ const year = new Date().getFullYear();
     <li><a href="/politica-de-cookies/">Política de cookies</a></li>
     <li><a href="/declaracion-de-accesibilidad/">Accesibilidad</a></li>
     <li><a href="/atencion-al-cliente/">Atención al cliente</a></li>
+    <li><a href="/bonos-regalo/condiciones/">Condiciones de compra</a></li>
   </ul>
+  <p class="sf__titular">{[titular.razonSocial, `CIF ${titular.cif}`, titular.domicilio].filter(Boolean).join(' · ')}</p>
   <p class="sf__copy">© {year} · <a href="https://eligemenu.com/">Diseño web ELIGEMENU</a></p>
 </footer>
 <style>
@@ -75,5 +78,6 @@ const year = new Date().getFullYear();
   .sf__nav a { font: 400 0.75rem/1.8 var(--f-body); letter-spacing: 3.6px; text-transform: uppercase; }
   .sf__legal { width: min(100% - 2 * var(--space), var(--w-max)); margin: 1rem auto 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 3rem; color: var(--c-text-2); font: 300 0.8125rem/1.8 var(--f-body); letter-spacing: 2px; text-transform: uppercase; }
   .sf__legal a:hover { color: var(--c-accent-2); }
+  .sf__titular { width: min(100% - 2 * var(--space), var(--w-max)); margin: -1rem auto 2rem; text-align: center; color: var(--c-text-2); font: 300 0.8125rem/1.6 var(--f-body); letter-spacing: 1px; }
   .sf__copy { margin: 0; background: #000; color: #c5c5c5; text-align: center; padding: 1.25rem var(--space); font-size: 1rem; }
 </style>
