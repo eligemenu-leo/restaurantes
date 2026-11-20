@@ -79,7 +79,7 @@ const asunto = encodeURIComponent('Desistimiento de un bono regalo de La Vaca As
     </blockquote>
 
     <p class="actualizado">Última actualización: 20 de noviembre de 2026.</p>
-    <div class="btn-row"><a class="btn" href="/bonos-regalo/">Bonos regalo</a><a class="btn btn--ghost" href="/atencion-al-cliente/">Atención al cliente</a></div>
+    <div class="btn-row">{bonos.activo && bonos.publico && <a class="btn" href="/bonos-regalo/">Bonos regalo</a>}<a class={bonos.activo && bonos.publico ? 'btn btn--ghost' : 'btn'} href="/atencion-al-cliente/">Atención al cliente</a></div>
   </article>
 </Layout>
 <style>

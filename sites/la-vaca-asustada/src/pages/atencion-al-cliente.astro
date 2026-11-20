@@ -6,6 +6,7 @@ import Layout from '../components/Layout.astro';
 import { telHref } from '@rea/core/lib/format.ts';
 import { site } from '../data/index.ts';
 import { soporte } from '../data/soporte.ts';
+import { bonos } from '../data/bonos.ts';
 const asunto = encodeURIComponent('Consulta sobre un bono regalo de La Vaca Asustada');
 const [gijon, oviedo] = ['gijon', 'oviedo'].map((id) => site.locations.find((l) => l.id === id)!);
 ---
@@ -43,7 +44,7 @@ const [gijon, oviedo] = ['gijon', 'oviedo'].map((id) => site.locations.find((l) 
       <p>Para reservar mesa o preguntar por la carta, llama a cada local: Gijón <a href={telHref(gijon.phone)}>+34 {gijon.phone}</a> y Oviedo <a href={telHref(oviedo.phone)}>+34 {oviedo.phone}</a>, o visita la página de <a href="/contacto/">contacto</a>.</p>
     </section>
 
-    <div class="btn-row"><a class="btn" href="/bonos-regalo/">Bonos regalo</a><a class="btn btn--ghost" href="/contacto/">Contacto</a></div>
+    <div class="btn-row">{bonos.activo && bonos.publico && <a class="btn" href="/bonos-regalo/">Bonos regalo</a>}<a class={bonos.activo && bonos.publico ? 'btn btn--ghost' : 'btn'} href="/contacto/">Contacto</a></div>
   </div>
 </Layout>
 <style>
