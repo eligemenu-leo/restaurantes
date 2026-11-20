@@ -14,9 +14,8 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
     <noscript><p class="lead">Pulsa el botón para descargar el bono.</p></noscript>
     <div class="btn-row">
       <a class="btn" id="anadir" href="/bonos-regalo/" data-api={api}>Añadir a Apple Wallet</a>
-      <a class="btn btn--ghost" id="abrir" href="shoebox://" hidden>Abrir la Cartera</a>
     </div>
-    <p class="nota" id="nota" hidden>Cuando pulses «Añadir», el bono quedará guardado en la app Cartera de tu iPhone, listo para enseñarlo al pagar. Si no se ha abierto, pulsa «Añadir a Apple Wallet».</p>
+    <p class="nota" id="nota" hidden><strong>Si has pulsado «Añadir», tu bono ya está en la app Cartera</strong> de tu iPhone, listo para enseñarlo al pagar. Si no te ha salido la ventana para añadirlo, pulsa «Añadir a Apple Wallet».</p>
   </div>
 </Layout>
 <style>
@@ -32,10 +31,8 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
       return;
     }
     a.href = a.dataset.api + '/cartera/apple?c=' + encodeURIComponent(codigo);
-    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     document.getElementById('estado').textContent = 'Bono ' + codigo + '.';
     document.getElementById('nota').hidden = false;
-    if (ios) document.getElementById('abrir').hidden = false;
     // Abre la descarga una vez; la página no se cambia, así que sigue aquí al volver de "Añadir".
     setTimeout(function () { location.href = a.href; }, 400);
   })();
