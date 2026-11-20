@@ -1,7 +1,7 @@
 ---
 // Página intermedia del botón "Añadir a Apple Wallet" del correo. Descarga el bono desde aquí para que,
 // al pulsar "Añadir", la página siga visible (si el enlace del correo lleva directo al archivo, Chrome
-// se queda en blanco) y ofrece abrir la app Cartera.
+// se queda en blanco) y avisa de que el bono está en la app Cartera.
 import Layout from '../../components/Layout.astro';
 import { bonos } from '../../data/bonos.ts';
 const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
