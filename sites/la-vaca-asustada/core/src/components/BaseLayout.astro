@@ -1,0 +1,56 @@
+---
+import type { SiteData } from '../lib/schema.ts';
+import type { ImageMetadata } from 'astro';
+import Header from './Header.astro';
+import Footer from './Footer.astro';
+import LiveUpdate from './LiveUpdate.astro';
+
+interface Props {
+  site: SiteData;
+  title: string;
+  description?: string;
+  /** Ruta de la página, p. ej. "/carta/". Se usa para la canónica. */
+  path: string;
+  jsonLd?: object[];
+  noindex?: boolean;
+  /** Imagen para redes sociales, ruta absoluta dentro de la web. */
+  ogImage?: string;
+  /** Logo para la cabecera. Una web puede poner su propia cabecera o pie con los slots "header" y "footer". */
+  logo?: ImageMetadata;
+}
+const { site, title, description = site.description, path, jsonLd = [], noindex = false, ogImage, logo } = Astro.props;
+const canonical = new URL(path, site.url).href;
+const fullTitle = path === '/' ? title : `${title} | ${site.name}`;
+---
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={new URL(ogImage, site.url).href} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <slot name="head" />
+    {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
+  </head>
+  <body>
+    <a class="skip" href="#contenido">Saltar al contenido</a>
+    <slot name="header"><Header site={site} current={path} logo={logo} /></slot>
+    <main id="contenido">
+      <slot />
+    </main>
+    <slot name="footer"><Footer site={site} /></slot>
+    <LiveUpdate />
+  </body>
+</html>

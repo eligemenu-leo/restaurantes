@@ -1,18 +1,49 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import MenuSections from '@rea/core/components/MenuSections.astro';
-import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
-import { site, menu } from '../data/index.ts';
-const path = '/menu/';
+// /menu/ (antes /menu-2026/): misma cabecera que las cartas y la elección de restaurante,
+// porque cada local tiene su propia carta.
+import { Image } from 'astro:assets';
+import Layout from '../components/Layout.astro';
+import MenuSlider from '../components/MenuSlider.astro';
+import { site, locales } from '../data/index.ts';
+import cuchillos from '../assets/web/Cuchillos.png';
 ---
-<BaseLayout site={site} title="Menú de carnes maduradas" path={path}
-  description="Menú de La Vaca Asustada: wagyu A5, Black Angus, vaca retinta, T-bone, tomahawk y chuletas maduradas más de 45 días al carbón. Gijón y Oviedo."
-  jsonLd={[menuJsonLd(site, menu, site.url + path)]}>
-  <div class="wrap section">
-    <p class="eyebrow">Gijón y Oviedo</p>
+<Layout title="Menú de carnes maduradas" path="/menu/"
+  description="Menú de La Vaca Asustada en Gijón y Oviedo: carnes maduradas a la brasa, wagyu, Black Angus, T-bone, tomahawk y chuletas. Elige tu local.">
+  <MenuSlider />
+  <section class="mh">
+    <Image src={cuchillos} width={200} alt="" class="mh__knives" />
     <h1>Menú</h1>
-    <p class="lead">Carnes de distintas razas y orígenes, maduradas en casa y terminadas al carbón.</p>
-    <MenuSections menu={menu} />
-  </div>
-</BaseLayout>
+    <p class="mh__sub">Menú especializado en carnes maduradas</p>
+    <hr />
+    <p class="pick__lead">Cada restaurante tiene su carta. Elige el tuyo:</p>
+    <ul class="pick">
+      {locales.map((l) => {
+        const loc = site.locations.find((x) => x.id === l.id)!;
+        return (
+          <li>
+            <a href={l.path}>
+              <span class="pick__name">Menú {l.name}</span>
+              <span class="pick__addr">{loc.address.street}, {loc.address.locality}</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Layout>
+<style>
+  .mh { width: min(100% - 2 * var(--space), var(--w-max)); margin: 20px auto 0; padding: 0 0 5rem; text-align: center; }
+  @media (max-width: 64rem) { .mh { padding-top: 3rem; } }
+  :global(.mh__knives) { width: 100px; height: auto; margin: 0 auto; }
+  .mh h1 { margin: 0; padding: 8px; font: 200 clamp(2rem, 6vw, 2.8125rem)/1.2 var(--f-body); letter-spacing: 0; text-transform: uppercase; color: #fff; }
+  .mh__sub { margin: 0; font: 700 0.75rem/1 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
+  .mh hr { margin: 12px 0 0; border: 0; border-top: 1px solid #444; }
+  .pick__lead { margin: 2.5rem 0 1.5rem; }
+  .pick { list-style: none; margin: 0 auto; padding: 0; display: grid; gap: 1.5rem; max-width: 48rem; }
+  @media (min-width: 48rem) { .pick { grid-template-columns: 1fr 1fr; } }
+  .pick a { display: flex; flex-direction: column; gap: 0.6rem; padding: 2.25rem 1.5rem; border: 1px solid var(--c-accent); text-decoration: none; transition: background-color .2s, color .2s; }
+  .pick__name { font: 400 2rem/1.1 var(--f-display); color: #fff; }
+  .pick__addr { font: 700 0.75rem/1.4 var(--f-label); letter-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
+  .pick a:hover { background: var(--c-accent); }
+  .pick a:hover .pick__name, .pick a:hover .pick__addr { color: #000; }
+</style>

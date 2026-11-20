@@ -1,88 +1,259 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
-import LocationCard from '@rea/core/components/LocationCard.astro';
-import Reviews from '@rea/core/components/Reviews.astro';
+// Portada: réplica de la de la web original, sección a sección.
+import { getImage, Image } from 'astro:assets';
+import Layout from '../components/Layout.astro';
+import Photo from '@rea/core/components/Photo.astro';
+import Reserva from '../components/Reserva.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
-import { price } from '@rea/core/lib/format.ts';
-import { site, menu } from '../data/index.ts';
+import { site } from '../data/index.ts';
+import cuchillos from '../assets/web/Cuchillos.png';
+import poster from '../assets/web/brasa-poster.jpg';
+import chuleta from '../assets/web/Pizarra-Vaca-Asustada-22.png';
+import tbone from '../assets/web/Pizarra-Vaca-Asustada-19.png';
+import tomahawk from '../assets/web/Pizarra-Vaca-Asustada-20.png';
+import logoDorado from '../assets/web/Logo-vaca-dorado.png';
+import banda from '../assets/web/MG_6319-2.jpg';
+import despiece from '../assets/web/RESERVAR-MESA-6.png';
+import pizarra13 from '../assets/web/Pizarra-Vaca-Asustada-13-1.jpg';
+import pizarra14 from '../assets/web/Pizarra-Vaca-Asustada-14.jpg';
+import pizarra7 from '../assets/web/Pizarra-Vaca-Asustada-7.jpg';
+import avatar from '../assets/web/Diseno-sin-titulo-32.png';
 
-const top = menu.sections.find((s) => s.id === 'al-carbon')!.items.filter((i) => i.featured);
+const posterImg = await getImage({ src: poster, width: 1280, format: 'webp', quality: 60 });
+const bandaImg = await getImage({ src: banda, width: 1920, format: 'webp', quality: 60 });
+const p14Img = await getImage({ src: pizarra14, width: 900, format: 'webp', quality: 65 });
+
+const carnes = [
+  { img: chuleta, name: 'Chuleta Vaca Asustada', origin: 'Península ibérica', alt: 'Chuleta de vaca madurada con hueso sobre tabla de madera' },
+  { img: tbone, name: 'T-bone', origin: 'Extremadura y Andalucía', alt: 'T-bone madurado sobre tabla de madera' },
+  { img: tomahawk, name: 'Tomahawk', origin: 'Escocia', alt: 'El cocinero sostiene un tomahawk por su hueso largo' },
+];
+// Puntos sobre el dibujo del despiece, en las mismas posiciones que en la web original.
+const cortes = [
+  { x: 36, y: 19, text: ['Tbone', 'Filet mignon con hueso'] },
+  { x: 26, y: 25, text: ['Lomo prime black angus usa'] },
+  { x: 44, y: 35, text: ['Tomahawk,', 'Ribeye', 'Cowboy', 'Bife', 'Ribeye wagyu Japón'] },
+  { x: 54, y: 21, text: ['Chuleta especial La Vaca Asustada'] },
+  { x: 35, y: 55, text: ['Entraña wagyu Australia'] },
+];
 ---
-<BaseLayout site={site} title="La Vaca Asustada · Restaurante de carne madurada en Gijón y Oviedo" path="/"
+<Layout title="La Vaca Asustada · Restaurante de carne madurada en Gijón y Oviedo" path="/" overlayHeader
   jsonLd={[restaurantGraph(site, `${site.url}/menu/`)]}>
-  <section class="hero">
-    <div class="wrap">
-      <p class="eyebrow">Gijón · Oviedo</p>
-      <h1>Carne madurada,<br /><em>a la brasa</em></h1>
-      <p class="lead">Una selección de los mejores cortes del mundo, elegidos y madurados uno a uno. Dos casas en Asturias, la misma obsesión por el producto.</p>
-      <div class="btn-row">
-        {site.locations.map((l) => (
-          <a class="btn" href={l.reservationUrl} target="_blank" rel="noopener">Reservar en {l.name}<span class="visually-hidden"> (abre en otra pestaña)</span></a>
-        ))}
-        <a class="btn btn--ghost" href="/menu/">Ver el menú</a>
+  <Fragment slot="head"><link rel="preload" as="image" href={posterImg.src} fetchpriority="high" /></Fragment>
+
+  <!-- 1. Vídeo de la brasa con el nombre y los dos botones de reserva -->
+  <section class="hero" style={`--poster: url(${posterImg.src})`}>
+    <video class="hero__video" autoplay muted loop playsinline preload="metadata" poster={posterImg.src} aria-hidden="true">
+      <source src="/video/brasa.mp4" type="video/mp4" />
+    </video>
+    <div class="hero__in">
+      <Image class="hero__knives" src={cuchillos} width={200} alt="" loading="eager" />
+      <h1>La Vaca Asustada</h1>
+      <p class="hero__sub">Restaurante de carne madurada en Gijón y Oviedo</p>
+      <div class="hero__btns">
+        <Reserva id="hero" />
       </div>
     </div>
   </section>
 
-  <section class="section top" aria-labelledby="top-h">
+  <!-- 2. Nuestras carnes TOP -->
+  <section class="top" aria-labelledby="top-h" style={`--wm: url(${logoDorado.src})`}>
     <div class="wrap">
-      <p class="eyebrow">Garantía de calidad</p>
+      <p class="eyebrow top__eyebrow">Restaurantes en Gijón y Oviedo con Garantía de calidad</p>
       <h2 id="top-h">Nuestras carnes TOP</h2>
-      <p class="lead">Cada corte se selecciona y se madura para asegurar una experiencia inigualable.</p>
+      <p class="top__lead">Nos enorgullecemos de ofrecer una selección exclusiva de las mejores carnes del mundo. Cada corte ha sido cuidadosamente seleccionado y madurado para asegurar una experiencia gastronómica inigualable.</p>
       <ul class="top__list">
-        {top.map((c) => (
+        {carnes.map((c) => (
           <li>
-            <p class="top__origin">{c.tagline}</p>
+            <Photo src={c.img} alt={c.alt} sizes="(min-width: 64rem) 330px, (min-width: 48rem) 30vw, 80vw" widths={[320, 480, 651]} class="top__img" />
             <h3>{c.name}</h3>
-            <p class="top__desc">{c.description}</p>
-            <p class="top__price">{price(c.price, c.unit)}</p>
+            <p class="top__origin">{c.origin}</p>
           </li>
         ))}
       </ul>
-      <a class="btn btn--ghost" href="/menu/">Todas nuestras carnes maduradas</a>
     </div>
   </section>
 
-  <section class="section todo" aria-labelledby="todo-h">
-    <div class="wrap todo__in">
-      <h2 id="todo-h">Todo importa</h2>
-      <div>
-        <p>Desde el lomo hasta el costillar, cada parte de la vaca ofrece una experiencia única. Conocer el origen de cada corte es esencial para apreciar su textura y su sabor.</p>
-        <p>Disfruta la autenticidad y la calidad de cada bocado. Porque, al final, todo importa.</p>
-        <a href="/sobre-nosotros/">Locos por la carne: conócenos</a>
-      </div>
+  <!-- 3. Franja con foto fija -->
+  <section class="band" aria-labelledby="band-h" style={`--band: url(${bandaImg.src})`}>
+    <div class="band__in">
+      <p class="band__eyebrow">todo tipo de cortes y procedencias</p>
+      <h2 id="band-h">Descubre todas nuestras variedades de carnes maduradas</h2>
+      <a class="btn" href="/menu/">Consultar menú</a>
     </div>
   </section>
 
-  <Reviews reviews={site.reviews} title="Cada opinión escribe nuestra historia" />
-
-  <section class="section" aria-labelledby="loc-h">
+  <!-- 4. Despiece de la vaca con sus cortes -->
+  <section class="cuts" aria-labelledby="cuts-h">
     <div class="wrap">
-      <p class="eyebrow">Dónde encontrarnos</p>
-      <h2 id="loc-h">Nuestros restaurantes</h2>
-      <div class="locs">
-        {site.locations.map((l) => <LocationCard location={l} />)}
+      <div class="cuts__map">
+        <Image src={despiece} loading="lazy" decoding="async"
+          alt="Dibujo de una vaca dividida en sus cortes numerados" />
+        <ul>
+          {cortes.map((c) => (
+            <li style={`left:${c.x}%;top:${c.y}%`}>
+              <button type="button" class="cuts__dot" aria-describedby={`corte-${c.x}`}><span aria-hidden="true">+</span><span class="visually-hidden">Corte</span></button>
+              <span class="cuts__tip" role="tooltip" id={`corte-${c.x}`}>{c.text.map((t) => <span>{t}</span>)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="cuts__txt">
+        <h2 id="cuts-h">Todo importa</h2>
+        <p>Desde el lomo hasta el costillar, <strong>cada parte de la vaca ofrece una experiencia única</strong>. Conocer el origen de cada corte es esencial para apreciar su textura y sabor. Disfruta la autenticidad y calidad de cada bocado. <strong>Porque, al final, todo importa.</strong></p>
       </div>
     </div>
   </section>
-</BaseLayout>
+
+  <!-- 5. Tres columnas: restaurante, reservas y conócenos -->
+  <section class="trio" aria-label="Nuestros restaurantes">
+    <div class="trio__col">
+      <div class="trio__box">
+        <svg class="trio__icon" aria-hidden="true" viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>
+        <p class="trio__label">Nuestro restaurante</p>
+        <h2>La vaca asustada</h2>
+        <a class="trio__more" href="/contacto/">Dónde encontrarnos</a>
+      </div>
+      <Photo src={pizarra13} alt="Comedor de La Vaca Asustada con el neón «No apto para veganos»" sizes="(min-width: 48rem) 33vw, 100vw" widths={[400, 477]} class="trio__img" />
+    </div>
+    <div class="trio__col trio__res" style={`--p14: url(${p14Img.src})`}>
+      <Reserva id="trio" />
+    </div>
+    <div class="trio__col">
+      <div class="trio__box">
+        <svg class="trio__icon" aria-hidden="true" viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2 0 3.5 1.1 4.4 2.5.9-1.4 2.4-2.5 4.4-2.5 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21Z"/></svg>
+        <p class="trio__label">conócenos</p>
+        <h2>Locos por la carne</h2>
+        <a class="trio__more" href="/sobre-nosotros/">Sobre nosotros</a>
+      </div>
+      <Photo src={pizarra7} alt="Recepción del restaurante con el cuadro «No apto para veganos»" sizes="(min-width: 48rem) 33vw, 100vw" widths={[400, 530]} class="trio__img" />
+    </div>
+  </section>
+
+  <!-- 6. Opiniones -->
+  <section class="rev" aria-labelledby="rev-h">
+    <div class="wrap">
+      <p class="eyebrow">Nuestros clientes</p>
+      <h2 id="rev-h">Cada opinión escribe nuestra historia</h2>
+      <ul class="rev__list" tabindex="0" aria-label="Opiniones de clientes en Google">
+        {site.reviews.map((r) => (
+          <li class="rev__card">
+            <Image src={avatar} width={80} height={80} alt="" loading="lazy" />
+            <p class="rev__name">{r.author}</p>
+            <p class="rev__date">{r.date}</p>
+            <blockquote><p>{r.text}</p></blockquote>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Layout>
 <style>
-  .hero { padding-block: clamp(5rem, 16vw, 11rem) clamp(3.5rem, 9vw, 7rem);
-    background: radial-gradient(90% 70% at 85% 10%, color-mix(in srgb, var(--c-accent) 22%, transparent), transparent 65%); }
-  .hero h1 { font-size: clamp(3rem, 9vw, 6.5rem); }
-  .hero em { font-style: italic; color: var(--c-accent); font-weight: 500; }
-  .hero .lead { margin-bottom: 2.25rem; }
-  .top__list { list-style: none; margin: 2.5rem 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
-  .top__list li { background: var(--c-surface); border-top: 3px solid var(--c-accent); padding: 2rem 1.75rem; display: flex; flex-direction: column; }
-  .top__origin { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.8rem; color: var(--c-accent); margin-bottom: 0.75rem; }
-  .top__desc { color: var(--c-muted); font-size: 0.95rem; flex: 1; }
-  .top__price { margin: 0; font: 600 1.4rem/1 var(--f-display); }
-  .todo { border-block: 1px solid var(--c-line); }
-  .todo__in { display: grid; gap: 1.5rem; }
-  @media (min-width: 52rem) { .todo__in { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .todo__in > div { font-size: 1.15rem; }
-  .todo h2 { font-size: clamp(2.5rem, 7vw, 4.5rem); font-style: italic; }
-  .locs { display: grid; gap: 1.5rem; margin-top: 2rem; }
-  @media (min-width: 60rem) { .locs { grid-template-columns: 1fr 1fr; } }
+  /* 1. Vídeo */
+  .hero { position: relative; isolation: isolate; overflow: hidden; background: #000 var(--poster) center / cover; padding: calc(var(--sh-h) + clamp(6rem, 18vw, 15.625rem)) var(--space) clamp(5rem, 14vw, 12rem); text-align: center; }
+  .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: #000; opacity: 0.49; }
+  @media (prefers-reduced-motion: reduce) { .hero__video { display: none; } }
+  .hero__in { display: flex; flex-direction: column; align-items: center; }
+  .hero__knives { width: 100px; height: auto; margin-bottom: 1.5rem; }
+  .hero h1 { max-width: 900px; margin: 0; padding-bottom: 20px; color: #fff; font: 400 clamp(2.6rem, 7.4vw, 5rem)/1 var(--f-alt); text-transform: uppercase; letter-spacing: 2.3px; word-spacing: 4px; }
+  .hero__sub { margin: 0 0 2rem; font: 700 0.75rem/1.2 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
+  .hero__btns { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+
+  /* 2. Carnes TOP */
+  .top { position: relative; isolation: isolate; background: var(--c-band); padding-block: clamp(4rem, 9vw, 6.25rem); text-align: center; overflow: hidden; }
+  .top::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--wm) center / 66% auto no-repeat; opacity: 0.09; }
+  @media (min-width: 64.0625rem) { .top::before { background-attachment: fixed; } }
+  @media (max-width: 47.99rem) { .top::before { background-size: 120% auto; } }
+  .top__eyebrow { font-weight: 200; line-height: 1; }
+  .top h2 { font-size: clamp(2.2rem, 5vw, 2.8125rem); margin-bottom: 1.25rem; }
+  .top__lead { max-width: 400px; margin: 0 auto; font-size: 1rem; line-height: 23px; color: var(--c-text); }
+  /* En móvil, como en la original: la chuleta grande y debajo T-bone y Tomahawk en dos columnas. */
+  .top__list { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem 1rem; justify-items: center; }
+  .top__list li { width: min(100%, 330px); }
+  .top__list li:first-child { grid-column: 1 / -1; }
+  @media (max-width: 47.99rem) { .top__list li:not(:first-child) h3 { font-size: 1.5rem; } .top__list li:not(:first-child) .top__origin { font-size: 0.6875rem; letter-spacing: 1.5px; } }
+  :global(.top__img) { width: 100%; height: auto; }
+  .top h3 { margin: 1.5rem 0 0.5rem; font-size: clamp(1.75rem, 3vw, 2.1875rem); }
+  .top__origin { margin: 0; font: 700 0.8125rem/1.8 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
+  @media (min-width: 48rem) {
+    .top__list { grid-template-columns: repeat(3, 1fr); gap: 1.3rem; align-items: start; }
+    .top__list li:first-child { grid-column: auto; }
+    .top__list li:nth-child(2) { margin-top: 79px; }
+    .top__list li:nth-child(3) { margin-top: 21px; }
+  }
+
+  /* 3. Franja (en móvil no aparece, como en la original) */
+  .band { display: none; }
+  @media (min-width: 48rem) {
+    .band { display: grid; place-items: center; position: relative; isolation: isolate; min-height: 544px; padding: 4rem var(--space); text-align: center; background: var(--band) center / cover; }
+    .band::after { content: ''; position: absolute; inset: 0; z-index: -1; background: #090000; opacity: 0.61; }
+    .band__in { max-width: 44rem; }
+    .band__eyebrow { margin: 0 0 1rem; font: 300 0.8125rem/1.8 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent); }
+    .band h2 { font-size: clamp(1.75rem, 3vw, 2.1875rem); }
+    .band .btn { margin-top: 23px; font-family: var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; }
+  }
+  @media (min-width: 64.0625rem) { .band { background-attachment: fixed; } }
+
+  /* 4. Despiece */
+  .cuts { background: var(--c-bg); padding: clamp(4rem, 9vw, 6.25rem) 0 3.125rem; }
+  .cuts__map { position: relative; max-width: 900px; margin-inline: auto; }
+  .cuts__map img { width: 100%; opacity: 0.35; }
+  .cuts__map ul { list-style: none; margin: 0; padding: 0; }
+  .cuts__map li { position: absolute; transform: translate(-50%, -50%); }
+  .cuts__dot { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--c-accent); background: rgb(14 13 12 / 0.7); color: var(--c-accent); font: 400 1.4rem/1 var(--f-label); cursor: pointer; animation: latido 2.4s ease-in-out infinite; }
+  .cuts__dot:hover, .cuts__dot:focus-visible { background: var(--c-accent); color: #000; }
+  @keyframes latido { 50% { box-shadow: 0 0 0 8px rgb(228 197 144 / 0.15); } }
+  .cuts__tip {
+    position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); z-index: 2;
+    display: flex; flex-direction: column; width: max-content; max-width: 16rem; padding: 0.6rem 1rem;
+    background: rgb(112 92 60 / 0.96); color: #fff; font: 400 1.25rem/1.25 var(--f-display); text-align: center;
+    opacity: 0; visibility: hidden; transition: opacity .2s, visibility .2s;
+  }
+  .cuts__map li:hover .cuts__tip, .cuts__dot:focus-visible + .cuts__tip { opacity: 1; visibility: visible; }
+  .cuts__txt { max-width: 26rem; margin: 2rem auto 0; }
+  .cuts__txt h2 { font-size: clamp(1.75rem, 3vw, 2.1875rem); text-transform: none; }
+  .cuts__txt p { color: var(--c-text); line-height: 28.8px; }
+  .cuts__txt strong { font-weight: 700; }
+  @media (min-width: 64.0625rem) {
+    .cuts__txt { width: 38%; max-width: none; margin: -300px -89px 0 auto; position: relative; }
+  }
+
+  /* 5. Tres columnas */
+  .trio { display: grid; gap: 1.875rem; margin-block: 3.125rem; background: var(--c-bg); }
+  @media (min-width: 48rem) { .trio { grid-template-columns: repeat(3, 1fr); gap: 0; } }
+  .trio__col { display: flex; flex-direction: column; }
+  .trio__box { padding: clamp(3.75rem, 8vw, 6.25rem) 1.25rem; text-align: center; }
+  .trio__icon { color: var(--c-accent); margin: 0 auto 0.9rem; }
+  .trio__label { margin: 0 0 1.6rem; font: 300 0.8125rem/1.2 var(--f-body); letter-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
+  .trio__col:first-child .trio__label { color: #928475; }
+  .trio h2 { margin: 0 0 1.9rem; font-size: clamp(1.625rem, 4vw, 2.875rem); line-height: 47px; letter-spacing: 0; text-transform: none; }
+  .trio__more { font: 700 0.75rem/1.8 var(--f-body); letter-spacing: 3.6px; text-transform: uppercase; color: var(--c-accent); text-decoration: none; }
+  .trio__more::after { content: ' →'; }
+  :global(.trio__img) { width: 100%; height: auto; margin-top: auto; }
+  .trio__res { position: relative; isolation: isolate; justify-content: center; align-items: center; gap: 1.5rem; padding: 10.625rem var(--space); background: var(--p14) center / cover; }
+  .trio__res::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #000; opacity: 0.2; transition: opacity .3s; }
+  .trio__res:hover::before { opacity: 0.7; }
+  @media (max-width: 64rem) { .trio__res::before { opacity: 0.61; } }
+
+  /* 6. Opiniones: carrusel horizontal sin JavaScript */
+  .rev { background: var(--c-band-2); padding-block: clamp(4.5rem, 10vw, 7.5rem); text-align: center; }
+  .rev h2 { color: var(--c-muted); text-transform: none; }
+  .rev .eyebrow { font-weight: 200; }
+  .rev__list {
+    list-style: none; margin: 2.5rem 0 0; padding: 0 0 1rem; display: grid; grid-auto-flow: column;
+    grid-auto-columns: min(100%, 22rem); gap: 1.875rem; overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: thin; scrollbar-color: var(--c-accent-2) transparent; text-align: left;
+  }
+  @media (min-width: 64rem) { .rev__list { grid-auto-columns: calc((100% - 2 * 1.875rem) / 3); } }
+  .rev__list::scroll-button(*) { border: 1px solid var(--c-accent); background: transparent; color: var(--c-accent); width: 44px; height: 44px; cursor: pointer; font-size: 1.1rem; }
+  .rev__list::scroll-button(*):disabled { opacity: 0.3; cursor: default; }
+  .rev__list::scroll-button(left) { content: '‹' / 'Opiniones anteriores'; }
+  .rev__list::scroll-button(right) { content: '›' / 'Opiniones siguientes'; }
+  .rev__card { scroll-snap-align: start; background: var(--c-bg); padding: 2.5rem 2rem; display: flex; flex-direction: column; align-items: flex-start; }
+  .rev__card img { width: 80px; height: 80px; margin-bottom: 1.25rem; }
+  .rev__name { margin: 0; font: 200 1.125rem/1.2 var(--f-body); text-transform: uppercase; color: #e2ded1; }
+  .rev__date { margin: 0.35rem 0 1rem; font: 700 0.75rem/1.8 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
+  .rev__card blockquote { margin: 0; }
+  .rev__card blockquote p { margin: 0; font-size: 0.9375rem; line-height: 27px; color: var(--c-text); }
 </style>

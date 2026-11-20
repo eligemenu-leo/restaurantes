@@ -46,7 +46,7 @@ export function menuJsonLd(site: SiteData, menu: MenuData, url: string) {
         '@type': 'MenuItem',
         name: i.name,
         ...(i.description && { description: i.description }),
-        offers: { '@type': 'Offer', price: i.price.toFixed(2), priceCurrency: 'EUR' },
+        ...(i.price != null && { offers: { '@type': 'Offer', price: i.price.toFixed(2), priceCurrency: 'EUR' } }),
       })),
     })),
   };

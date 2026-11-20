@@ -1,26 +1,60 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Layout from '../components/Layout.astro';
+import Photo from '@rea/core/components/Photo.astro';
 import { site } from '../data/index.ts';
+import luis from '../assets/luis.jpg';
+import botellas from '../assets/botellas.jpg';
+import entrada from '../assets/entrada.jpg';
 ---
-<BaseLayout site={site} title="Quiénes somos" path="/quienes-somos/"
-  description="Rocío y Luis abrieron Sidrería Villaviciosa en la calle Gascona de Oviedo: un local familiar de cocina asturiana tradicional y sidra.">
-  <article class="wrap section about">
-    <p class="eyebrow">Nuestra historia</p>
-    <h1>Un sueño hecho realidad</h1>
-    <div class="about__body">
-      <p class="lead">Rocío y Luis siempre quisieron llevar una sidrería en la calle Gascona, en el corazón del Bulevar de la Sidra. Hoy ese proyecto es Sidrería Villaviciosa.</p>
-      <h2>Nuestra cocina</h2>
-      <p>Platos tradicionales asturianos con producto de calidad y sin artificios. Rocío aporta la hospitalidad; Luis, la dedicación por los sabores de siempre.</p>
-      <h2>La sidra como forma de ser</h2>
-      <p>En Gascona la sidra es cultura, encuentro y celebración. Aquí se escancia con orgullo.</p>
-      <h2>Un lugar para sentirse en casa</h2>
-      <p>Un ambiente cálido y acogedor para comer sin prisas, en familia o con amigos.</p>
-      <p><a class="btn" href="/contacto/">Reserva tu mesa</a></p>
+<Layout title="Quiénes somos" path="/quienes-somos/"
+  description="Rocío y Luis cumplieron su sueño de regentar una sidrería en la calle Gascona de Oviedo: cocina asturiana de siempre y trato familiar.">
+  <article class="section about">
+    <div class="wrap about__head">
+      <div>
+        <p class="eyebrow">Nuestra historia</p>
+        <h1>Un sueño hecho realidad</h1>
+        <p class="lead">Desde que Rocío y Luis comenzaron en la hostelería, tuvieron una ilusión clara: regentar una sidrería en la mítica calle Gascona, el corazón del Bulevar de la Sidra. Hoy, ese sueño se hace realidad en Sidrería Villaviciosa.</p>
+        <p>Aquí han creado un lugar cercano y auténtico, donde la cocina tradicional y el trato familiar reflejan todo lo que siempre quisieron ofrecer. Rocío aporta la hospitalidad que hace que cada visita se sienta como en casa; Luis, la dedicación y el amor por los sabores de siempre.</p>
+        <p>Sidrería Villaviciosa es la expresión de ese sueño compartido y su forma de dar la bienvenida a todos los que llegan a Gascona.</p>
+      </div>
+      <Photo src={entrada} alt="Entrada de Sidrería Villaviciosa de noche, con clientes en la terraza" sizes="(min-width: 60rem) 40vw, 100vw" loading="eager" class="about__img" />
+    </div>
+    <blockquote class="about__quote wrap">
+      <p>«Una sidrería es un sueño compartido, un lugar donde la tradición se vive y se disfruta cada día.»</p>
+      <footer>Rocío y Luis</footer>
+    </blockquote>
+    <div class="wrap about__grid">
+      <section>
+        <Photo src={luis} alt="Luis cortando un chuletón" sizes="(min-width: 60rem) 30vw, 100vw" widths={[400, 640, 960]} />
+        <p class="eyebrow">Auténtica</p>
+        <h2>Nuestra cocina</h2>
+        <p>Platos de tradición elaborados con producto de calidad y el cariño de la cocina asturiana de siempre. Sabor auténtico, sin artificios.</p>
+      </section>
+      <section>
+        <Photo src={botellas} alt="Dos botellas de sidra Villaviciosa en la barra" sizes="(min-width: 60rem) 30vw, 100vw" widths={[400, 640, 800]} />
+        <p class="eyebrow">De aquí, siempre</p>
+        <h2>La sidra como forma de ser</h2>
+        <p>En plena calle Gascona, la sidra es más que una bebida: es cultura, encuentro y celebración. Aquí se escancia con orgullo.</p>
+      </section>
+      <section class="about__text">
+        <p class="eyebrow">Bienvenido</p>
+        <h2>Un lugar para sentirse en casa</h2>
+        <p>Un ambiente cálido y acogedor, pensado para disfrutar sin prisas, como en las sidrerías de toda la vida.</p>
+        <p><a class="btn" href="/contacto/">Reserva tu mesa</a></p>
+      </section>
     </div>
   </article>
-</BaseLayout>
+</Layout>
 <style>
-  .about__body { max-width: var(--w-text); }
-  .about__body h2 { font-size: 1.75rem; margin-top: 2.5rem; }
+  .about__head { display: grid; gap: 2.5rem; align-items: center; }
+  @media (min-width: 60rem) { .about__head { grid-template-columns: 1.1fr 0.9fr; gap: 4rem; } }
+  .about__head p:not(.eyebrow):not(.lead) { max-width: var(--w-text); }
+  :global(.about__img) { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+  .about__quote { margin-block: var(--section); text-align: center; }
+  .about__quote p { font: italic 400 clamp(1.6rem, 4vw, 2.6rem)/1.3 var(--f-display); max-width: 28ch; margin-inline: auto; }
+  .about__quote footer { color: var(--c-muted); font-weight: 600; }
+  .about__grid { display: grid; gap: 3rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); align-items: start; }
+  .about__grid :global(img) { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; margin-bottom: 1.25rem; }
+  .about__grid h2 { font-size: 1.75rem; }
+  .about__text { align-self: center; }
 </style>

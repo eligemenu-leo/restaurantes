@@ -1,0 +1,41 @@
+---
+import type { LocationData } from '../lib/schema.ts';
+import { groupHours } from '../lib/hours.ts';
+import { mapsHref, telHref } from '../lib/format.ts';
+interface Props { location: LocationData; title?: string; headingLevel?: 2 | 3 }
+const { location: l, title = l.name, headingLevel = 3 } = Astro.props;
+const H = `h${headingLevel}` as 'h2' | 'h3';
+const q = l.mapsQuery ?? `${l.address.street}, ${l.address.postalCode} ${l.address.locality}`;
+---
+<article class="loc" id={l.id}>
+  <H class="loc__h">{title}</H>
+  <address>{l.address.street}<br />{l.address.postalCode} {l.address.locality} ({l.address.region})</address>
+  <table class="loc__hours">
+    <caption class="visually-hidden">Horario de {l.name}</caption>
+    <tbody>
+      {groupHours(l).map((r) => (
+        <tr>
+          <th scope="row">{r.label}</th>
+          <td>{r.status === 'open' ? r.slots.map((t) => <span class="slot">{t}</span>) : r.status === 'closed' ? 'Cerrado' : 'Consultar'}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <div class="btn-row">
+    {l.reservationUrl && <a class="btn" href={l.reservationUrl} rel="noopener" target="_blank">Reservar mesa<span class="visually-hidden"> en {l.name} (abre en otra pestaña)</span></a>}
+    <a class={l.reservationUrl ? 'btn btn--ghost' : 'btn'} href={telHref(l.phone)}>Llamar · {l.phone}</a>
+    <a class="btn btn--ghost" href={mapsHref(q)} rel="noopener" target="_blank">Cómo llegar<span class="visually-hidden"> (abre Google Maps)</span></a>
+  </div>
+  {l.email && <p class="loc__mail"><a href={`mailto:${l.email}`}>{l.email}</a></p>}
+</article>
+<style>
+  .loc { background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--radius); padding: clamp(1.25rem, 4vw, 2.25rem); }
+  .loc__h { font-size: 1.75rem; }
+  address { font-style: normal; margin-bottom: 1.25rem; }
+  .loc__hours { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+  .loc__hours th, .loc__hours td { padding: 0.55rem 0; border-bottom: 1px solid var(--c-line); text-align: left; vertical-align: top; }
+  .loc__hours th { font-weight: 600; padding-right: 1rem; }
+  .loc__hours td { text-align: right; font-variant-numeric: tabular-nums; }
+  .loc__mail { margin: 1rem 0 0; }
+  .loc__hours .slot { display: inline-block; white-space: nowrap; margin-left: 0.75em; }
+</style>

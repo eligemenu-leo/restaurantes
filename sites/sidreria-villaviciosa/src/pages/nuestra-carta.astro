@@ -1,18 +1,19 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Layout from '../components/Layout.astro';
 import MenuSections from '@rea/core/components/MenuSections.astro';
 import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
-import { site, carta } from '../data/index.ts';
+import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
+import { restaurantId, site, carta } from '../data/index.ts';
 const path = '/nuestra-carta/';
 ---
-<BaseLayout site={site} title="Nuestra carta" path={path}
+<Layout title="Nuestra carta" path={path}
   description="Carta de Sidrería Villaviciosa en Oviedo: fabada asturiana IGP, cachopo, pixín, carnes al josper, tablas de quesos asturianos y postres caseros."
   jsonLd={[menuJsonLd(site, carta, site.url + path)]}>
   <div class="wrap section">
     <p class="eyebrow">Cocina asturiana</p>
     <h1>Nuestra carta</h1>
     <p class="lead">Producto de aquí y recetas de siempre. Consulta también las <a href="/#sugerencias">sugerencias del día</a> y nuestra <a href="/bodega/">bodega</a>.</p>
-    <MenuSections menu={carta} />
+    <div data-live="carta"><MenuSections menu={carta} /></div>
   </div>
-</BaseLayout>
+  <EligemenuTracking restaurantId={restaurantId} />
+</Layout>

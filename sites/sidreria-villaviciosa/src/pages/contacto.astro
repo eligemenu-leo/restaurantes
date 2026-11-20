@@ -1,29 +1,32 @@
 ---
-import '../styles/theme.css';
-import BaseLayout from '@rea/core/components/BaseLayout.astro';
+import Layout from '../components/Layout.astro';
 import LocationCard from '@rea/core/components/LocationCard.astro';
 import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
 import { telHref } from '@rea/core/lib/format.ts';
 import { site, local } from '../data/index.ts';
 ---
-<BaseLayout site={site} title="Reservas y contacto" path="/contacto/"
-  description="Reserva en Sidrería Villaviciosa: llama al 984 68 14 15 o escribe a hola@sidreriavillaviciosa.es. Calle Gascona, 7, Oviedo."
+<Layout title="Reservas y contacto" path="/contacto/"
+  description="Reserva en Sidrería Villaviciosa llamando al 984 68 14 15. Calle Gascona, 7, Oviedo. Cerramos los miércoles."
   jsonLd={[restaurantGraph(site)]}>
   <div class="wrap section ct">
     <div id="reservas">
       <p class="eyebrow">Reservas</p>
       <h1>Reserva tu mesa</h1>
-      <p class="lead">La forma más rápida es llamar. Si prefieres, escríbenos con el día, la hora y el número de personas y te confirmamos.</p>
+      <p class="lead">Las reservas se hacen por teléfono. Llámanos y te confirmamos al momento.</p>
       <div class="btn-row">
         <a class="btn" href={telHref(local.phone)}>Llamar al {local.phone}</a>
-        <a class="btn btn--ghost" href={`mailto:${local.email}?subject=${encodeURIComponent('Reserva')}`}>Escribir un correo</a>
       </div>
     </div>
-    <LocationCard location={local} title="Dónde estamos" headingLevel={2} />
+    <div>
+      <LocationCard location={local} title="Dónde estamos" headingLevel={2} />
+      <p class="ct__txt">En pleno corazón de la mítica calle Gascona de Oviedo, la Sidrería Villaviciosa te recibe con el sabor auténtico de la tradición asturiana. Un lugar donde la buena sidra, la cocina casera y el ambiente único de «el Bulevar de la Sidra» se unen para que disfrutes de una experiencia genuina, cercana y siempre inolvidable.</p>
+      <p class="ct__txt">Para cualquier otra consulta, escríbenos a <a href={`mailto:${local.email}`}>{local.email}</a>.</p>
+    </div>
   </div>
-</BaseLayout>
+</Layout>
 <style>
   .ct { display: grid; gap: 3rem; }
   @media (min-width: 60rem) { .ct { grid-template-columns: 1fr 1.1fr; align-items: start; gap: 4rem; } }
   .ct .lead { margin-bottom: 2rem; }
+  .ct__txt { margin-top: 1.5rem; color: var(--c-muted); }
 </style>

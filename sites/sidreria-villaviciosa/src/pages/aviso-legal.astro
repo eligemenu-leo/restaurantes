@@ -1,6 +1,11 @@
 ---
 import '../styles/theme.css';
 import LegalPage from '@rea/core/components/LegalPage.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 import { site } from '../data/index.ts';
 ---
-<LegalPage site={site} title="Aviso legal" path="/aviso-legal/" pending />
+<LegalPage site={site} title="Aviso legal" path="/aviso-legal/" pending>
+  <SiteHeader slot="header" current="/aviso-legal/" />
+  <SiteFooter slot="footer" />
+</LegalPage>
