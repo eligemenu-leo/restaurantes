@@ -2,12 +2,28 @@
 import { esc, euros } from './correo.ts';
 import type { Bono, Comercio } from './db.ts';
 
-const fechaLarga = (iso: string) =>
+export const fechaLarga = (iso: string) =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 /** Imagen del QR (la sirve la función bonos-api). Al escanearlo se abre la ficha del bono en el panel. */
 export const urlQr = (codigo: string) =>
   `${Deno.env.get('SUPABASE_URL')}/functions/v1/bonos-api/qr?c=${encodeURIComponent(codigo)}`;
+
+/** Lo que lleva dentro el QR: la ficha del bono en el panel (/gestion/ de la web, o PANEL_URL si se configura). */
+export function urlFicha(web: string | null | undefined, codigo: string) {
+  const panel = Deno.env.get('PANEL_URL')?.replace(/\/$/, '') || (web ? `${web.replace(/\/$/, '')}/gestion` : '');
+  return panel ? `${panel}/#/bono/${codigo}` : codigo;
+}
+
+/** Enlaces para añadir el bono a la Cartera del móvil (solo si están configurados los secretos). */
+export function urlsCartera(codigo: string) {
+  const base = `${Deno.env.get('SUPABASE_URL')}/functions/v1/bonos-api/cartera`;
+  const c = encodeURIComponent(codigo);
+  return {
+    apple: Deno.env.get('APPLE_PASS_CERT') ? `${base}/apple?c=${c}` : null,
+    google: Deno.env.get('GOOGLE_WALLET_CUENTA') ? `${base}/google?c=${c}` : null,
+  };
+}
 
 // Colores y letras de la web (las de La Vaca Asustada por defecto). Cada web publica su logotipo
 // para correo en <web>/bonos-regalo/correo-logo.png (PNG transparente, unos 200 px de alto).
@@ -23,6 +39,7 @@ export function correoBono(c: Pick<Comercio, 'nombre' | 'web' | 'locales'>, b: B
   const parcial = b.saldo_cent < b.importe_cent;
   const locales = (c.locales ?? []).filter(Boolean);
   const dondeUsar = locales.length ? `en nuestros locales de ${esc(locales.length > 1 ? `${locales.slice(0, -1).join(', ')} y ${locales.at(-1)}` : locales[0])}` : 'en el restaurante';
+  const cartera = urlsCartera(b.codigo);
   const fila = (html: string, estilo = '') => `<tr><td class="px" style="padding:0 40px;${estilo}">${html}</td></tr>`;
 
   const html = `<!doctype html>
@@ -60,6 +77,12 @@ export function correoBono(c: Pick<Comercio, 'nombre' | 'web' | 'locales'>, b: B
       <div style="margin-top:6px;font:700 22px/1.2 'Courier New',Courier,monospace;letter-spacing:3px;color:${C.blanco}">${b.codigo}</div>
     </td></tr></table>
   </td></tr>
+  ${cartera.apple || cartera.google ? `<tr><td align="center" class="px" style="padding:22px 40px 0">
+    <div style="font:400 13px/1.5 ${SANS};color:${C.suave};margin-bottom:10px">Llévalo en el móvil</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" align="center">
+      ${cartera.apple ? `<tr><td style="padding:4px"><a href="${esc(cartera.apple)}" style="display:inline-block;background:#000;border:1px solid #5c5c5c;border-radius:8px;padding:12px 0;width:210px;text-align:center;font:600 14px/1 ${SANS};color:#fff;text-decoration:none">Añadir a Apple Wallet</a></td></tr>` : ''}
+      ${cartera.google ? `<tr><td style="padding:4px"><a href="${esc(cartera.google)}" style="display:inline-block;background:#000;border:1px solid #5c5c5c;border-radius:8px;padding:12px 0;width:210px;text-align:center;font:600 14px/1 ${SANS};color:#fff;text-decoration:none">Añadir a Google Wallet</a></td></tr>` : ''}
+    </table></td></tr>` : ''}
   ${fila(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:30px;border-top:1px solid ${C.linea};border-bottom:1px solid ${C.linea}"><tr>
       <td width="50%" style="padding:16px 8px 16px 0;vertical-align:top">${etiqueta('Válido hasta')}<div style="margin-top:6px;font:400 18px/1.3 ${SERIF};color:${C.blanco}">${caduca}</div></td>
       <td width="50%" style="padding:16px 0 16px 8px;vertical-align:top">${etiqueta('Dónde')}<div style="margin-top:6px;font:400 18px/1.3 ${SERIF};color:${C.blanco}">${esc(locales.join(' · ') || c.nombre)}</div></td>

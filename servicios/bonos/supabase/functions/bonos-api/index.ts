@@ -1,13 +1,16 @@
 // API del servicio de bonos, todo en una función para no tener que desplegar muchas:
 //   GET  /bonos-api/config?comercio=…   tipos de bono en venta (público, lo lee la web)
 //   GET  /bonos-api/qr?c=VACA-XXXX-XXXX imagen del QR del bono (público, va en el correo; abre /gestion/ de la web)
+//   GET  /bonos-api/cartera/apple?c=…  el bono para Apple Wallet (.pkpass; va en el correo)
+//   GET  /bonos-api/cartera/google?c=… lleva a "Guardar en Google Wallet" (va en el correo)
 //   POST /bonos-api/reenviar            reenvía el correo del bono (panel, administrador)
 //   POST /bonos-api/usuarios            listar, crear, cambiar rol y quitar usuarios (panel, administrador)
 import qrcode from 'npm:qrcode-generator@1.4.4';
 import { db, enVenta, type Bono, type Comercio, type TipoBono } from '../_shared/db.ts';
 import { b64decode } from '../_shared/redsys.ts';
 import { enviarCorreo } from '../_shared/correo.ts';
-import { correoBono } from '../_shared/plantillas.ts';
+import { correoBono, urlFicha } from '../_shared/plantillas.ts';
+import { appleConfigurado, enlaceGoogle, googleConfigurado, pkpass } from '../_shared/cartera.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -26,6 +29,7 @@ Deno.serve(async (req) => {
   try {
     if (req.method === 'GET' && ruta === 'config') return await config(url);
     if (req.method === 'GET' && ruta === 'qr') return await qr(url);
+    if (req.method === 'GET' && url.pathname.includes('/cartera/')) return await cartera(url, ruta);
     if (req.method === 'POST' && ruta === 'reenviar') return await reenviar(req);
     if (req.method === 'POST' && ruta === 'usuarios') return await usuarios(req);
     return error('No encontrado', 404);
@@ -56,12 +60,34 @@ async function qr(url: URL) {
   // El QR lleva a la ficha del bono en el panel, que está en /gestion/ de la web del restaurante
   // (o en PANEL_URL si se configura). Si no se encuentra el restaurante, lleva solo el código.
   const { data: c } = await db().from('comercios').select('web').eq('prefijo_codigo', codigo.split('-')[0]).limit(1).maybeSingle();
-  const panel = Deno.env.get('PANEL_URL')?.replace(/\/$/, '') || (c?.web ? `${c.web.replace(/\/$/, '')}/gestion` : '');
   const q = qrcode(0, 'M');
-  q.addData(panel ? `${panel}/#/bono/${codigo}` : codigo);
+  q.addData(urlFicha(c?.web, codigo));
   q.make();
   const gif = b64decode(q.createDataURL(6, 4).split(',')[1]);
   return new Response(gif, { headers: { ...CORS, 'Content-Type': 'image/gif', 'Cache-Control': 'public, max-age=31536000, immutable' } });
+}
+
+/** El bono en la Cartera del móvil. Se genera en el momento, así que lleva el saldo de ese instante. */
+async function cartera(url: URL, plataforma?: string) {
+  const codigo = (url.searchParams.get('c') ?? '').toUpperCase();
+  if (!FORMATO_CODIGO.test(codigo)) return error('Código no válido');
+  const { data: b } = await db().from('bonos').select('*, comercios(id, nombre, web, locales)').eq('codigo', codigo).maybeSingle();
+  if (!b) return error('Ese bono no existe', 404);
+  const c = b.comercios as Pick<Comercio, 'id' | 'nombre' | 'web' | 'locales'>;
+  const volver = (motivo: string) => new Response(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+    <p style="font:18px system-ui;padding:2rem">${motivo}</p>`, { status: 410, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  if (b.estado === 'anulado') return volver('Este bono está anulado.');
+  if (b.estado === 'canjeado' || b.saldo_cent <= 0) return volver('Este bono ya está gastado.');
+  if (plataforma === 'apple' && appleConfigurado()) {
+    const archivo = await pkpass(c, b as Bono);
+    return new Response(archivo as Uint8Array<ArrayBuffer>, { headers: {
+      'Content-Type': 'application/vnd.apple.pkpass', 'Content-Disposition': `attachment; filename="${codigo}.pkpass"`, 'Cache-Control': 'no-store',
+    } });
+  }
+  if (plataforma === 'google' && googleConfigurado()) {
+    return new Response(null, { status: 302, headers: { Location: await enlaceGoogle(c, b as Bono), 'Cache-Control': 'no-store' } });
+  }
+  return error('No disponible', 404);
 }
 
 /** Usuario del panel a partir de su token, y su rol en el restaurante. */

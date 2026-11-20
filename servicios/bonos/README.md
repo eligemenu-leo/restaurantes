@@ -52,6 +52,25 @@ crear bonos a mano, tipos de bono con validez y periodo de venta, ajustes y usua
   `insert into miembros (user_id, comercio_id, rol, email) select id, 'la-vaca-asustada', 'admin', email from auth.users where email = '…';`
   Los demás usuarios se añaden desde el propio panel.
 
+## Bono en la Cartera del móvil (Apple Wallet y Google Wallet)
+
+El correo del bono muestra "Añadir a Apple Wallet" y "Añadir a Google Wallet" en cuanto existen los secretos de
+cada plataforma (si faltan, no aparece el botón). El pase se genera al pulsar, con el saldo de ese momento, en
+`bonos-api/cartera/apple` y `bonos-api/cartera/google` (`_shared/cartera.ts`).
+
+- Imágenes: cada web publica `/bonos-regalo/cartera/` con `icon.png` (29 px, @2x, @3x), `logo.png` (alto 50 px,
+  @2x, @3x) y `logo-google.png` (660×660; Google lo recorta en círculo).
+- Apple (secretos): `APPLE_TEAM_ID`, `APPLE_PASS_TYPE_ID` (p. ej. `pass.com.eligemenu.bonos`) y, en base64,
+  `APPLE_PASS_CERT` (el `.cer` del Pass Type ID), `APPLE_PASS_KEY` (la clave privada PEM con la que se hizo
+  la solicitud del certificado) y `APPLE_WWDR_CERT` (intermedio de Apple "Worldwide Developer Relations G4").
+  El certificado de Pass Type ID caduca al año: hay que renovarlo y cambiar `APPLE_PASS_CERT`.
+- Google (secretos): `GOOGLE_WALLET_EMISOR` (Issuer ID de la consola de Google Pay & Wallet) y
+  `GOOGLE_WALLET_CUENTA` (el JSON de la clave de una cuenta de servicio de Google Cloud con la API de Google
+  Wallet activada y añadida como usuario del emisor). Hasta que Google apruebe el emisor, solo pueden guardar
+  el bono las cuentas de prueba del emisor.
+- Pruebas: `deno test --allow-env --allow-read --allow-write --allow-run --node-modules-dir=none test/cartera.deno.ts`
+  (firma un .pkpass con certificados falsos y lo comprueba con OpenSSL).
+
 ## Pasar a real
 
 Con los datos del banco: actualizar `redsys_fuc` y `redsys_terminal` en `comercios`, cambiar el secreto de la
