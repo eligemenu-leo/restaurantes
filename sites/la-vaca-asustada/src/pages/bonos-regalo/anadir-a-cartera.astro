@@ -1,0 +1,39 @@
+---
+// Página intermedia del botón "Añadir a Apple Wallet" del correo. Descarga el bono desde aquí para que,
+// al pulsar "Añadir", la página siga visible (si el enlace del correo lleva directo al archivo, Chrome
+// se queda en blanco) y avisa de que el bono está en la app Cartera.
+import Layout from '../../components/Layout.astro';
+import { bonos } from '../../data/bonos.ts';
+const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
+---
+<Layout title="Añadir el bono a la Cartera" path="/bonos-regalo/anadir-a-cartera/" noindex>
+  <div class="wrap section cartera">
+    <p class="eyebrow">Bonos regalo</p>
+    <h1 id="titulo">Tu bono, a la Cartera</h1>
+    <p class="lead" id="estado">Un momento, estamos preparando tu bono.</p>
+    <noscript><p class="lead">Pulsa el botón para descargar el bono.</p></noscript>
+    <div class="btn-row">
+      <a class="btn" id="anadir" href="/bonos-regalo/" data-api={api}>Añadir a Apple Wallet</a>
+    </div>
+    <p class="nota" id="nota" hidden><strong>Si has pulsado «Añadir», tu bono ya está en la app Cartera</strong> de tu iPhone, listo para enseñarlo al pagar. Si no te ha salido la ventana para añadirlo, pulsa «Añadir a Apple Wallet».</p>
+  </div>
+</Layout>
+<style>
+  .cartera .nota { color: var(--c-muted); max-width: 36rem; margin-top: 1.5rem; }
+</style>
+<script is:inline>
+  (function () {
+    var a = document.getElementById('anadir');
+    var codigo = (new URLSearchParams(location.search).get('c') || '').toUpperCase();
+    if (!/^[A-Z]{2,6}-[2-9A-Z]{4}-[2-9A-Z]{4}$/.test(codigo)) {
+      document.getElementById('estado').innerHTML = 'Este enlace no es válido. Abre de nuevo el botón desde el correo del bono.';
+      a.hidden = true;
+      return;
+    }
+    a.href = a.dataset.api + '/cartera/apple?c=' + encodeURIComponent(codigo);
+    document.getElementById('estado').textContent = 'Bono ' + codigo + '.';
+    document.getElementById('nota').hidden = false;
+    // Abre la descarga una vez; la página no se cambia, así que sigue aquí al volver de "Añadir".
+    setTimeout(function () { location.href = a.href; }, 400);
+  })();
+</script>

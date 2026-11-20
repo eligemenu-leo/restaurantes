@@ -28,3 +28,21 @@ jobs:
         with: { node-version: 22 }
       - run: npm ci
       - run: npm run build
+  bonos:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: servicios/bonos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm test
+      - run: node scripts/copiar-panel.mjs --comprobar la-vaca-asustada
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - name: Cartera (Apple y Google Wallet)
+        run: deno test --allow-env --allow-read --allow-write --allow-run --node-modules-dir=none test/cartera.deno.ts
+      - name: Tipos de las funciones
+        run: deno check --node-modules-dir=none supabase/functions/*/index.ts

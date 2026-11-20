@@ -7,8 +7,14 @@ https://:version.:project.pages.dev/*
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()
   X-Frame-Options: SAMEORIGIN
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Panel de gestión de bonos (copia de servicios/bonos/panel). La cámara se usa para escanear el QR.
+/gestion/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'

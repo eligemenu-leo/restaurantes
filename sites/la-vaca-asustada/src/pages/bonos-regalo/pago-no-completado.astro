@@ -1,0 +1,12 @@
+---
+import Layout from '../../components/Layout.astro';
+import { bonos } from '../../data/bonos.ts';
+---
+<Layout title="El pago no se ha completado" path="/bonos-regalo/pago-no-completado/" noindex>
+  <div class="wrap section">
+    <p class="eyebrow">Bonos regalo</p>
+    <h1>El pago no se ha completado</h1>
+    <p class="lead">No te hemos cobrado nada. Puedes intentarlo de nuevo o escribirnos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a> si el problema continúa.</p>
+    <div class="btn-row"><a class="btn" href="/bonos-regalo/#comprar">Intentarlo de nuevo</a><a class="btn btn--ghost" href="/">Ir al inicio</a></div>
+  </div>
+</Layout>
