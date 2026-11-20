@@ -16,11 +16,13 @@ export function urlFicha(web: string | null | undefined, codigo: string) {
 }
 
 /** Enlaces para añadir el bono a la Cartera del móvil (solo si están configurados los secretos). */
-export function urlsCartera(codigo: string) {
+export function urlsCartera(codigo: string, web?: string | null) {
   const base = `${Deno.env.get('SUPABASE_URL')}/functions/v1/bonos-api/cartera`;
   const c = encodeURIComponent(codigo);
+  const sitio = (web || '').replace(/\/+$/, '');
   return {
-    apple: Deno.env.get('APPLE_PASS_CERT') ? `${base}/apple?c=${c}` : null,
+    // Apple pasa por una página de la web, para que tras "Añadir" no quede una página en blanco.
+    apple: Deno.env.get('APPLE_PASS_CERT') ? (sitio ? `${sitio}/bonos-regalo/anadir-a-cartera/?c=${c}` : `${base}/apple?c=${c}`) : null,
     google: Deno.env.get('GOOGLE_WALLET_CUENTA') ? `${base}/google?c=${c}` : null,
   };
 }
@@ -39,7 +41,7 @@ export function correoBono(c: Pick<Comercio, 'nombre' | 'web' | 'locales'>, b: B
   const parcial = b.saldo_cent < b.importe_cent;
   const locales = (c.locales ?? []).filter(Boolean);
   const dondeUsar = locales.length ? `en nuestros locales de ${esc(locales.length > 1 ? `${locales.slice(0, -1).join(', ')} y ${locales.at(-1)}` : locales[0])}` : 'en el restaurante';
-  const cartera = urlsCartera(b.codigo);
+  const cartera = urlsCartera(b.codigo, c.web);
   const fila = (html: string, estilo = '') => `<tr><td class="px" style="padding:0 40px;${estilo}">${html}</td></tr>`;
 
   const html = `<!doctype html>
