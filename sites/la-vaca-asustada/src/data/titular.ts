@@ -9,8 +9,10 @@ import raw from './titular.json';
 const Titular = z.object({
   razonSocial: z.string().min(3).nullable(),
   cif: z.string().regex(/^[A-HJNPQRSUVW]\d{7}[0-9A-J]$/),
-  /** Domicilio social en una línea: calle, número, código postal y localidad. */
+  /** Domicilio social o, en su defecto, el de un establecimiento permanente, en una línea: calle, número, código postal y localidad. */
   domicilio: z.string().min(10).nullable(),
+  /** Teléfono nacional de la sociedad, con espacios para mostrarlo. */
+  telefono: z.string().regex(/^[\d ]{9,}$/).nullable(),
 });
 
 export const titular = Titular.parse(raw);
