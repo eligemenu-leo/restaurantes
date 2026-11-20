@@ -179,36 +179,45 @@ export async function jwtRs256(claims: Record<string, unknown>, clavePem: string
 const API_WALLET = 'https://walletobjects.googleapis.com/walletobjects/v1';
 const idSeguro = (s: string) => s.replace(/[^\w.-]/g, '_');
 
-/** Clase (una por restaurante) y objeto (uno por bono) de Google Wallet. */
+/** Clase (una por restaurante) y objeto (uno por bono) de Google Wallet.
+ *  Es un pase "genérico" porque deja colocar los datos en el frente como en Apple Wallet:
+ *  BONO REGALO e importe arriba, Válido hasta y Dónde, Código y Para, y el QR. */
 export function objetosGoogle(c: ComercioPase, b: BonoPase, emisor: string) {
   const t = textosPase(c, b);
   const web = sinBarra(c.web);
-  const classId = `${emisor}.bonos_${idSeguro(c.id)}`;
+  const es = (value: string) => ({ defaultValue: { language: 'es', value } });
+  const campo = (id: string) => ({ firstValue: { fields: [{ fieldPath: `object.textModulesData['${id}']` }] } });
+  const classId = `${emisor}.bono_${idSeguro(c.id)}`;
   const clase = {
     id: classId,
-    issuerName: c.nombre,
-    merchantName: c.nombre,
-    reviewStatus: 'UNDER_REVIEW',
-    hexBackgroundColor: '#151616',
-    cardNumberLabel: 'Código',
-    programLogo: {
-      sourceUri: { uri: `${web}/bonos-regalo/cartera/logo-google.png` },
-      contentDescription: { defaultValue: { language: 'es', value: c.nombre } },
+    classTemplateInfo: {
+      cardTemplateOverride: {
+        cardRowTemplateInfos: [
+          { twoItems: { startItem: campo('caduca'), endItem: campo('donde') } },
+          { twoItems: { startItem: campo('codigo'), endItem: campo('para') } },
+        ],
+      },
     },
   };
   const objeto = {
-    id: `${emisor}.${idSeguro(b.codigo)}`,
+    id: `${emisor}.bono_${idSeguro(b.codigo)}`,
     classId,
     state: 'ACTIVE',
-    cardNumber: b.codigo,
-    balance: { micros: String(b.saldo_cent * 10_000), currencyCode: 'EUR' },
-    balanceUpdateTime: { date: new Date().toISOString() },
+    cardTitle: es(c.nombre),
+    subheader: es(t.parcial ? 'Saldo del bono regalo' : 'Bono regalo'),
+    header: es(euros(b.saldo_cent)),
+    hexBackgroundColor: '#151616',
+    logo: { sourceUri: { uri: `${web}/bonos-regalo/cartera/logo-google.png` }, contentDescription: es(c.nombre) },
     barcode: { type: 'QR_CODE', value: urlFicha(c.web, b.codigo), alternateText: b.codigo },
     validTimeInterval: { end: { date: finDelDia(b.caduca) } },
     textModulesData: [
-      ...(b.destinatario_nombre ? [{ id: 'para', header: 'Para', body: b.destinatario_nombre + (b.titular_nombre ? `, de parte de ${b.titular_nombre}` : '') }] : []),
-      ...(b.mensaje ? [{ id: 'mensaje', header: 'Mensaje', body: `«${b.mensaje}»` }] : []),
       { id: 'caduca', header: 'Válido hasta', body: fechaLarga(b.caduca) },
+      { id: 'donde', header: 'Dónde', body: t.donde },
+      { id: 'codigo', header: 'Código', body: b.codigo },
+      { id: 'para', header: 'Para', body: b.destinatario_nombre || '—' },
+      ...(b.titular_nombre ? [{ id: 'de', header: 'De parte de', body: b.titular_nombre }] : []),
+      ...(b.mensaje ? [{ id: 'mensaje', header: 'Mensaje', body: `«${b.mensaje}»` }] : []),
+      ...(t.parcial ? [{ id: 'inicial', header: 'Importe inicial', body: euros(b.importe_cent) }] : []),
       { id: 'uso', header: 'Cómo usarlo', body: t.comoUsar },
       { id: 'saldo', header: 'Saldo', body: t.nota },
     ],
@@ -218,7 +227,7 @@ export function objetosGoogle(c: ComercioPase, b: BonoPase, emisor: string) {
 }
 
 /** Crea o actualiza (si ya existe) un recurso de la API de Google Wallet. */
-async function guardar(tipo: 'giftCardClass' | 'giftCardObject', recurso: { id: string }, token: string) {
+async function guardar(tipo: 'genericClass' | 'genericObject', recurso: { id: string }, token: string) {
   const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   let r = await fetch(`${API_WALLET}/${tipo}`, { method: 'POST', headers: h, body: JSON.stringify(recurso) });
   if (r.status === 409) r = await fetch(`${API_WALLET}/${tipo}/${encodeURIComponent(recurso.id)}`, { method: 'PUT', headers: h, body: JSON.stringify(recurso) });
@@ -240,11 +249,11 @@ export async function enlaceGoogle(c: ComercioPase, b: BonoPase) {
   if (!rt.ok) throw new Error(`Google OAuth ${rt.status}: ${await rt.text()}`);
   const { access_token } = await rt.json();
   const { clase, objeto } = objetosGoogle(c, b, env('GOOGLE_WALLET_EMISOR'));
-  await guardar('giftCardClass', clase, access_token);
-  await guardar('giftCardObject', objeto, access_token);
+  await guardar('genericClass', clase, access_token);
+  await guardar('genericObject', objeto, access_token);
   const jwt = await jwtRs256({
     iss: cuenta.client_email, aud: 'google', typ: 'savetowallet', iat: ahora, origins: [],
-    payload: { giftCardObjects: [{ id: objeto.id }] },
+    payload: { genericObjects: [{ id: objeto.id }] },
   }, cuenta.private_key);
   return `https://pay.google.com/gp/v/save/${jwt}`;
 }
