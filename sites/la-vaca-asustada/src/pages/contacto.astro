@@ -7,7 +7,7 @@
 import { Image, getImage } from 'astro:assets';
 import Layout from '../components/Layout.astro';
 import Reserva from '../components/Reserva.astro';
-import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { restaurants } from '../data/seo.ts';
 import { telHref, mapsHref } from '@rea/core/lib/format.ts';
 import { site } from '../data/index.ts';
 import cuchillos from '../assets/web/Cuchillos.png';
@@ -22,9 +22,9 @@ const hm = (t: string) => t.replace(':', '.');
 const [comida, cena] = gijon.hours;
 const cifras = [['1200', 'Críticas positivas'], ['13', 'Carnes especiales'], ['35', 'Mesas dentro y terraza'], ['10', 'Eventos y catas']];
 ---
-<Layout title="Contacto" path="/contacto/"
+<Layout title="Contacto y reservas en Gijón y Oviedo" path="/contacto/"
   description="Reserva en La Vaca Asustada: Gijón (C/ San Bernardo, 79 · 663 20 06 15) y Oviedo (C/ Melquiades Álvarez, 24 · 984 29 86 60). Lunes a domingo, comidas y cenas."
-  jsonLd={[restaurantGraph(site)]}>
+  jsonLd={[restaurants()]}>
   <section class="ct">
     <h1>La Vaca Asustada</h1>
     <p class="ct__sub">Información</p>

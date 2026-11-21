@@ -5,12 +5,13 @@ import BaseLayout from '@rea/core/components/BaseLayout.astro';
 import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import { site } from '../data/index.ts';
+import { ogImage } from '../data/seo.ts';
 type BaseProps = Omit<Parameters<typeof BaseLayout>[0], 'site'>;
 interface Props extends BaseProps { overlayHeader?: boolean; /** Idioma de la página si no es el español (cartas traducidas). */ lang?: string }
-const { overlayHeader = false, lang, ...rest } = Astro.props;
+const { overlayHeader = false, lang, ogImage: pageOg, ogImageSize, ...rest } = Astro.props;
 const pageSite = lang ? { ...site, lang } : site;
 ---
-<BaseLayout site={pageSite} {...rest}>
+<BaseLayout site={pageSite} ogImage={pageOg ?? ogImage.src} ogImageSize={pageOg ? ogImageSize : ogImage.size} {...rest}>
   <Fragment slot="head"><slot name="head" /></Fragment>
   <SiteHeader slot="header" current={rest.path} overlay={overlayHeader} />
   <slot />
