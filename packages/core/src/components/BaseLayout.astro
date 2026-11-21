@@ -15,10 +15,15 @@ interface Props {
   noindex?: boolean;
   /** Imagen para redes sociales, ruta absoluta dentro de la web. */
   ogImage?: string;
+  /** Tamaño de esa imagen en píxeles [ancho, alto] (ideal 1200×630). */
+  ogImageSize?: [number, number];
   /** Logo para la cabecera. Una web puede poner su propia cabecera o pie con los slots "header" y "footer". */
   logo?: ImageMetadata;
 }
-const { site, title, description = site.description, path, jsonLd = [], noindex = false, ogImage, logo } = Astro.props;
+const { site, title, description = site.description, path, jsonLd = [], noindex = false, ogImage, ogImageSize, logo } = Astro.props;
+// og:locale necesita idioma y país; para los idiomas habituales de las cartas se usa el país principal.
+const OG_LOCALE: Record<string, string> = { es: 'es_ES', en: 'en_GB', fr: 'fr_FR', de: 'de_DE', it: 'it_IT', pt: 'pt_PT', ca: 'ca_ES', eu: 'eu_ES', gl: 'gl_ES' };
+const ogLocale = OG_LOCALE[site.lang] ?? site.lang.replace('-', '_');
 const canonical = new URL(path, site.url).href;
 const fullTitle = path === '/' ? title : `${title} | ${site.name}`;
 ---
@@ -32,12 +37,14 @@ const fullTitle = path === '/' ? title : `${title} | ${site.name}`;
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, follow" />}
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale" content={ogLocale} />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     {ogImage && <meta property="og:image" content={new URL(ogImage, site.url).href} />}
+    {ogImage && ogImageSize && <meta property="og:image:width" content={String(ogImageSize[0])} />}
+    {ogImage && ogImageSize && <meta property="og:image:height" content={String(ogImageSize[1])} />}
     <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />

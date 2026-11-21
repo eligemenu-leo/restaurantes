@@ -19,3 +19,5 @@
 - [ ] Bonos regalo: poner en marcha el servicio (`servicios/bonos/README.md`), rellenar `endpoint` y `activo: true`. Datos reales del TPV del banco (FUC, terminal, clave).
 - [ ] Bonos regalo: página para que el personal compruebe un código y lo marque como usado.
 - [ ] Panel de bonos en /gestion/: es una copia de `servicios/bonos/panel`. Tras cambiarlo allí: `node servicios/bonos/scripts/copiar-panel.mjs la-vaca-asustada`.
+- [ ] SEO: faltan datos para los datos estructurados de los locales: coordenadas (`geo` en `site.json`), rango de precio (`priceRange`) y perfiles (`social`: Instagram, Facebook, TripAdvisor, Google Maps). Se añaden en cuanto lleguen; no inventarlos.
+- [ ] SEO: dar de alta el dominio en Google Search Console y Bing (registro TXT en Cloudflare) y enviar `sitemap-index.xml`.
