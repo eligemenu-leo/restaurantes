@@ -50,6 +50,44 @@ const description = lang === 'es'
   jsonLd={lang === 'es' ? [menuJsonLd(site, l.platos, site.url + l.path)] : []}>
   <Fragment slot="head">
     {LANGS.map((x) => <link rel="alternate" hreflang={x} href={new URL(cartaPath(id, x), site.url).href} />)}
+    <script is:inline>
+      // Cambio de idioma sin salto: la página anterior guarda la pestaña abierta, el plato que había
+      // arriba en pantalla y la foto del carrusel. Aquí se recuperan antes de pintar la página nueva,
+      // de modo que la transición solo funde el texto de un idioma al otro.
+      (function () {
+        var K = 'vaca-carta-idioma', st = null;
+        try { st = JSON.parse(sessionStorage.getItem(K) || 'null'); sessionStorage.removeItem(K); } catch (e) {}
+        if (!st || st.to !== location.pathname || Date.now() - st.t > 15000) return;
+        window.__cartaIdioma = st;
+        // Chrome y Edge esperan a tener la página entera antes de pintarla, para poder colocarla bien.
+        var l = document.createElement('link');
+        l.rel = 'expect'; l.href = '#pie-fin'; l.setAttribute('blocking', 'render');
+        document.head.appendChild(l);
+        function restore() {
+          var root = document.querySelector('.carta');
+          var p = root && root.dataset.tab && document.getElementById(root.dataset.tab);
+          var y = st.y;
+          if (p && st.i != null) {
+            var d = p.querySelectorAll('.dish')[st.i];
+            if (d) y = window.scrollY + d.getBoundingClientRect().top - st.off;
+          }
+          window.scrollTo(0, Math.max(0, y));
+          var s = document.querySelector('.msl');
+          if (s && st.sx) s.scrollLeft = st.sx;
+        }
+        addEventListener('pagereveal', function (e) {
+          if (e.viewTransition) {
+            var h = document.documentElement;
+            h.classList.add('vt-lang');
+            var off = function () { h.classList.remove('vt-lang'); };
+            e.viewTransition.ready.catch(off);
+            e.viewTransition.finished.then(off, off);
+          }
+          restore();
+        }, { once: true });
+        document.addEventListener('DOMContentLoaded', restore, { once: true });
+      })();
+    </script>
   </Fragment>
   <MenuSlider lang={lang} />
 
@@ -108,6 +146,79 @@ const description = lang === 'es'
       </section>
     ))}
   </div>
+  <script is:inline>
+    // Pestañas. Sin JavaScript se ven todas las secciones seguidas con un índice de enlaces.
+    // Va justo detrás de la carta para que la pestaña quede puesta antes de pintar la página.
+    // Al cambiar de pestaña, el contenido se funde (si el navegador lo permite y no se pide reducir el movimiento).
+    // Si la carta se actualiza en directo (data-live), se vuelven a montar conservando la pestaña abierta.
+    (function () {
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)');
+      var init = function (root, keep) {
+        var list = root.querySelector('[role=tablist]');
+        if (!list || !list.hidden) return;
+        var tabs = [].slice.call(list.querySelectorAll('[role=tab]'));
+        var panels = tabs.map(function (b) { return document.getElementById(b.getAttribute('aria-controls')); });
+        var apply = function (i, focus) {
+          tabs.forEach(function (b, j) { b.setAttribute('aria-selected', String(i === j)); b.tabIndex = i === j ? 0 : -1; });
+          panels.forEach(function (p, j) { p.hidden = i !== j; });
+          root.dataset.tab = panels[i].id;
+          if (focus) tabs[i].focus();
+        };
+        var show = function (i, focus) {
+          if (root.dataset.tab === panels[i].id) { if (focus) tabs[i].focus(); return; }
+          if (!document.startViewTransition || reduce.matches) return apply(i, focus);
+          var h = document.documentElement;
+          h.classList.add('vt-tab');
+          var vt = document.startViewTransition(function () { apply(i, focus); });
+          var off = function () { h.classList.remove('vt-tab'); };
+          vt.ready.catch(off);
+          vt.finished.then(off, off);
+        };
+        tabs.forEach(function (b, i) {
+          b.addEventListener('click', function () { show(i); });
+          b.addEventListener('keydown', function (e) {
+            var k = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+            if (k) { e.preventDefault(); show((i + k + tabs.length) % tabs.length, true); }
+            if (e.key === 'Home') { e.preventDefault(); show(0, true); }
+            if (e.key === 'End') { e.preventDefault(); show(tabs.length - 1, true); }
+          });
+        });
+        var st = window.__cartaIdioma;
+        var start = panels.findIndex(function (p) { return p.id === (keep || location.hash.slice(1)); });
+        if (!keep && st && st.tab != null && st.tab < panels.length) start = st.tab;
+        root.classList.add('carta--tabs');
+        list.hidden = false;
+        apply(start >= 0 ? start : 0);
+      };
+      document.querySelectorAll('.carta').forEach(function (root) {
+        init(root);
+        new MutationObserver(function () { init(root, root.dataset.tab); }).observe(root, { childList: true });
+      });
+
+      // Al pulsar otro idioma, se guarda dónde está la persona para dejarla en el mismo sitio.
+      // Las secciones cambian de nombre con el idioma, así que se guardan por posición.
+      document.querySelectorAll('.lang a:not([aria-current])').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+          var root = document.querySelector('.carta');
+          var p = root && root.dataset.tab && document.getElementById(root.dataset.tab);
+          var s = document.querySelector('.msl');
+          var st = { to: new URL(a.href).pathname, t: Date.now(), y: window.scrollY, tab: null, i: null, off: 0, sx: s ? s.scrollLeft : 0 };
+          if (p) {
+            st.tab = [].indexOf.call(root.querySelectorAll('[role=tabpanel]'), p);
+            if (p.getBoundingClientRect().top < innerHeight) {
+              var ds = p.querySelectorAll('.dish');
+              for (var i = 0; i < ds.length; i++) {
+                var r = ds[i].getBoundingClientRect();
+                if (r.bottom > 80) { if (r.top < innerHeight) { st.i = i; st.off = r.top; } break; }
+              }
+            }
+          }
+          try { sessionStorage.setItem('vaca-carta-idioma', JSON.stringify(st)); } catch (err) {}
+        });
+      });
+    })();
+  </script>
 
   <section class="mend" style={`--vaca: url(${vacaNegra.src})`} lang="es">
     <div class="mend__in">
@@ -124,40 +235,7 @@ const description = lang === 'es'
   <EligemenuTracking restaurantId={l.em.restaurant.id} />
 </Layout>
 
-<script>
-  // Pestañas: sin JavaScript se ven todas las secciones seguidas con un índice de enlaces.
-  // Si la carta se actualiza en directo (data-live), se vuelven a montar conservando la pestaña abierta.
-  const init = (root: HTMLElement, keep?: string) => {
-    const list = root.querySelector<HTMLElement>('[role=tablist]');
-    if (!list || !list.hidden) return;
-    const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role=tab]')];
-    const panels = tabs.map((b) => document.getElementById(b.getAttribute('aria-controls')!)!);
-    const show = (i: number, focus = false) => {
-      tabs.forEach((b, j) => { b.setAttribute('aria-selected', String(i === j)); b.tabIndex = i === j ? 0 : -1; });
-      panels.forEach((p, j) => { p.hidden = i !== j; });
-      root.dataset.tab = panels[i].id;
-      if (focus) tabs[i].focus();
-    };
-    tabs.forEach((b, i) => {
-      b.addEventListener('click', () => show(i));
-      b.addEventListener('keydown', (e) => {
-        const k = ({ ArrowRight: 1, ArrowLeft: -1 } as Record<string, number>)[e.key];
-        if (k) { e.preventDefault(); show((i + k + tabs.length) % tabs.length, true); }
-        if (e.key === 'Home') { e.preventDefault(); show(0, true); }
-        if (e.key === 'End') { e.preventDefault(); show(tabs.length - 1, true); }
-      });
-    });
-    const want = keep ?? location.hash.slice(1);
-    const start = panels.findIndex((p) => p.id === want);
-    root.classList.add('carta--tabs');
-    list.hidden = false;
-    show(start >= 0 ? start : 0);
-  };
-  for (const root of document.querySelectorAll<HTMLElement>('.carta')) {
-    init(root);
-    new MutationObserver(() => init(root, root.dataset.tab)).observe(root, { childList: true });
-  }
-</script>
+
 
 <style>
   .mh { width: min(100% - 2 * var(--space), var(--w-max)); margin: 20px auto 0; padding: 0 0 10px; text-align: center; }

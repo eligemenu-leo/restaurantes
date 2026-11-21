@@ -44,6 +44,7 @@ const year = new Date().getFullYear();
       <ul>{links.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
     </nav>
   </div>
+  <!-- Enlaces legales en una sola fila mientras quepan (separación de 2,5rem: los seis caben en el contenedor de 1170 px). -->
   <ul class="sf__legal">
     <li><a href="/aviso-legal/">Aviso legal</a></li>
     <li><a href="/politica-de-privacidad/">Política de privacidad</a></li>
@@ -53,7 +54,7 @@ const year = new Date().getFullYear();
     <li><a href="/bonos-regalo/condiciones/">Condiciones de compra</a></li>
   </ul>
   <p class="sf__titular">{[titular.razonSocial, `CIF ${titular.cif}`, titular.domicilio].filter(Boolean).join(' · ')}</p>
-  <p class="sf__copy">© {year} · <a href="https://eligemenu.com/">Diseño web ELIGEMENU</a></p>
+  <p class="sf__copy" id="pie-fin">© {year} · <a href="https://eligemenu.com/">Diseño web ELIGEMENU</a></p>
 </footer>
 <style>
   .sf { position: relative; isolation: isolate; background: #212323 var(--sf-bg) top center / cover no-repeat; padding-top: 3rem; color: #fff; font-size: 1rem; line-height: 28.8px; }
@@ -76,7 +77,7 @@ const year = new Date().getFullYear();
   .sf__nav { align-self: end; }
   .sf__nav li + li { margin-top: 1.5rem; }
   .sf__nav a { font: 400 0.75rem/1.8 var(--f-body); letter-spacing: 3.6px; text-transform: uppercase; }
-  .sf__legal { width: min(100% - 2 * var(--space), var(--w-max)); margin: 1rem auto 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 3rem; color: var(--c-text-2); font: 300 0.8125rem/1.8 var(--f-body); letter-spacing: 2px; text-transform: uppercase; }
+  .sf .sf__legal { width: min(100% - 2 * var(--space), var(--w-max)); margin: 1rem auto 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 2.5rem; color: var(--c-text-2); font: 300 0.8125rem/1.8 var(--f-body); letter-spacing: 2px; text-transform: uppercase; }
   .sf__legal a:hover { color: var(--c-accent-2); }
   .sf__titular { width: min(100% - 2 * var(--space), var(--w-max)); margin: 0 auto 2rem; text-align: center; color: var(--c-text-2); font: 300 0.8125rem/1.6 var(--f-body); letter-spacing: 1px; }
   .sf__copy { margin: 0; background: #000; color: #c5c5c5; text-align: center; padding: 1.25rem var(--space); font-size: 1rem; }
