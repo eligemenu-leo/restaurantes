@@ -3,13 +3,16 @@
 // con el formulario de reservas de Restaurantic. Usa el atributo popover del navegador: sin JavaScript.
 // Si el navegador no admite popover, el enlace lleva directamente a Restaurantic.
 import { site } from '../data/index.ts';
-interface Props { id: string }
-const { id } = Astro.props;
-const locs = ['oviedo', 'gijon'].map((l) => site.locations.find((x) => x.id === l)!);
+// Con `local` pinta solo el botón de ese local; con `compact`, un botón pequeño "Reservar" (barra superior).
+interface Props { id: string; local?: 'oviedo' | 'gijon'; compact?: boolean }
+const { id, local, compact = false } = Astro.props;
+const locs = (local ? [local] : ['oviedo', 'gijon']).map((l) => site.locations.find((x) => x.id === l)!);
 ---
 {locs.map((l) => (
   <>
-    <button type="button" class="btn res__btn" popovertarget={`reserva-${id}-${l.id}`}>Reserva tu mesa en {l.name}</button>
+    {compact
+      ? <button type="button" class="btn res__btn res__btn--sm" popovertarget={`reserva-${id}-${l.id}`}>Reservar<span class="visually-hidden"> mesa en {l.name}</span></button>
+      : <button type="button" class="btn res__btn" popovertarget={`reserva-${id}-${l.id}`}>Reserva tu mesa en {l.name}</button>}
     <div class="res__pop" id={`reserva-${id}-${l.id}`} popover>
       <div class="res__head">
         <p class="res__title">Reserva en {l.name}</p>
@@ -23,6 +26,8 @@ const locs = ['oviedo', 'gijon'].map((l) => site.locations.find((x) => x.id === 
   </>
 ))}
 <style>
+  .res__btn--sm { min-height: 32px; padding: 0.7em 1.4em; font-size: 0.625rem; letter-spacing: 2.4px; line-height: 1; }
+  .res__pop { font: 400 1rem/1.6 var(--f-body); text-align: left; }
   .res__pop { width: min(100% - 2rem, 40rem); max-height: calc(100dvh - 2rem); padding: 0; border: 1px solid var(--c-accent); background: var(--c-bg); color: var(--c-text); overflow: auto; }
   .res__pop::backdrop { background: rgb(0 0 0 / 0.75); }
   .res__head { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.5rem 0.5rem 1.25rem; border-bottom: 1px solid var(--c-line); }
