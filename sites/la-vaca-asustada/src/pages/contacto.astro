@@ -1,6 +1,7 @@
 ---
 // Contacto, como en la original: título, tres columnas (presentación con vídeo, foto y recuadro
 // con horarios y direcciones), cifras y el bloque "Escríbenos".
+// El email, que en la original iba en la barra superior, se muestra aquí en el recuadro de contacto.
 // Diferencias: el formulario se sustituye por correo y teléfono (una web estática no puede enviarlo
 // sin un servicio externo) y los mapas de Google se abren en una pestaña nueva en lugar de
 // incrustarse, porque el mapa incrustado pone cookies de Google sin consentimiento.
@@ -55,6 +56,10 @@ const cifras = [['1200', 'Críticas positivas'], ['13', 'Carnes especiales'], ['
             </ul>
           </>
         ))}
+        <h3>Email</h3>
+        <ul>
+          <li><a href={`mailto:${gijon.email}`}>{gijon.email}</a></li>
+        </ul>
       </div>
     </div>
 
