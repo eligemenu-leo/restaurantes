@@ -1,5 +1,7 @@
 import { load, Site, type MenuData } from '@rea/core/lib/schema.ts';
-import { loadMenus, hoursFromSchedules, type EMApiResponse, type LoadedMenus } from '@rea/core/lib/eligemenu.ts';
+import { loadMenus, type EMApiResponse, type LoadedMenus } from '@rea/core/lib/eligemenu.ts';
+import { horariosDeLaBaseDeDatos } from './horario.ts';
+import basedatos from './basedatos.json';
 import siteRaw from './site.json';
 // Copias de Eligemenú (7 de noviembre de 2026) para compilar sin ELIGEMENU_API_KEY.
 import oviedoSnapshot from './eligemenu/la-vaca-asustada-oviedo.json';
@@ -23,11 +25,14 @@ for (const [id, name, slug, snap] of [
   const platos = em.menus.find((m) => /platos/i.test(m.title)) ?? em.menus[0];
   const bebidas = em.menus.find((m) => /bebida/i.test(m.title));
   locales.push({ id, name, path: `/menu-${id}/`, slug, em, platos, bebidas });
-  // El horario de cada local se mantiene en Eligemenú: si llega en directo, manda sobre site.json.
-  // Con la copia guardada (sin ELIGEMENU_API_KEY) se usa el de site.json, que está al día.
-  const emHours = em.source === 'eligemenu' && em.restaurant.schedules?.length ? hoursFromSchedules(em.restaurant.schedules) : null;
-  const loc = site.locations.find((l) => l.id === id);
-  if (loc && emHours?.hours.length) Object.assign(loc, emHours);
+}
+
+// El horario de cada local se mantiene en la base de datos de La Vaca (no en Eligemenú).
+// Si no se puede leer, se queda el de site.json.
+const horarios = await horariosDeLaBaseDeDatos(basedatos);
+for (const loc of site.locations) {
+  const h = horarios?.get(loc.id);
+  if (h?.hours.length) Object.assign(loc, h);
 }
 
 const oviedo = locales[0].platos.sections.flatMap((s) => s.items);
