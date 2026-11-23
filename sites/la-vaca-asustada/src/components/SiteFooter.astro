@@ -1,9 +1,11 @@
 ---
 // Pie de la web original: foto oscura de fondo con cuatro columnas (marca, Gijón, Oviedo y menú),
+// con el horario de cada local en su columna (la original tenía un solo horario en la de la marca),
 // fila de enlaces legales, franja negra con el copyright y el sello del Kit Digital (retirado a petición de Leo, 2026-11-10).
 import { getImage, Image } from 'astro:assets';
 import { telHref } from '@rea/core/lib/format.ts';
 import { site } from '../data/index.ts';
+import { horario } from '../data/horario.ts';
 import logo from '../assets/web/Logo-vaca_doradoclaro-1.png';
 import fondo from '../assets/web/MG_6131.jpg';
 const bg = await getImage({ src: fondo, width: 1600, format: 'webp', quality: 60 });
@@ -17,6 +19,7 @@ const links = [
   { label: 'Contacto', href: '/contacto/' },
 ];
 const pin = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z';
+const clock = 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 10.6V6h-2v7.4l5 3 1-1.7-4-2.1Z';
 const phone = 'M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8Z';
 const year = new Date().getFullYear();
 ---
@@ -27,7 +30,6 @@ const year = new Date().getFullYear();
       <p class="sf__name">La Vaca Asustada</p>
       <ul class="sf__list">
         <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm9 7.2L4.4 7H4v.6l8 5.4 8-5.4V7h-.4L12 12.2Z"/></svg><a href={`mailto:${gijon.email}`}>{gijon.email}</a></li>
-        <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 10.6V6h-2v7.4l5 3 1-1.7-4-2.1Z"/></svg>Lunes a domingo: 12:30–18:00 | 19:30–1:00</li>
       </ul>
     </div>
     {[gijon, oviedo].map((l) => (
@@ -36,6 +38,9 @@ const year = new Date().getFullYear();
         <ul class="sf__list">
           <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d={pin}/></svg>{addr(l)}</li>
           <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d={phone}/></svg><a href={telHref(l.phone)}>+34 {l.phone}</a></li>
+          {horario(l).map((h) => (
+            <li><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" fill-rule="evenodd" d={clock}/></svg><span>{h.dias}: {h.estado === 'open' ? h.tramos.map(([a, b], i) => <>{i > 0 && ' | '}<span class="sf__nw">{a}–{b}</span></>) : h.estado === 'closed' ? 'cerrado' : 'consultar'}</span></li>
+          ))}
         </ul>
       </div>
     ))}
@@ -68,6 +73,7 @@ const year = new Date().getFullYear();
   .sf ul { list-style: none; margin: 0; padding: 0; }
   .sf__list li { display: flex; gap: 0.6rem; align-items: baseline; margin-bottom: 0.6rem; }
   .sf__list svg { flex: none; color: #fff; transform: translateY(2px); }
+  .sf__nw { white-space: nowrap; }
   .sf a { text-decoration: none; }
   .sf a:hover { color: var(--c-accent); }
   .sf__nav { align-self: end; }
