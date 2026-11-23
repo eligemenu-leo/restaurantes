@@ -22,8 +22,6 @@
         {
           "days": [
             "mo",
-            "tu",
-            "we",
             "th",
             "fr",
             "sa",
@@ -35,8 +33,6 @@
         {
           "days": [
             "mo",
-            "tu",
-            "we",
             "th",
             "fr",
             "sa",
@@ -45,6 +41,10 @@
           "open": "19:30",
           "close": "01:00"
         }
+      ],
+      "closedDays": [
+        "tu",
+        "we"
       ],
       "reservationUrl": "https://www.restaurantic.es/integraciones/index.php?hash=c1e5242f-ca1b-4312-8b14-994121d21f58",
       "mapsQuery": "La Vaca Asustada, Calle San Bernardo 79, Gijón"
@@ -63,29 +63,35 @@
         {
           "days": [
             "mo",
-            "tu",
-            "we",
             "th",
             "fr",
             "sa",
             "su"
           ],
-          "open": "12:30",
+          "open": "12:00",
           "close": "18:00"
         },
         {
           "days": [
             "mo",
-            "tu",
-            "we",
             "th",
             "fr",
-            "sa",
-            "su"
+            "sa"
           ],
           "open": "19:30",
           "close": "01:00"
+        },
+        {
+          "days": [
+            "su"
+          ],
+          "open": "19:30",
+          "close": "24:00"
         }
+      ],
+      "closedDays": [
+        "tu",
+        "we"
       ],
       "reservationUrl": "https://www.restaurantic.es/integraciones/index.php?hash=a01e32f6-93c8-4799-adcb-39f198db68b4",
       "mapsQuery": "La Vaca Asustada, Calle Melquiades Álvarez 24, Oviedo"
