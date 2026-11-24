@@ -6,8 +6,7 @@ import Photo from '@rea/core/components/Photo.astro';
 import { bonos } from '../../data/bonos.ts';
 import { soporte } from '../../data/soporte.ts';
 import cabecera from '../../assets/web/bonos-cabecera.jpg';
-import logo from '../../assets/web/Logo-vaca_doradoclaro-1.png';
-import { Image } from 'astro:assets';
+import vista from '../../assets/web/bono-vista.jpg';
 
 const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
 const locales = lista(bonos.locales);
@@ -86,15 +85,11 @@ const primero = `${bonos.importes[0]} €`;
     <figure class="bn__vista">
       <p class="eyebrow bn__vista-h">Vista previa de tu regalo</p>
       <div class="tarjeta">
-        <Image src={logo} alt="" width={120} class="tarjeta__logo" />
-        <p class="tarjeta__marca">La Vaca Asustada</p>
-        <p class="tarjeta__sitio">{bonos.locales.join(' · ')}</p>
-        <span class="tarjeta__rule" aria-hidden="true"></span>
-        <p class="tarjeta__tipo">Bono regalo</p>
-        <p class="tarjeta__importe" id="vista-importe">{primero}</p>
-        <p class="tarjeta__para" id="vista-para" hidden></p>
-        <p class="tarjeta__msg" id="vista-msg" hidden></p>
+        <Photo src={vista} alt="Bono regalo de La Vaca Asustada en su sobre negro con cinta dorada" sizes="(min-width: 60rem) 34rem, 92vw" widths={[480, 720, 960, 1254]} class="tarjeta__img" />
+        <span class="tarjeta__importe" id="vista-importe">{primero}</span>
       </div>
+      <p class="tarjeta__para" id="vista-para" hidden></p>
+      <p class="tarjeta__msg" id="vista-msg" hidden></p>
       <figcaption>Un regalo para disfrutar, compartir y recordar.</figcaption>
     </figure>
   </div>
@@ -251,21 +246,19 @@ const primero = `${bonos.importes[0]} €`;
 
   .bn__vista { margin: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .bn__vista-h { margin: 0 0 2rem; }
-  .tarjeta {
-    position: relative; width: min(100%, 22rem); aspect-ratio: 3 / 4; padding: 2.25rem 1.75rem; display: flex; flex-direction: column; align-items: center;
-    background: radial-gradient(120% 80% at 50% 0%, #26221e, #0b0a09 70%); border: 1px solid var(--c-accent-2);
-    box-shadow: 0 0 0 6px #0b0a09, 0 0 0 7px rgb(228 197 144 / 0.45), 0 30px 60px rgb(0 0 0 / 0.6); transform: rotate(-2deg);
+  /* Vista previa: foto del bono sin importe y el importe elegido encima, en el sitio y con la inclinación de la tarjeta. */
+  .tarjeta { position: relative; width: min(100%, 34rem); container-type: inline-size; }
+  .tarjeta__img, .tarjeta__img img { display: block; width: 100%; height: auto; }
+  .tarjeta__importe {
+    position: absolute; left: 55.6%; top: 56.5%; transform: translate(-50%, -50%) rotate(4deg); white-space: nowrap;
+    font: 400 11.3cqw/1 var(--f-display); letter-spacing: -0.01em; -webkit-text-stroke: 0.04cqw #d9a35f;
+    color: #e0a55d; background: linear-gradient(180deg, #f3cd8c 0%, #e0a55d 55%, #b9823f 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
   }
-  .tarjeta__logo { width: 3.5rem; height: auto; }
-  .tarjeta__marca { margin: 0.9rem 0 0; color: var(--c-accent); font: 400 1.5rem/1 var(--f-alt); text-transform: uppercase; letter-spacing: 1px; }
-  .tarjeta__sitio { margin: 0.4rem 0 0; color: var(--c-accent-2); font: 700 0.6rem/1 var(--f-label); letter-spacing: 3px; text-transform: uppercase; }
-  .tarjeta__rule { width: 2.5rem; height: 1px; margin: 1.5rem 0; background: var(--c-accent-2); }
-  .tarjeta__tipo { margin: 0; color: var(--c-accent); font: 400 1.1rem/1 var(--f-display); letter-spacing: 6px; text-transform: uppercase; }
-  .tarjeta__importe { margin: 0.6rem 0 0; color: var(--c-accent); font: 400 clamp(3rem, 7vw, 4rem)/1 var(--f-display); }
-  .tarjeta__para { margin: 1.25rem 0 0; color: #fff; font-size: 0.95rem; overflow-wrap: anywhere; }
-  .tarjeta__msg { margin: 0.5rem 0 0; color: var(--c-text); font: italic 400 0.95rem/1.4 var(--f-display); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .tarjeta__para { margin: 1.5rem 0 0; color: #fff; font-size: 1rem; overflow-wrap: anywhere; max-width: 26rem; }
+  .tarjeta__msg { margin: 0.4rem 0 0; color: var(--c-text); font: italic 400 1.05rem/1.4 var(--f-display); overflow-wrap: anywhere; max-width: 26rem; }
   .tarjeta__para[hidden], .tarjeta__msg[hidden] { display: none; }
-  .bn__vista figcaption { margin-top: 2.5rem; color: #fff; font: italic 400 clamp(1.4rem, 3vw, 1.75rem)/1.3 var(--f-display); max-width: 18rem; }
+  .bn__vista figcaption { margin-top: 1.5rem; color: #fff; font: italic 400 clamp(1.4rem, 3vw, 1.75rem)/1.3 var(--f-display); max-width: 18rem; }
   .bn__vista figcaption::after { content: ''; display: block; width: 3rem; height: 1px; margin: 1.25rem auto 0; background: var(--c-accent); }
 
   /* Condiciones plegables */
