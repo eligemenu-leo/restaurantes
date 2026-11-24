@@ -1,6 +1,6 @@
 {
   "activo": true,
-  "publico": false,
+  "publico": true,
   "endpoint": "https://itbczgolpjezaiitjnno.supabase.co/functions/v1/bonos-pedido",
   "comercio": "la-vaca-asustada",
   "importes": [
