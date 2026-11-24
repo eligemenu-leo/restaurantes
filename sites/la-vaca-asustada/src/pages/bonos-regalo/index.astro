@@ -1,7 +1,13 @@
 ---
+// Bonos regalo, según la maqueta de Leo (2026-11-24): cabecera con foto, franja de ventajas,
+// formulario a la izquierda y vista previa del bono a la derecha, y condiciones plegables.
 import Layout from '../../components/Layout.astro';
+import Photo from '@rea/core/components/Photo.astro';
 import { bonos } from '../../data/bonos.ts';
 import { soporte } from '../../data/soporte.ts';
+import cabecera from '../../assets/web/bonos-cabecera.jpg';
+import logo from '../../assets/web/Logo-vaca_doradoclaro-1.png';
+import { Image } from 'astro:assets';
 
 const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
 const locales = lista(bonos.locales);
@@ -10,59 +16,92 @@ const validez = bonos.validezMeses % 12 === 0
   : `${bonos.validezMeses} meses`;
 // Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
 const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
+const primero = `${bonos.importes[0]} €`;
 ---
-<Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo || !bonos.publico}
+<Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo || !bonos.publico} overlayHeader
   description={`Regala una comida en La Vaca Asustada. Bonos regalo válidos en ${locales}, con pago seguro con tarjeta.`}>
-  <div class="wrap section">
-    <p class="eyebrow">Bonos regalo</p>
-    <h1>Regala La Vaca Asustada</h1>
-    <p class="lead">Un bono para disfrutar de nuestras carnes a la brasa en {locales}. Lo pagas con tarjeta y te llega al momento por correo, listo para regalar.</p>
+  <section class="bh" aria-labelledby="bh-h">
+    <Photo src={cabecera} alt="" loading="eager" sizes="100vw" widths={[640, 960, 1280, 1600, 2172]} class="bh__img" />
+    <div class="bh__in">
+      <p class="eyebrow">Bonos regalo</p>
+      <h1 id="bh-h">Regala momentos para saborear</h1>
+      <span class="bh__rule" aria-hidden="true"></span>
+      <p class="bh__sub">Una experiencia gastronómica en La Vaca Asustada.</p>
+      {bonos.activo && <a class="btn bh__cta" href="#crear">Elige tu bono <span aria-hidden="true">→</span></a>}
+    </div>
+  </section>
 
-    {!bonos.activo ? (
-      <p class="aviso">Muy pronto podrás comprar los bonos aquí. Mientras tanto, pregúntanos en el restaurante o escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</p>
-    ) : (
-      <p class="aviso" id="cerrado" hidden>Ahora mismo no hay bonos a la venta. Escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a> si quieres uno.</p>
-      <form id="comprar" class="bono" method="post" action={bonos.endpoint}>
-        <input type="hidden" name="comercio" value={bonos.comercio} />
-        <p class="error" id="error" role="alert" hidden></p>
+  <ul class="ventajas" aria-label="Ventajas de los bonos regalo">
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Envío inmediato</li>
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg>Válido durante {validez}</li>
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>{locales}</li>
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Pago seguro</li>
+  </ul>
 
-        <fieldset>
-          <legend>Importe</legend>
-          <div class="importes" id="importes" data-api={api} data-comercio={bonos.comercio}>
-            {bonos.importes.map((e, i) => (
-              <label class="importe"><input type="radio" name="importe" value={e} required checked={i === 0} /><span><strong>{e} €</strong><small>Válido {validez}</small></span></label>
-            ))}
+  <div class="wrap bn" id="crear">
+    <div class="bn__form">
+      <h2>Crea tu bono regalo</h2>
+      <p class="bn__lead">Un bono para disfrutar de nuestras carnes a la brasa en {locales}. Lo pagas con tarjeta y te llega al momento por correo, listo para regalar.</p>
+
+      {!bonos.activo ? (
+        <p class="aviso">Muy pronto podrás comprar los bonos aquí. Mientras tanto, pregúntanos en el restaurante o escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a>.</p>
+      ) : (
+        <p class="aviso" id="cerrado" hidden>Ahora mismo no hay bonos a la venta. Escríbenos a <a href={`mailto:${bonos.email}`}>{bonos.email}</a> si quieres uno.</p>
+        <form id="comprar" class="bono" method="post" action={bonos.endpoint}>
+          <input type="hidden" name="comercio" value={bonos.comercio} />
+          <p class="error" id="error" role="alert" hidden></p>
+
+          <fieldset>
+            <legend>Importe</legend>
+            <div class="importes" id="importes" data-api={api} data-comercio={bonos.comercio}>
+              {bonos.importes.map((e, i) => (
+                <label class="importe"><input type="radio" name="importe" value={e} data-euros={`${e} €`} required checked={i === 0} /><span><strong>{e} €</strong><small>Válido {validez}</small></span></label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tus datos</legend>
+            <div class="campo"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required maxlength="120" autocomplete="name" placeholder="Tu nombre" /></div>
+            <div class="campo"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="200" autocomplete="email" placeholder="tu@email.com" aria-describedby="email-ayuda" />
+              <p class="ayuda" id="email-ayuda">Aquí te enviaremos el bono.</p></div>
+            <div class="campo"><label for="para">Para quién es <span class="opcional">(opcional)</span></label><input id="para" name="para" maxlength="120" autocomplete="off" placeholder="Nombre de quien lo recibe" /></div>
+            <div class="campo"><label for="mensaje">Dedicatoria <span class="opcional">(opcional)</span></label><textarea id="mensaje" name="mensaje" maxlength="500" rows="3" placeholder="Escribe una dedicatoria especial…" aria-describedby="mensaje-ayuda"></textarea>
+              <p class="ayuda" id="mensaje-ayuda">Saldrá en el bono. Máximo 500 caracteres.</p></div>
+          </fieldset>
+
+          <div class="trampa" aria-hidden="true"><label for="web">No rellenes este campo</label><input id="web" name="web" tabindex="-1" autocomplete="off" /></div>
+
+          <div class="acepto">
+            <input type="checkbox" id="acepto" name="acepto" value="si" required />
+            <label for="acepto">He leído las <a href="/bonos-regalo/condiciones/">condiciones de compra</a> y la <a href="/politica-de-privacidad/">política de privacidad</a>.</label>
           </div>
-        </fieldset>
 
-        <fieldset>
-          <legend>Tus datos</legend>
-          <div class="campo"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required maxlength="120" autocomplete="name" /></div>
-          <div class="campo"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="200" autocomplete="email" aria-describedby="email-ayuda" />
-            <p class="ayuda" id="email-ayuda">Aquí te enviaremos el bono.</p></div>
-        </fieldset>
+          <button class="btn bn__pagar" type="submit">Comprar bono regalo · <span id="pagar-importe">{primero}</span></button>
+          <p class="ayuda">El pago se hace en la pasarela segura de Redsys. Nunca vemos los datos de tu tarjeta.</p>
+        </form>
+      )}
+    </div>
 
-        <fieldset>
-          <legend>El regalo <span class="opcional">(opcional)</span></legend>
-          <div class="campo"><label for="para">Para quién es</label><input id="para" name="para" maxlength="120" autocomplete="off" /></div>
-          <div class="campo"><label for="mensaje">Mensaje</label><textarea id="mensaje" name="mensaje" maxlength="500" rows="3" aria-describedby="mensaje-ayuda"></textarea>
-            <p class="ayuda" id="mensaje-ayuda">Saldrá en el bono. Máximo 500 caracteres.</p></div>
-        </fieldset>
+    <figure class="bn__vista">
+      <p class="eyebrow bn__vista-h">Vista previa de tu regalo</p>
+      <div class="tarjeta">
+        <Image src={logo} alt="" width={120} class="tarjeta__logo" />
+        <p class="tarjeta__marca">La Vaca Asustada</p>
+        <p class="tarjeta__sitio">{bonos.locales.join(' · ')}</p>
+        <span class="tarjeta__rule" aria-hidden="true"></span>
+        <p class="tarjeta__tipo">Bono regalo</p>
+        <p class="tarjeta__importe" id="vista-importe">{primero}</p>
+        <p class="tarjeta__para" id="vista-para" hidden></p>
+        <p class="tarjeta__msg" id="vista-msg" hidden></p>
+      </div>
+      <figcaption>Un regalo para disfrutar, compartir y recordar.</figcaption>
+    </figure>
+  </div>
 
-        <div class="trampa" aria-hidden="true"><label for="web">No rellenes este campo</label><input id="web" name="web" tabindex="-1" autocomplete="off" /></div>
-
-        <div class="acepto">
-          <input type="checkbox" id="acepto" name="acepto" value="si" required />
-          <label for="acepto">He leído las <a href="/bonos-regalo/condiciones/">condiciones de compra</a> y la <a href="/politica-de-privacidad/">política de privacidad</a>.</label>
-        </div>
-
-        <button class="btn" type="submit">Pagar con tarjeta</button>
-        <p class="ayuda">El pago se hace en la pasarela segura de Redsys. Nunca vemos los datos de tu tarjeta.</p>
-      </form>
-    )}
-
-    <section id="condiciones" class="condiciones" aria-labelledby="condiciones-h">
-      <h2 id="condiciones-h">Condiciones</h2>
+  <div class="wrap">
+    <details id="condiciones" class="condiciones">
+      <summary>Condiciones del bono</summary>
       <ul>
         <li>El bono se puede usar en nuestros locales de {locales} hasta la fecha de caducidad que aparece junto a cada importe y en el propio bono.</li>
         <li>Se puede gastar de una vez o en varias visitas hasta agotar el saldo.</li>
@@ -70,13 +109,13 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
         <li>Tienes 14 días desde la compra para desistir y recuperar el importe si no has usado el bono. Todo el detalle de anulaciones, devoluciones y desistimiento está en las <a href="/bonos-regalo/condiciones/">condiciones de compra</a>.</li>
         <li>Si tienes cualquier duda o problema con la compra o el pago, ponte en contacto con <a href="/atencion-al-cliente/">atención al cliente</a> ({soporte.email} · {soporte.telefono}).</li>
       </ul>
-    </section>
+    </details>
   </div>
 </Layout>
 {bonos.activo && (
   <script is:inline>
-    // Si el pedido vuelve con un error, lo explica encima del formulario.
     (function () {
+      // Si el pedido vuelve con un error, lo explica encima del formulario.
       var msgs = {
         importe: 'Elige uno de los importes disponibles.',
         datos: 'Revisa tu nombre y tu correo electrónico.',
@@ -87,6 +126,21 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
       var code = new URLSearchParams(location.search).get('error');
       var el = document.getElementById('error');
       if (el && code && Object.prototype.hasOwnProperty.call(msgs, code)) { el.textContent = msgs[code]; el.hidden = false; }
+
+      // Vista previa: importe, destinatario y dedicatoria según se rellenan.
+      var form = document.getElementById('comprar');
+      var $ = function (id) { return document.getElementById(id); };
+      var pinta = function () {
+        if (!form) return;
+        var sel = form.querySelector('.importe input:checked');
+        var imp = sel ? sel.dataset.euros : '';
+        $('vista-importe').textContent = imp;
+        $('pagar-importe').textContent = imp;
+        var para = $('para').value.trim(), msg = $('mensaje').value.trim();
+        $('vista-para').textContent = para ? 'Para ' + para : ''; $('vista-para').hidden = !para;
+        $('vista-msg').textContent = msg ? '«' + msg + '»' : ''; $('vista-msg').hidden = !msg;
+      };
+      if (form) { form.addEventListener('input', pinta); form.addEventListener('change', pinta); }
 
       // Tipos de bono vigentes, desde el panel de gestión. Si falla, se quedan los importes de la página.
       var box = document.getElementById('importes');
@@ -102,15 +156,17 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
         .then(function (r) { if (!r.ok) throw r; return r.json(); })
         .then(function (cfg) {
           if (!cfg.venta_activa) {
-            document.getElementById('comprar').hidden = true;
-            document.getElementById('cerrado').hidden = false;
+            form.hidden = true;
+            $('cerrado').hidden = false;
             return;
           }
+          if (!cfg.tipos || !cfg.tipos.length) return;
           box.textContent = '';
           cfg.tipos.forEach(function (t, i) {
             var label = document.createElement('label'); label.className = 'importe';
             var input = document.createElement('input');
             input.type = 'radio'; input.name = 'tipo'; input.value = t.id; input.required = true; input.checked = i === 0;
+            input.dataset.euros = euros(t.importe_cent);
             var span = document.createElement('span');
             var strong = document.createElement('strong'); strong.textContent = euros(t.importe_cent);
             var small = document.createElement('small');
@@ -119,6 +175,7 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
             if (t.descripcion) { var d = document.createElement('small'); d.textContent = t.descripcion; span.append(d); }
             label.append(input, span); box.append(label);
           });
+          pinta();
         })
         .catch(function () {});
     })();
@@ -126,39 +183,98 @@ const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
 )}
 <!-- Global: los importes se crean con JavaScript y no llevan el atributo de estilos de Astro. Solo afecta a esta página. -->
 <style is:global>
-  .aviso { margin-top: 2rem; padding: 1.25rem 1.5rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); max-width: var(--w-text); }
-  .bono { margin-top: 2.5rem; max-width: var(--w-text); display: grid; gap: 2rem; }
+  /* Cabecera */
+  .bh { position: relative; isolation: isolate; overflow: hidden; background: #000; min-height: clamp(30rem, 42vw, 38rem); display: flex; align-items: center; padding: calc(var(--sh-h) + 2rem) var(--space) 3rem; }
+  .bh__img, .bh__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% center; z-index: -2; }
+  .bh::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(0 0 0 / 0.85) 0%, rgb(0 0 0 / 0.55) 45%, rgb(0 0 0 / 0) 75%); }
+  @media (max-width: 47.99rem) { .bh::after { background: rgb(0 0 0 / 0.6); } }
+  .bh__in { width: min(100%, var(--w-max)); margin: 0 auto; }
+  .bh h1 { margin: 0.75rem 0 0; max-width: 12ch; color: #fff; font: 400 clamp(2.6rem, 6vw, 4.5rem)/1.05 var(--f-display); text-transform: none; }
+  .bh__rule { display: block; width: 3rem; height: 2px; margin: 1.5rem 0; background: var(--c-accent); }
+  .bh__sub { max-width: 22rem; margin: 0 0 2rem; color: #fff; font-size: 1.15rem; line-height: 1.5; }
+  .bh__cta { display: inline-flex; gap: 0.9em; align-items: center; background: var(--c-accent); color: #000; }
+  .bh__cta:hover, .bh__cta:focus-visible { background: transparent; color: var(--c-accent); }
+
+  /* Ventajas */
+  .ventajas { list-style: none; margin: 0; padding: 1.25rem var(--space); display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; background: var(--c-surface); border-block: 1px solid var(--c-line); }
+  @media (min-width: 48rem) { .ventajas { grid-template-columns: repeat(4, 1fr); padding-block: 1.5rem; } .ventajas li + li { border-left: 1px solid var(--c-line); } }
+  .ventajas li { display: flex; align-items: center; justify-content: center; gap: 0.75rem; color: #fff; font-size: 0.95rem; text-align: left; }
+  .ventajas svg { width: 1.6rem; height: 1.6rem; flex: none; fill: none; stroke: var(--c-accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .ventajas li:first-child svg { fill: none; }
+
+  /* Formulario y vista previa */
+  .bn { display: grid; gap: 3rem; padding-block: clamp(3rem, 7vw, 5rem); }
+  @media (min-width: 60rem) { .bn { grid-template-columns: 1fr 1fr; gap: 0; } .bn__form { padding-right: 3.5rem; border-right: 1px solid var(--c-line); } .bn__vista { padding-left: 3.5rem; } }
+  .bn h2 { margin: 0 0 1rem; color: #fff; font: 400 clamp(2rem, 4vw, 2.8rem)/1.1 var(--f-display); text-transform: none; }
+  .bn__lead { margin: 0 0 2rem; }
+  .aviso { margin-top: 2rem; padding: 1.25rem 1.5rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); }
+  .bono { display: grid; gap: 1.75rem; }
   .bono[hidden], .aviso[hidden] { display: none; }
-  fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 1rem; }
-  legend { font: 600 1.35rem/1.2 var(--f-display); margin-bottom: 1rem; padding: 0; }
-  .opcional { font: 400 1rem var(--f-body); color: var(--c-muted); }
-  .importes { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .bono fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 1rem; }
+  .bono legend { font: 400 1.25rem/1.2 var(--f-body); color: #fff; margin-bottom: 0.75rem; padding: 0; }
+  .opcional { font-weight: 400; color: var(--c-muted); }
+  .importes { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: 0.75rem; max-width: 27rem; }
+  .importe { position: relative; }
   .importe input { position: absolute; opacity: 0; width: 1px; height: 1px; }
   .importe span {
-    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
-    min-width: 7.5rem; min-height: 48px; padding: 0.6em 1.1em; text-align: center;
-    border: 2px solid var(--c-line); border-radius: var(--radius); cursor: pointer;
+    position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+    width: 100%; min-height: 4.25rem; padding: 0.6em 0.35em; text-align: center; color: #fff;
+    border: 1px solid var(--c-text); cursor: pointer; transition: border-color .2s, background-color .2s;
   }
-  .importe strong { font: 600 1.4rem var(--f-display); }
-  .importe small { font-size: 0.8rem; color: var(--c-muted); max-width: 12rem; }
-  .importe input:checked + span small { color: inherit; }
-  .importe input:checked + span { border-color: var(--c-accent); background: var(--c-accent); color: var(--c-accent-text); }
+  .importe span:hover { border-color: var(--c-accent); }
+  .importe strong { font: 400 1.35rem var(--f-body); }
+  .importe small { font-size: 0.78rem; color: var(--c-text-2); max-width: 12rem; }
+  .importe input:checked + span { border-color: var(--c-accent); background: linear-gradient(135deg, #f0d8a8, var(--c-accent) 55%, #c9a96e); color: #000; }
+  .importe input:checked + span small { color: #2a2520; }
+  .importe input:checked + span::after {
+    content: ''; position: absolute; top: -0.6rem; right: -0.6rem; width: 1.3rem; height: 1.3rem; border-radius: 50%;
+    background: var(--c-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center / 70% no-repeat;
+    border: 2px solid var(--c-bg);
+  }
   .importe input:focus-visible + span { outline: 3px solid var(--c-accent); outline-offset: 3px; }
   .campo { display: grid; gap: 0.4rem; }
-  .campo label { font-weight: 600; }
-  input:not([type="radio"]):not([type="checkbox"]), textarea {
-    font: inherit; color: var(--c-text); background: var(--c-surface); border: 1px solid var(--c-muted);
-    border-radius: var(--radius); padding: 0.7rem 0.85rem; min-height: 48px; width: 100%;
+  .campo label { font-weight: 600; color: #fff; font-size: 0.9rem; }
+  .bono input:not([type="radio"]):not([type="checkbox"]), .bono textarea {
+    font: inherit; color: #fff; background: rgb(255 255 255 / 0.03); border: 1px solid var(--c-text);
+    border-radius: 0; padding: 0.7rem 0.85rem; min-height: 48px; width: 100%;
   }
-  textarea { resize: vertical; }
-  .ayuda { color: var(--c-muted); font-size: 0.95rem; margin: 0; }
+  .bono input::placeholder, .bono textarea::placeholder { color: #8a8278; }
+  .bono input:focus, .bono textarea:focus { outline: 2px solid var(--c-accent); outline-offset: 1px; border-color: var(--c-accent); }
+  .bono textarea { resize: vertical; }
+  .ayuda { color: var(--c-text-2); font-size: 0.85rem; margin: 0; }
   .acepto { display: flex; gap: 0.75rem; align-items: flex-start; }
   .acepto input { width: 1.4rem; height: 1.4rem; margin: 0.15rem 0 0; accent-color: var(--c-accent); flex: none; }
   .trampa { position: absolute; left: -9999px; }
   .error { padding: 1rem 1.25rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); margin: 0; }
-  .bono .btn { justify-self: start; font: inherit; font-weight: 600; cursor: pointer; }
-  .condiciones { margin-top: 4rem; max-width: var(--w-text); }
-  .condiciones h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); }
-  .condiciones ul { padding-left: 1.2rem; color: var(--c-muted); }
+  .bn__pagar { width: 100%; background: linear-gradient(135deg, #f0d8a8, var(--c-accent) 55%, #c9a96e); color: #000; font-size: 0.85rem; }
+  .bn__pagar:hover, .bn__pagar:focus-visible { background: transparent; color: var(--c-accent); }
+
+  .bn__vista { margin: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .bn__vista-h { margin: 0 0 2rem; }
+  .tarjeta {
+    position: relative; width: min(100%, 22rem); aspect-ratio: 3 / 4; padding: 2.25rem 1.75rem; display: flex; flex-direction: column; align-items: center;
+    background: radial-gradient(120% 80% at 50% 0%, #26221e, #0b0a09 70%); border: 1px solid var(--c-accent-2);
+    box-shadow: 0 0 0 6px #0b0a09, 0 0 0 7px rgb(228 197 144 / 0.45), 0 30px 60px rgb(0 0 0 / 0.6); transform: rotate(-2deg);
+  }
+  .tarjeta__logo { width: 3.5rem; height: auto; }
+  .tarjeta__marca { margin: 0.9rem 0 0; color: var(--c-accent); font: 400 1.5rem/1 var(--f-alt); text-transform: uppercase; letter-spacing: 1px; }
+  .tarjeta__sitio { margin: 0.4rem 0 0; color: var(--c-accent-2); font: 700 0.6rem/1 var(--f-label); letter-spacing: 3px; text-transform: uppercase; }
+  .tarjeta__rule { width: 2.5rem; height: 1px; margin: 1.5rem 0; background: var(--c-accent-2); }
+  .tarjeta__tipo { margin: 0; color: var(--c-accent); font: 400 1.1rem/1 var(--f-display); letter-spacing: 6px; text-transform: uppercase; }
+  .tarjeta__importe { margin: 0.6rem 0 0; color: var(--c-accent); font: 400 clamp(3rem, 7vw, 4rem)/1 var(--f-display); }
+  .tarjeta__para { margin: 1.25rem 0 0; color: #fff; font-size: 0.95rem; overflow-wrap: anywhere; }
+  .tarjeta__msg { margin: 0.5rem 0 0; color: var(--c-text); font: italic 400 0.95rem/1.4 var(--f-display); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .tarjeta__para[hidden], .tarjeta__msg[hidden] { display: none; }
+  .bn__vista figcaption { margin-top: 2.5rem; color: #fff; font: italic 400 clamp(1.4rem, 3vw, 1.75rem)/1.3 var(--f-display); max-width: 18rem; }
+  .bn__vista figcaption::after { content: ''; display: block; width: 3rem; height: 1px; margin: 1.25rem auto 0; background: var(--c-accent); }
+
+  /* Condiciones plegables */
+  .condiciones { margin-bottom: clamp(3rem, 7vw, 5rem); border: 1px solid var(--c-accent-2); }
+  .condiciones summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.1rem 1.5rem; cursor: pointer; color: #fff; font: 400 1.35rem/1.2 var(--f-display); list-style: none; min-height: 48px; }
+  .condiciones summary::-webkit-details-marker { display: none; }
+  .condiciones summary::after { content: ''; width: 0.6rem; height: 0.6rem; border-right: 2px solid var(--c-accent); border-bottom: 2px solid var(--c-accent); transform: rotate(45deg); transition: transform .2s; flex: none; }
+  .condiciones[open] summary::after { transform: rotate(-135deg); }
+  .condiciones ul { margin: 0; padding: 0 1.5rem 1.5rem 2.7rem; }
   .condiciones li { margin-bottom: 0.5rem; }
+  @media (prefers-reduced-motion: reduce) { .condiciones summary::after { transition: none; } }
 </style>
