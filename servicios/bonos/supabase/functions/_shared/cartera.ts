@@ -5,11 +5,13 @@
 //   Apple:  APPLE_PASS_TYPE_ID, APPLE_TEAM_ID, APPLE_PASS_CERT, APPLE_PASS_KEY, APPLE_WWDR_CERT (los tres últimos en base64)
 //   Google: GOOGLE_WALLET_EMISOR (Issuer ID), GOOGLE_WALLET_CUENTA (JSON de la cuenta de servicio, tal cual o en base64)
 // Imágenes: cada web publica /bonos-regalo/cartera/{icon,icon@2x,icon@3x,logo,logo@2x,logo@3x,logo-google}.png
+// y la foto del bono (ver imagen.ts), que va de tira en Apple y de cabecera en Google, con el importe pintado.
 import forge from 'npm:node-forge@1.3.1';
 import { zipSync } from 'npm:fflate@0.8.2';
 import type { Bono, Comercio } from './db.ts';
 import { euros } from './correo.ts';
 import { fechaLarga, urlFicha } from './plantillas.ts';
+import { aPng, banda, imagenDeWeb, urlImagen } from './imagen.ts';
 
 type ComercioPase = Pick<Comercio, 'id' | 'nombre' | 'web' | 'locales'>;
 type BonoPase = Pick<Bono, 'codigo' | 'importe_cent' | 'saldo_cent' | 'caduca' | 'destinatario_nombre' | 'titular_nombre' | 'mensaje'>;
@@ -79,15 +81,17 @@ export function passJson(c: ComercioPase, b: BonoPase, ids: { passTypeIdentifier
     organizationName: c.nombre,
     description: `Bono regalo de ${c.nombre}`,
     logoText: c.nombre,
-    backgroundColor: 'rgb(21, 22, 22)',
+    // Los colores del bono: casi negro, texto blanco y etiquetas en el dorado del importe.
+    backgroundColor: 'rgb(20, 19, 18)',
     foregroundColor: 'rgb(255, 255, 255)',
-    labelColor: 'rgb(228, 197, 144)',
+    labelColor: 'rgb(224, 165, 93)',
     expirationDate: finDelDia(b.caduca),
     sharingProhibited: false,
     barcodes: [{ format: 'PKBarcodeFormatQR', message: urlFicha(c.web, b.codigo), messageEncoding: 'iso-8859-1', altText: b.codigo }],
     storeCard: {
-      headerFields: [{ key: 'tipo', label: 'BONO', value: 'Regalo' }],
-      primaryFields: [{ key: 'saldo', label: t.parcial ? 'Saldo' : 'Bono regalo', value: b.saldo_cent / 100, currencyCode: 'EUR' }],
+      // El importe va pintado en la tira (la foto del bono), así que no se repite encima como campo principal.
+      headerFields: [{ key: 'saldo', label: t.parcial ? 'Saldo' : 'Bono regalo', value: b.saldo_cent / 100, currencyCode: 'EUR' }],
+      primaryFields: [],
       secondaryFields: [
         ...(b.destinatario_nombre ? [{ key: 'para', label: 'Para', value: b.destinatario_nombre }] : []),
         { key: 'caduca', label: 'Válido hasta', value: fechaLarga(b.caduca) },
@@ -146,7 +150,10 @@ async function descargar(url: string) {
 export async function pkpass(c: ComercioPase, b: BonoPase) {
   const base = `${sinBarra(c.web)}/bonos-regalo/cartera`;
   const imagenes: Record<string, Uint8Array> = {};
-  await Promise.all(IMAGENES_APPLE.map(async (n) => { imagenes[n] = await descargar(`${base}/${n}`); }));
+  const [foto] = await Promise.all([imagenDeWeb(c.web, b.saldo_cent),
+    ...IMAGENES_APPLE.map(async (n) => { imagenes[n] = await descargar(`${base}/${n}`); })]);
+  // Tira de 375 × 123 puntos (la medida de las tarjetas con QR), a 1x, 2x y 3x.
+  if (foto) for (const [n, k] of [['strip.png', 1], ['strip@2x.png', 2], ['strip@3x.png', 3]] as const) imagenes[n] = aPng(banda(foto, 375 * k, 123 * k));
   const pass = passJson(c, b, { passTypeIdentifier: env('APPLE_PASS_TYPE_ID'), teamIdentifier: env('APPLE_TEAM_ID') });
   const { cert, clave, wwdr } = credencialesApple();
   return montarPkpass(pass, imagenes, (m) => firmarManifest(m, cert, clave, wwdr));
@@ -206,8 +213,10 @@ export function objetosGoogle(c: ComercioPase, b: BonoPase, emisor: string) {
     cardTitle: es(c.nombre),
     subheader: es(t.parcial ? 'Saldo del bono regalo' : 'Bono regalo'),
     header: es(euros(b.saldo_cent)),
-    hexBackgroundColor: '#151616',
+    hexBackgroundColor: '#141312',
     logo: { sourceUri: { uri: `${web}/bonos-regalo/cartera/logo-google.png` }, contentDescription: es(c.nombre) },
+    // La foto del bono con su importe, como en la web y en el correo.
+    heroImage: { sourceUri: { uri: urlImagen(b.codigo, b.saldo_cent, true) }, contentDescription: es(`Bono regalo de ${c.nombre}: ${euros(b.saldo_cent)}`) },
     barcode: { type: 'QR_CODE', value: urlFicha(c.web, b.codigo), alternateText: b.codigo },
     validTimeInterval: { end: { date: finDelDia(b.caduca) } },
     textModulesData: [

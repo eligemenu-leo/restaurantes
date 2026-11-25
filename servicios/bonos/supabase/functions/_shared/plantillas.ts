@@ -1,6 +1,7 @@
 // Correos de los bonos. Los usan la notificación de Redsys y el reenvío desde el panel.
 import { esc, euros } from './correo.ts';
 import type { Bono, Comercio } from './db.ts';
+import { urlImagen } from './imagen.ts';
 
 export const fechaLarga = (iso: string) =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -27,8 +28,8 @@ export function urlsCartera(codigo: string, web?: string | null) {
   };
 }
 
-// Colores y letras de la web (las de La Vaca Asustada por defecto). Cada web publica su logotipo
-// para correo en <web>/bonos-regalo/correo-logo.png (PNG transparente, unos 200 px de alto).
+// Colores y letras de la web (las de La Vaca Asustada por defecto). Arriba va la foto del bono con
+// el importe, la misma que en la web (ver imagen.ts: cada web publica bono-base.jpg y bono-fuente.ttf).
 const C = { fondo: '#0e0d0c', tarjeta: '#151616', linea: '#2a2826', oro: '#e4c590', oro2: '#ab9066', texto: '#d8cfc2', suave: '#a3998b', blanco: '#ffffff' };
 const SERIF = "Forum, Georgia, 'Times New Roman', serif";
 const SANS = "'DM Sans', Arial, Helvetica, sans-serif";
@@ -49,21 +50,21 @@ export function correoBono(c: Pick<Comercio, 'nombre' | 'web' | 'locales'>, b: B
 <meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark">
 <title>Bono regalo de ${esc(c.nombre)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Forum&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
-<style>@media (max-width:620px){.px{padding-left:24px!important;padding-right:24px!important}.importe{font-size:52px!important}}</style>
+<style>@media (max-width:620px){.px{padding-left:24px!important;padding-right:24px!important}}</style>
 </head>
 <body style="margin:0;padding:0;background:${C.fondo};-webkit-text-size-adjust:100%">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${parcial ? `Saldo disponible: ${euros(b.saldo_cent)}` : euros(b.importe_cent)} para disfrutar en ${esc(c.nombre)}. Válido hasta el ${caduca}.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.fondo}"><tr><td align="center" style="padding:32px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${C.tarjeta};border:1px solid ${C.linea}">
   <tr><td style="height:4px;background:${C.oro};font-size:0;line-height:0">&nbsp;</td></tr>
-  <tr><td align="center" style="padding:40px 40px 8px">
-    ${web ? `<a href="${esc(web)}/" style="text-decoration:none">` : ''}<img src="${esc(web)}/bonos-regalo/correo-logo.png" width="70" height="96" alt="${esc(c.nombre)}" style="display:block;border:0;width:70px;height:96px;font:20px ${SERIF};color:${C.oro}">${web ? '</a>' : ''}
+  <tr><td style="padding:0;font-size:0;line-height:0">
+    <img src="${urlImagen(b.codigo, parcial ? b.saldo_cent : b.importe_cent)}" width="558" alt="Bono regalo de ${esc(c.nombre)}: ${euros(parcial ? b.saldo_cent : b.importe_cent)}" style="display:block;border:0;width:100%;max-width:558px;height:auto;background:#1b1b1b;font:400 26px/1.4 ${SERIF};color:${C.oro};text-align:center">
   </td></tr>
-  <tr><td align="center" class="px" style="padding:18px 40px 0">
-    ${etiqueta('Bono regalo')}
-    <div style="margin:10px 0 0;font:400 30px/1.2 ${SERIF};color:${C.blanco};letter-spacing:-.5px">${esc(c.nombre)}</div>
-    <div class="importe" style="margin:22px 0 4px;font:400 64px/1 ${SERIF};color:${C.oro}">${euros(parcial ? b.saldo_cent : b.importe_cent)}</div>
-    <div style="font:400 14px/1.5 ${SANS};color:${C.suave}">${parcial ? `Saldo disponible de un bono de ${euros(b.importe_cent)}` : 'para disfrutar en nuestra mesa'}</div>
+  <tr><td align="center" class="px" style="padding:26px 40px 0">
+    ${parcial
+      ? `${etiqueta('Saldo disponible')}<div style="margin-top:8px;font:400 15px/1.5 ${SANS};color:${C.suave}">de un bono de ${euros(b.importe_cent)}</div>`
+      : `<div style="font:italic 400 22px/1.35 ${SERIF};color:${C.blanco}">Un regalo para disfrutar, compartir y recordar.</div>`}
+    <div style="width:48px;height:1px;margin:18px auto 0;background:${C.oro};font-size:0;line-height:0">&nbsp;</div>
   </td></tr>
   ${b.destinatario_nombre || b.mensaje ? `<tr><td class="px" style="padding:30px 40px 0">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-left:2px solid ${C.oro2};padding:4px 0 4px 18px">
