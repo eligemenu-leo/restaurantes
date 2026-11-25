@@ -751,13 +751,18 @@ function claveAleatoria() {
 }
 
 // ───────────── Arranque ─────────────
+// Supabase avisa varias veces al abrir (INITIAL_SESSION y SIGNED_IN). Todas esperan a la misma carga
+// de restaurantes, para no pintar "Sin acceso" mientras aún se está comprobando.
+let cargando = null;
 async function alCambiarSesion(sesion) {
   const antes = estado.sesion?.user.id;
   estado.sesion = sesion;
   if (sesion && sesion.user.id !== antes) {
-    try { await cargarMembresias(); } catch (e) { console.error(e); }
+    cargando = cargarMembresias().catch((e) => console.error(e));
   }
-  if (!sesion) { estado.membresias = []; estado.comercio = null; }
+  if (sesion && cargando) await cargando;
+  if (estado.sesion !== sesion) return; // la sesión cambió mientras cargaba: ya pinta la llamada nueva
+  if (!sesion) { estado.membresias = []; estado.comercio = null; cargando = null; }
   router();
 }
 
