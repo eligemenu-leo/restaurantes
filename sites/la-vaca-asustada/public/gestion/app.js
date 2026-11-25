@@ -588,7 +588,7 @@ async function vistaEscanear() {
 
 // ───────────── Crear bono a mano ─────────────
 async function vistaNuevo() {
-  const { data: tipos } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('orden').order('importe_cent');
+  const { data: tipos } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('importe_cent').order('orden');
   pintar(`<h1>Crear bono</h1>
     <p class="ayuda">Para ventas en el local, regalos o cortesías. No pasa por la pasarela de pago.</p>
     <form id="f-nuevo" class="tarjeta">
@@ -643,7 +643,7 @@ function situacionTipo(t) {
 const validezTexto = (t) => (t.caduca_fija ? `Caduca el ${fecha(t.caduca_fija)}` : `Válido ${t.validez_meses} ${t.validez_meses === 1 ? 'mes' : 'meses'}`);
 
 async function vistaTipos() {
-  const { data: tipos, error } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('orden').order('importe_cent');
+  const { data: tipos, error } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('importe_cent').order('orden');
   if (error) throw error;
   pintar(`<h1>Tipos de bono</h1>
     <p class="ayuda">Son los bonos que se pueden comprar en la web. Los cambios se ven en la web en un minuto, sin tocar nada más.</p>
@@ -687,7 +687,7 @@ async function vistaTipo(id) {
       </fieldset>
       <div class="dos">
         <label class="check"><input type="checkbox" name="activo" value="si"${t.activo ? ' checked' : ''}> Activo (se puede comprar)</label>
-        <label class="campo"><span>Orden en la web</span><input name="orden" type="number" value="${t.orden ?? 0}"><small>Los números más bajos salen primero.</small></label>
+        <label class="campo"><span>Orden en la web</span><input name="orden" type="number" value="${t.orden ?? 0}"><small>La web ordena los bonos de menor a mayor precio; esto solo decide entre bonos del mismo precio (los números más bajos, primero).</small></label>
       </div>
       <div class="acciones"><button class="btn" type="submit">${nuevo ? 'Crear' : 'Guardar'}</button>
         ${nuevo ? '' : '<button class="btn btn--peligro" type="button" id="borrar">Borrar</button>'}</div>

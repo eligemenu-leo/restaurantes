@@ -176,7 +176,8 @@ const primero = `${bonos.importes[0]} €`;
           }
           if (!cfg.tipos || !cfg.tipos.length) return;
           box.textContent = '';
-          cfg.tipos.forEach(function (t, i) {
+          // De menor a mayor precio (con el mismo precio, el orden del panel).
+          cfg.tipos.slice().sort(function (a, b) { return a.importe_cent - b.importe_cent; }).forEach(function (t, i) {
             var label = document.createElement('label'); label.className = 'importe';
             var input = document.createElement('input');
             input.type = 'radio'; input.name = 'tipo'; input.value = t.id; input.required = true; input.checked = i === 0;
