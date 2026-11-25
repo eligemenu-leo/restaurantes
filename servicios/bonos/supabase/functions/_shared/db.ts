@@ -43,6 +43,7 @@ export interface Bono {
   estado: 'activo' | 'canjeado' | 'anulado';
   titular_nombre: string | null;
   titular_email: string | null;
+  titular_telefono?: string | null;
   destinatario_nombre: string | null;
   mensaje: string | null;
 }
