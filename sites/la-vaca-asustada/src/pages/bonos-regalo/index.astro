@@ -7,7 +7,8 @@ import { bonos } from '../../data/bonos.ts';
 import { soporte } from '../../data/soporte.ts';
 import cabecera from '../../assets/web/bonos-cabecera.jpg';
 import vista from '../../assets/web/bono-vista.webp';
-import fondoImg from '../../assets/web/fondo-piedra.webp';
+// Tesela 2 × 2 de la piedra con copias en espejo, para que no se vean las juntas del mosaico.
+import fondoImg from '../../assets/web/fondo-piedra-espejo.webp';
 import { getImage } from 'astro:assets';
 
 const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
@@ -17,7 +18,7 @@ const validez = bonos.validezMeses % 12 === 0
   : `${bonos.validezMeses} meses`;
 // Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
 const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
-const fondo = await getImage({ src: fondoImg, width: 600, format: 'webp', quality: 72 });
+const fondo = await getImage({ src: fondoImg, width: 1200, format: 'webp', quality: 62 });
 const primero = `${bonos.importes[0]} €`;
 ---
 <Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo || !bonos.publico} overlayHeader
@@ -90,7 +91,10 @@ const primero = `${bonos.importes[0]} €`;
       <p class="eyebrow bn__vista-h">Vista previa de tu regalo</p>
       <div class="tarjeta">
         <Photo src={vista} alt="Bono regalo de La Vaca Asustada en su sobre negro con cinta dorada" sizes="(min-width: 60rem) 34rem, 92vw" widths={[480, 720, 960, 1254]} class="tarjeta__img" />
-        <span class="tarjeta__importe" id="vista-importe">{bonos.importes[0]} <span class="eur">€</span></span>
+        <svg class="tarjeta__importe" viewBox="0 0 600 140" aria-hidden="true" focusable="false">
+          <defs><linearGradient id="oro" x1="0" y1="13.5" x2="0" y2="126.5" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f3cd8c" /><stop offset=".55" stop-color="#e0a55d" /><stop offset="1" stop-color="#b9823f" /></linearGradient></defs>
+          <text x="300" y="104.4" text-anchor="middle" xml:space="preserve"><tspan id="vista-cifra">{`${bonos.importes[0]} `}</tspan><tspan font-size="84.75">€</tspan></text>
+        </svg>
       </div>
       <p class="tarjeta__para" id="vista-para" hidden></p>
       <p class="tarjeta__msg" id="vista-msg" hidden></p>
@@ -140,7 +144,8 @@ const primero = `${bonos.importes[0]} €`;
         if (!form) return;
         var sel = form.querySelector('.importe input:checked');
         var imp = sel ? sel.dataset.euros : '';
-        conEur($('vista-importe'), imp);
+        var cifra = /^(.*?)\s*€$/.exec(imp);
+        $('vista-cifra').textContent = (cifra ? cifra[1] : imp) + ' ';
         $('pagar-importe').textContent = imp;
         var para = $('para').value.trim(), msg = $('mensaje').value.trim();
         $('vista-para').textContent = para ? 'Para ' + para : ''; $('vista-para').hidden = !para;
@@ -209,7 +214,7 @@ const primero = `${bonos.importes[0]} €`;
   .ventajas li:first-child svg { fill: none; }
 
   /* Formulario y vista previa */
-  .bn-fondo { display: flow-root; background: #1b1b1b var(--fondo) top left / 600px auto repeat; box-shadow: inset 0 0 0 100vmax rgb(0 0 0 / 0.35); }
+  .bn-fondo { display: flow-root; background: #1b1b1b var(--fondo) top left / 1200px auto repeat; box-shadow: inset 0 0 0 100vmax rgb(0 0 0 / 0.35); }
   .bn { display: grid; gap: 3rem; padding-block: clamp(3rem, 7vw, 5rem); }
   @media (min-width: 60rem) { .bn { grid-template-columns: 1fr 1fr; gap: 0; } .bn__form { padding-right: 3.5rem; border-right: 1px solid var(--c-line); } .bn__vista { padding-left: 3.5rem; } }
   .bn h2 { margin: 0 0 1rem; color: #fff; font: 400 clamp(2rem, 4vw, 2.8rem)/1.1 var(--f-display); text-transform: none; }
@@ -261,11 +266,15 @@ const primero = `${bonos.importes[0]} €`;
   /* Vista previa: foto del bono sin importe y el importe elegido encima, en el sitio y con la inclinación de la tarjeta. */
   .tarjeta { position: relative; width: min(100%, 34rem); container-type: inline-size; }
   .tarjeta__img, .tarjeta__img img { display: block; width: 100%; height: auto; }
+  /* El importe va en SVG (no con background-clip: text, que Safari en iPhone no pintaba). La caja mide
+     el 60 % del ancho de la tarjeta y el viewBox 600, así que 1 unidad = 0,1 % del ancho: letra de 113 = 11,3 %. */
   .tarjeta__importe {
-    position: absolute; left: 55.6%; top: 56.5%; transform: translate(-50%, -50%) rotate(7deg); white-space: nowrap;
-    font: 400 11.3cqw/1 var(--f-display); letter-spacing: -0.01em; -webkit-text-stroke: 0.04cqw #d9a35f;
-    color: #e0a55d; background: linear-gradient(180deg, #f3cd8c 0%, #e0a55d 55%, #b9823f 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
+    position: absolute; left: 55.6%; top: 56.5%; width: 60%; height: auto; overflow: visible;
+    transform: translate(-50%, -50%) rotate(7deg);
+  }
+  .tarjeta__importe text {
+    font-family: var(--f-display); font-size: 113px; letter-spacing: -1.13px; white-space: pre;
+    fill: url(#oro); stroke: #d9a35f; stroke-width: 0.4;
   }
   /* El símbolo € va un 25 % más pequeño que la cifra, en el bono y en el selector. */
   .eur { font-size: 0.75em; }

@@ -114,3 +114,4 @@ table { border-collapse: collapse; width: 100%; font-size: .92rem; }
 th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
 th { color: var(--muted); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.cargando { padding: 3rem 1rem; text-align: center; color: var(--muted); }
