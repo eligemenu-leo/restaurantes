@@ -42,7 +42,8 @@ const primero = `${bonos.importes[0]} €`;
   </ul>
 
   <div class="bn-fondo" style={`--fondo: url(${fondo.src})`}>
-  <div class="wrap bn" id="crear">
+  <div class="wrap bn" id="crear" data-cargando={bonos.activo ? '' : undefined}>
+    <noscript><style>.bn[data-cargando] #importes, .bn[data-cargando] .tarjeta__importe, .bn[data-cargando] #pagar-importe { visibility: visible; }</style></noscript>
     <div class="bn__form">
       <h2>Crea tu bono regalo</h2>
       <p class="bn__lead">Un bono para disfrutar de nuestras carnes a la brasa en {locales}. Lo pagas con tarjeta y te llega al momento por correo, listo para regalar.</p>
@@ -157,8 +158,11 @@ const primero = `${bonos.importes[0]} €`;
       if (form) { form.addEventListener('input', pinta); form.addEventListener('change', pinta); }
 
       // Tipos de bono vigentes, desde el panel de gestión. Si falla, se quedan los importes de la página.
+      // Mientras llegan, los importes de la página (los del último build) no se ven, para no mostrar precios viejos.
       var box = document.getElementById('importes');
-      if (!box || !window.fetch) return;
+      var listo = function () { var c = document.getElementById('crear'); if (c) c.removeAttribute('data-cargando'); };
+      if (!box || !window.fetch) return listo();
+      var espera = setTimeout(listo, 5000);
       var euros = function (c) { return (c % 100 ? (c / 100).toFixed(2).replace('.', ',') : String(c / 100)) + ' €'; };
       var fecha = function (iso) { return new Date(iso + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }); };
       var validez = function (t) {
@@ -176,7 +180,8 @@ const primero = `${bonos.importes[0]} €`;
           }
           if (!cfg.tipos || !cfg.tipos.length) return;
           box.textContent = '';
-          cfg.tipos.forEach(function (t, i) {
+          // De menor a mayor precio (con el mismo precio, el orden del panel).
+          cfg.tipos.slice().sort(function (a, b) { return a.importe_cent - b.importe_cent; }).forEach(function (t, i) {
             var label = document.createElement('label'); label.className = 'importe';
             var input = document.createElement('input');
             input.type = 'radio'; input.name = 'tipo'; input.value = t.id; input.required = true; input.checked = i === 0;
@@ -191,7 +196,8 @@ const primero = `${bonos.importes[0]} €`;
           });
           pinta();
         })
-        .catch(function () {});
+        .catch(function () {})
+        .then(function () { clearTimeout(espera); listo(); });
     })();
   </script>
 )}
@@ -225,6 +231,7 @@ const primero = `${bonos.importes[0]} €`;
   .aviso { margin-top: 2rem; padding: 1.25rem 1.5rem; border-left: 3px solid var(--c-accent); background: var(--c-surface); }
   .bono { display: grid; gap: 1.75rem; }
   .bono[hidden], .aviso[hidden] { display: none; }
+  .bn[data-cargando] #importes, .bn[data-cargando] .tarjeta__importe, .bn[data-cargando] #pagar-importe { visibility: hidden; }
   .bono fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 1rem; }
   .bono legend { font: 400 1.25rem/1.2 var(--f-body); color: #fff; margin-bottom: 0.75rem; padding: 0; }
   .opcional { font-weight: 400; color: var(--c-muted); }
