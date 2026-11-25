@@ -58,7 +58,7 @@ const primero = `${bonos.importes[0]} €`;
             <legend>Importe</legend>
             <div class="importes" id="importes" data-api={api} data-comercio={bonos.comercio}>
               {bonos.importes.map((e, i) => (
-                <label class="importe"><input type="radio" name="importe" value={e} data-euros={`${e} €`} required checked={i === 0} /><span><strong>{e} €</strong><small>Válido {validez}</small></span></label>
+                <label class="importe"><input type="radio" name="importe" value={e} data-euros={`${e} €`} required checked={i === 0} /><span><strong>{e} <span class="eur">€</span></strong><small>Válido {validez}</small></span></label>
               ))}
             </div>
           </fieldset>
@@ -90,7 +90,7 @@ const primero = `${bonos.importes[0]} €`;
       <p class="eyebrow bn__vista-h">Vista previa de tu regalo</p>
       <div class="tarjeta">
         <Photo src={vista} alt="Bono regalo de La Vaca Asustada en su sobre negro con cinta dorada" sizes="(min-width: 60rem) 34rem, 92vw" widths={[480, 720, 960, 1254]} class="tarjeta__img" />
-        <span class="tarjeta__importe" id="vista-importe">{primero}</span>
+        <span class="tarjeta__importe" id="vista-importe">{bonos.importes[0]} <span class="eur">€</span></span>
       </div>
       <p class="tarjeta__para" id="vista-para" hidden></p>
       <p class="tarjeta__msg" id="vista-msg" hidden></p>
@@ -130,11 +130,17 @@ const primero = `${bonos.importes[0]} €`;
       // Vista previa: importe, destinatario y dedicatoria según se rellenan.
       var form = document.getElementById('comprar');
       var $ = function (id) { return document.getElementById(id); };
+      // Cifra y símbolo € aparte, para pintar el € más pequeño.
+      var conEur = function (el, txt) {
+        var m = /^(.*?)\s*€$/.exec(txt || '');
+        el.textContent = m ? m[1] + ' ' : (txt || '');
+        if (m) { var e = document.createElement('span'); e.className = 'eur'; e.textContent = '€'; el.append(e); }
+      };
       var pinta = function () {
         if (!form) return;
         var sel = form.querySelector('.importe input:checked');
         var imp = sel ? sel.dataset.euros : '';
-        $('vista-importe').textContent = imp;
+        conEur($('vista-importe'), imp);
         $('pagar-importe').textContent = imp;
         var para = $('para').value.trim(), msg = $('mensaje').value.trim();
         $('vista-para').textContent = para ? 'Para ' + para : ''; $('vista-para').hidden = !para;
@@ -168,7 +174,7 @@ const primero = `${bonos.importes[0]} €`;
             input.type = 'radio'; input.name = 'tipo'; input.value = t.id; input.required = true; input.checked = i === 0;
             input.dataset.euros = euros(t.importe_cent);
             var span = document.createElement('span');
-            var strong = document.createElement('strong'); strong.textContent = euros(t.importe_cent);
+            var strong = document.createElement('strong'); conEur(strong, euros(t.importe_cent));
             var small = document.createElement('small');
             small.textContent = (t.nombre && t.nombre !== 'Bono ' + euros(t.importe_cent) ? t.nombre + ' · ' : '') + validez(t);
             span.append(strong, small);
@@ -217,12 +223,12 @@ const primero = `${bonos.importes[0]} €`;
   .importes { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: 0.75rem; max-width: 27rem; }
   .importe { position: relative; }
   .importe input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .importe span {
+  .importe > span {
     position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
     width: 100%; min-height: 4.25rem; padding: 0.6em 0.35em; text-align: center; color: #fff;
     border: 1px solid var(--c-text); cursor: pointer; transition: border-color .2s, background-color .2s;
   }
-  .importe span:hover { border-color: var(--c-accent); }
+  .importe > span:hover { border-color: var(--c-accent); }
   .importe strong { font: 400 1.35rem var(--f-body); }
   .importe small { font-size: 0.78rem; color: var(--c-text-2); max-width: 12rem; }
   .importe input:checked + span { border-color: var(--c-accent); background: linear-gradient(135deg, #f0d8a8, var(--c-accent) 55%, #c9a96e); color: #000; }
@@ -256,11 +262,13 @@ const primero = `${bonos.importes[0]} €`;
   .tarjeta { position: relative; width: min(100%, 34rem); container-type: inline-size; }
   .tarjeta__img, .tarjeta__img img { display: block; width: 100%; height: auto; }
   .tarjeta__importe {
-    position: absolute; left: 55.6%; top: 56.5%; transform: translate(-50%, -50%) rotate(4deg); white-space: nowrap;
+    position: absolute; left: 55.6%; top: 56.5%; transform: translate(-50%, -50%) rotate(7deg); white-space: nowrap;
     font: 400 11.3cqw/1 var(--f-display); letter-spacing: -0.01em; -webkit-text-stroke: 0.04cqw #d9a35f;
     color: #e0a55d; background: linear-gradient(180deg, #f3cd8c 0%, #e0a55d 55%, #b9823f 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     text-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
   }
+  /* El símbolo € va un 25 % más pequeño que la cifra, en el bono y en el selector. */
+  .eur { font-size: 0.75em; }
   .tarjeta__para { margin: 1.5rem 0 0; color: #fff; font-size: 1rem; overflow-wrap: anywhere; max-width: 26rem; }
   .tarjeta__msg { margin: 0.4rem 0 0; color: var(--c-text); font: italic 400 1.05rem/1.4 var(--f-display); overflow-wrap: anywhere; max-width: 26rem; }
   .tarjeta__para[hidden], .tarjeta__msg[hidden] { display: none; }
