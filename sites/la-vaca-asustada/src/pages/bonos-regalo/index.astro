@@ -7,7 +7,8 @@ import { bonos } from '../../data/bonos.ts';
 import { soporte } from '../../data/soporte.ts';
 import cabecera from '../../assets/web/bonos-cabecera.jpg';
 import vista from '../../assets/web/bono-vista.webp';
-import fondoImg from '../../assets/web/fondo-piedra.webp';
+// Tesela 2 × 2 de la piedra con copias en espejo, para que no se vean las juntas del mosaico.
+import fondoImg from '../../assets/web/fondo-piedra-espejo.webp';
 import { getImage } from 'astro:assets';
 
 const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
@@ -17,7 +18,7 @@ const validez = bonos.validezMeses % 12 === 0
   : `${bonos.validezMeses} meses`;
 // Los tipos de bono se gestionan en el panel; la página pide los vigentes al cargar (ver el script del final).
 const api = bonos.endpoint.replace(/\/bonos-pedido\/?$/, '/bonos-api');
-const fondo = await getImage({ src: fondoImg, width: 600, format: 'webp', quality: 72 });
+const fondo = await getImage({ src: fondoImg, width: 1200, format: 'webp', quality: 62 });
 const primero = `${bonos.importes[0]} €`;
 ---
 <Layout title="Bonos regalo" path="/bonos-regalo/" noindex={!bonos.activo || !bonos.publico} overlayHeader
@@ -213,7 +214,7 @@ const primero = `${bonos.importes[0]} €`;
   .ventajas li:first-child svg { fill: none; }
 
   /* Formulario y vista previa */
-  .bn-fondo { display: flow-root; background: #1b1b1b var(--fondo) top left / 600px auto repeat; box-shadow: inset 0 0 0 100vmax rgb(0 0 0 / 0.35); }
+  .bn-fondo { display: flow-root; background: #1b1b1b var(--fondo) top left / 1200px auto repeat; box-shadow: inset 0 0 0 100vmax rgb(0 0 0 / 0.35); }
   .bn { display: grid; gap: 3rem; padding-block: clamp(3rem, 7vw, 5rem); }
   @media (min-width: 60rem) { .bn { grid-template-columns: 1fr 1fr; gap: 0; } .bn__form { padding-right: 3.5rem; border-right: 1px solid var(--c-line); } .bn__vista { padding-left: 3.5rem; } }
   .bn h2 { margin: 0 0 1rem; color: #fff; font: 400 clamp(2rem, 4vw, 2.8rem)/1.1 var(--f-display); text-transform: none; }
