@@ -22,8 +22,9 @@ Deno.test('fin del día en hora de España (verano e invierno)', () => {
 Deno.test('pass.json con saldo, caducidad y QR a la ficha del panel', () => {
   const p = passJson(c, b, { passTypeIdentifier: 'pass.test', teamIdentifier: 'ABCDE12345' });
   assertEquals(p.serialNumber, 'VACA-432Q-PB7X');
-  assertEquals(p.storeCard.primaryFields[0].value, 35.5);
-  assertEquals(p.storeCard.primaryFields[0].label, 'Saldo');
+  assertEquals(p.storeCard.headerFields[0].value, 35.5);
+  assertEquals(p.storeCard.headerFields[0].label, 'Saldo');
+  assertEquals(p.storeCard.primaryFields.length, 0);
   assertEquals(p.barcodes[0].message, 'https://lavacaasustada.com/gestion/#/bono/VACA-432Q-PB7X');
   assertEquals(p.expirationDate, '2027-07-31T23:59:59+02:00');
 });
@@ -65,6 +66,7 @@ Deno.test('Google: objeto con saldo en micros, QR y caducidad; JWT RS256 verific
   assertEquals(objeto.id, '3388000000012345678.bono_VACA-432Q-PB7X');
   assertEquals(objeto.header.defaultValue.value, '35,50\u00a0€');
   assertEquals(objeto.subheader.defaultValue.value, 'Saldo del bono regalo');
+  assertEquals(objeto.heroImage.sourceUri.uri, 'https://ejemplo.supabase.co/functions/v1/bonos-api/imagen?c=VACA-432Q-PB7X&i=3550&f=banda');
   assertEquals(objeto.logo.sourceUri.uri, 'https://lavacaasustada.com/bonos-regalo/cartera/logo-google.png');
   // El frente muestra Válido hasta | Dónde y Código | Para, que existen siempre en el objeto.
   const filas = clase.classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos;
