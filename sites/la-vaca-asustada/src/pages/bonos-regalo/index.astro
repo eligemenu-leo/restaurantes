@@ -90,7 +90,10 @@ const primero = `${bonos.importes[0]} €`;
       <p class="eyebrow bn__vista-h">Vista previa de tu regalo</p>
       <div class="tarjeta">
         <Photo src={vista} alt="Bono regalo de La Vaca Asustada en su sobre negro con cinta dorada" sizes="(min-width: 60rem) 34rem, 92vw" widths={[480, 720, 960, 1254]} class="tarjeta__img" />
-        <span class="tarjeta__importe" id="vista-importe">{bonos.importes[0]} <span class="eur">€</span></span>
+        <svg class="tarjeta__importe" viewBox="0 0 600 140" aria-hidden="true" focusable="false">
+          <defs><linearGradient id="oro" x1="0" y1="13.5" x2="0" y2="126.5" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f3cd8c" /><stop offset=".55" stop-color="#e0a55d" /><stop offset="1" stop-color="#b9823f" /></linearGradient></defs>
+          <text x="300" y="104.4" text-anchor="middle" xml:space="preserve"><tspan id="vista-cifra">{`${bonos.importes[0]} `}</tspan><tspan font-size="84.75">€</tspan></text>
+        </svg>
       </div>
       <p class="tarjeta__para" id="vista-para" hidden></p>
       <p class="tarjeta__msg" id="vista-msg" hidden></p>
@@ -140,7 +143,8 @@ const primero = `${bonos.importes[0]} €`;
         if (!form) return;
         var sel = form.querySelector('.importe input:checked');
         var imp = sel ? sel.dataset.euros : '';
-        conEur($('vista-importe'), imp);
+        var cifra = /^(.*?)\s*€$/.exec(imp);
+        $('vista-cifra').textContent = (cifra ? cifra[1] : imp) + ' ';
         $('pagar-importe').textContent = imp;
         var para = $('para').value.trim(), msg = $('mensaje').value.trim();
         $('vista-para').textContent = para ? 'Para ' + para : ''; $('vista-para').hidden = !para;
@@ -261,11 +265,15 @@ const primero = `${bonos.importes[0]} €`;
   /* Vista previa: foto del bono sin importe y el importe elegido encima, en el sitio y con la inclinación de la tarjeta. */
   .tarjeta { position: relative; width: min(100%, 34rem); container-type: inline-size; }
   .tarjeta__img, .tarjeta__img img { display: block; width: 100%; height: auto; }
+  /* El importe va en SVG (no con background-clip: text, que Safari en iPhone no pintaba). La caja mide
+     el 60 % del ancho de la tarjeta y el viewBox 600, así que 1 unidad = 0,1 % del ancho: letra de 113 = 11,3 %. */
   .tarjeta__importe {
-    position: absolute; left: 55.6%; top: 56.5%; transform: translate(-50%, -50%) rotate(7deg); white-space: nowrap;
-    font: 400 11.3cqw/1 var(--f-display); letter-spacing: -0.01em; -webkit-text-stroke: 0.04cqw #d9a35f;
-    color: #e0a55d; background: linear-gradient(180deg, #f3cd8c 0%, #e0a55d 55%, #b9823f 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
+    position: absolute; left: 55.6%; top: 56.5%; width: 60%; height: auto; overflow: visible;
+    transform: translate(-50%, -50%) rotate(7deg);
+  }
+  .tarjeta__importe text {
+    font-family: var(--f-display); font-size: 113px; letter-spacing: -1.13px; white-space: pre;
+    fill: url(#oro); stroke: #d9a35f; stroke-width: 0.4;
   }
   /* El símbolo € va un 25 % más pequeño que la cifra, en el bono y en el selector. */
   .eur { font-size: 0.75em; }
