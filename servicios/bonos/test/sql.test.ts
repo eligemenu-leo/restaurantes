@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
 
 const dir = new URL('../supabase/migrations/', import.meta.url);
-const [m1, m2] = fs.readdirSync(dir).sort().map((f) => fs.readFileSync(new URL(f, dir), 'utf8'));
+const [m1, m2, m3] = fs.readdirSync(dir).sort().map((f) => fs.readFileSync(new URL(f, dir), 'utf8'));
 const ADMIN = '11111111-1111-1111-1111-111111111111', PERSONAL = '22222222-2222-2222-2222-222222222222', AJENO = '33333333-3333-3333-3333-333333333333';
 
 const db = new PGlite();
@@ -29,6 +29,8 @@ test('migraciones, con un bono vendido antes de la segunda', async () => {
     insert into bonos (codigo, pedido_id, comercio_id, importe_cent, caduca)
     values ('VACA-AAAA-BBBB', '00000000-0000-0000-0000-000000000001', 'la-vaca-asustada', 5000, '2027-11-09');`);
   await db.exec(m2);
+  await db.exec(m3);
+  await db.exec(m3); // se puede ejecutar dos veces
   await db.exec(`insert into auth.users values ('${ADMIN}', 'leo@x.es'), ('${PERSONAL}', 'cam@x.es'), ('${AJENO}', 'otro@x.es');
     insert into miembros values ('${ADMIN}', 'la-vaca-asustada', 'admin', 'leo@x.es'), ('${PERSONAL}', 'la-vaca-asustada', 'personal', 'cam@x.es');`);
   const [b] = await q(`select * from bonos where codigo = 'VACA-AAAA-BBBB'`);
@@ -75,6 +77,18 @@ test('anular, reactivar, editar y borrar', async () => {
   const [m] = await como(ADMIN, () => q(`select * from crear_bono_manual('la-vaca-asustada', null, 1000, '2030-01-01', null, null, null, null, null)`));
   await como(ADMIN, () => q(`select borrar_bono($1)`, [m.codigo]));
   assert.equal((await q(`select count(*)::int n from bonos where codigo = $1`, [m.codigo]))[0].n, 0);
+});
+
+test('teléfono del titular: al crear y al editar, y queda en el historial', async () => {
+  const [b] = await como(ADMIN, () => q(`select * from crear_bono_manual('la-vaca-asustada', null, 3000, '2030-01-01', 'Eva', null, null, null, null, ' 600 11 22 33 ')`));
+  assert.equal(b.titular_telefono, '600 11 22 33');
+  const [e] = await como(ADMIN, () => q(`select * from editar_bono($1, '2030-01-01', 'Eva', null, null, null, null, '+34 611 000 000')`, [b.codigo]));
+  assert.equal(e.titular_telefono, '+34 611 000 000');
+  const [ev] = await q(`select detalle from eventos where bono_codigo = $1 and tipo = 'editado'`, [b.codigo]);
+  assert.deepEqual(ev.detalle.titular_telefono, ['600 11 22 33', '+34 611 000 000']);
+  await db.exec(`insert into pedidos (comercio_id, num_pedido, importe_cent, comprador_nombre, comprador_email, comprador_telefono)
+    values ('la-vaca-asustada', '2611TELEFONO', 5000, 'Eva', 'e@x.es', '600112233')`);
+  await falla(db.exec(`update pedidos set comprador_telefono = repeat('9', 31) where num_pedido = '2611TELEFONO'`), /check/);
 });
 
 test('tipos de bono: validación, alta, baja y caducidad del bono manual', async () => {

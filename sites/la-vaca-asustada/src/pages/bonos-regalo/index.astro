@@ -69,6 +69,8 @@ const primero = `${bonos.importes[0]} €`;
             <div class="campo"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required maxlength="120" autocomplete="name" placeholder="Tu nombre" /></div>
             <div class="campo"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="200" autocomplete="email" placeholder="tu@email.com" aria-describedby="email-ayuda" />
               <p class="ayuda" id="email-ayuda">Aquí te enviaremos el bono.</p></div>
+            <div class="campo"><label for="telefono">Teléfono de contacto</label><input id="telefono" name="telefono" type="tel" required maxlength="30" autocomplete="tel" inputmode="tel" pattern="[+()0-9 .\-]{6,30}" placeholder="600 000 000" aria-describedby="telefono-ayuda" />
+              <p class="ayuda" id="telefono-ayuda">Solo para avisarte si hay algún problema con tu bono.</p></div>
             <div class="campo"><label for="para">Para quién es <span class="opcional">(opcional)</span></label><input id="para" name="para" maxlength="120" autocomplete="off" placeholder="Nombre de quien lo recibe" /></div>
             <div class="campo"><label for="mensaje">Dedicatoria <span class="opcional">(opcional)</span></label><textarea id="mensaje" name="mensaje" maxlength="500" rows="3" placeholder="Escribe una dedicatoria especial…" aria-describedby="mensaje-ayuda"></textarea>
               <p class="ayuda" id="mensaje-ayuda">Saldrá en el bono. Máximo 500 caracteres.</p></div>
@@ -122,7 +124,8 @@ const primero = `${bonos.importes[0]} €`;
       // Si el pedido vuelve con un error, lo explica encima del formulario.
       var msgs = {
         importe: 'Elige uno de los importes disponibles.',
-        datos: 'Revisa tu nombre y tu correo electrónico.',
+        datos: 'Revisa tu nombre, tu correo electrónico y tu teléfono.',
+        telefono: 'Revisa el teléfono: escribe solo números, con el prefijo si es de fuera de España.',
         condiciones: 'Tienes que aceptar las condiciones para continuar.',
         servicio: 'Ahora mismo no podemos procesar el pedido. Inténtalo en unos minutos.',
         cerrado: 'Ahora mismo no hay bonos a la venta.'

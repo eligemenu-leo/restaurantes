@@ -114,6 +114,7 @@ export function correoAviso(b: Bono, extra: { pedido?: string; autorizacion?: st
     html: `<p>Se ha vendido un bono regalo de <strong>${euros(b.importe_cent)}</strong>.</p>
       <p>Código: <strong>${b.codigo}</strong><br>Caduca: ${fechaLarga(b.caduca)}<br>
       Comprador: ${esc(b.titular_nombre ?? '')} (${esc(extra.email ?? b.titular_email ?? '')})<br>
+      ${b.titular_telefono ? `Teléfono: ${esc(b.titular_telefono)}<br>` : ''}
       ${b.destinatario_nombre ? `Para: ${esc(b.destinatario_nombre)}<br>` : ''}
       ${extra.pedido ? `Pedido Redsys: ${extra.pedido} · autorización ${esc(extra.autorizacion ?? '')}` : ''}</p>`,
   };

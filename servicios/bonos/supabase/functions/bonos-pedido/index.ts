@@ -6,6 +6,8 @@ import { encodeParams, firmar, numeroPedido, VERSION_FIRMA } from '../_shared/re
 
 const redirect = (url: string) => new Response(null, { status: 303, headers: { Location: url } });
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+/** Teléfono de contacto: cifras con +, espacios, puntos, guiones o paréntesis; entre 6 y 15 cifras. */
+const telefonoValido = (t: string) => t.length <= 30 && /^[+()0-9\s.-]+$/.test(t) && /^(\D*\d){6,15}\D*$/.test(t);
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('Método no permitido', { status: 405 });
@@ -32,6 +34,9 @@ Deno.serve(async (req) => {
 
   const nombre = campo('nombre'), email = campo('email').toLowerCase();
   const para = campo('para') || null, mensaje = campo('mensaje') || null;
+  // El teléfono lo pide la web; si llega vacío (una versión antigua de la página) se acepta igual.
+  const telefono = campo('telefono').replace(/\s+/g, ' ') || null;
+  if (telefono && !telefonoValido(telefono)) return volver('telefono');
   if (!nombre || nombre.length > 120 || !EMAIL.test(email) || (para?.length ?? 0) > 120 || (mensaje?.length ?? 0) > 500) {
     return volver('datos');
   }
@@ -50,6 +55,7 @@ Deno.serve(async (req) => {
     const { error } = await supabase.from('pedidos').insert({
       comercio_id: comercio.id, num_pedido: n, importe_cent: importe, tipo_id: tipo.id,
       comprador_nombre: nombre, comprador_email: email, destinatario_nombre: para, mensaje,
+      ...(telefono ? { comprador_telefono: telefono } : {}),
     });
     if (!error) numPedido = n;
     else if (error.code !== '23505') { console.error(error); return volver('servicio'); }

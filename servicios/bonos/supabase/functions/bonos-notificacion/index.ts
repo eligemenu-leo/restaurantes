@@ -51,6 +51,7 @@ Deno.serve(async (req) => {
       codigo: codigoBono(comercio.prefijo_codigo), pedido_id: pedido.id, comercio_id: comercio.id, tipo_id: pedido.tipo_id,
       importe_cent: pedido.importe_cent, saldo_cent: pedido.importe_cent, caduca: caducidad(tipo), origen: 'web',
       titular_nombre: pedido.comprador_nombre, titular_email: pedido.comprador_email,
+      ...(pedido.comprador_telefono ? { titular_telefono: pedido.comprador_telefono } : {}),
       destinatario_nombre: pedido.destinatario_nombre, mensaje: pedido.mensaje,
     }).select().single<Bono>();
     if (!error) bono = data;
