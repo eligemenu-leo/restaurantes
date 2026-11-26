@@ -1,16 +1,5 @@
 ---
-import Layout from '../components/Layout.astro';
-import MenuSections from '@rea/core/components/MenuSections.astro';
-import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
-import { restaurantId, site, bodega } from '../data/index.ts';
+// Bodega en español. Las demás lenguas están en bodega/[lang].astro.
+import CartaPage from '../components/CartaPage.astro';
 ---
-<Layout title="Bodega" path="/bodega/"
-  description="Vinos de Sidrería Villaviciosa: espumosos, blancos de Rías Baixas y Rueda, rosado de Navarra y tintos de Rioja, Ribera del Duero, Bierzo y Toro.">
-  <div class="wrap section">
-    <p class="eyebrow">Para acompañar</p>
-    <h1>Nuestra bodega</h1>
-    <p class="lead">Además de sidra natural, una selección corta de vinos para cada plato.</p>
-    <MenuSections menu={bodega} />
-  </div>
-  <EligemenuTracking restaurantId={restaurantId} />
-</Layout>
+<CartaPage id="bodega" />

@@ -6,10 +6,10 @@ import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import { site } from '../data/index.ts';
 type BaseProps = Omit<Parameters<typeof BaseLayout>[0], 'site'>;
-interface Props extends BaseProps { overlayHeader?: boolean }
-const { overlayHeader = false, ...rest } = Astro.props;
+interface Props extends BaseProps { overlayHeader?: boolean; /** Idioma de la página, si no es el de la web (cartas traducidas). */ lang?: string }
+const { overlayHeader = false, lang = site.lang, ...rest } = Astro.props;
 ---
-<BaseLayout site={site} {...rest}>
+<BaseLayout site={{ ...site, lang }} {...rest}>
   <Fragment slot="head"><slot name="head" /></Fragment>
   <SiteHeader slot="header" current={rest.path} overlay={overlayHeader} />
   <slot />

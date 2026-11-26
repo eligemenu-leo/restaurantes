@@ -13,6 +13,8 @@ const em = await loadMenus({
   snapshotDate: '2026-11-07',
 });
 export const menuSource = em.source;
+/** Cartas en español tal como llegan de Eligemenú (las traducciones se buscan por la misma posición). */
+export const emMenus = em.menus;
 export const restaurantId = em.restaurant.id;
 
 const siteData = load(Site, siteRaw, 'src/data/site.json');
@@ -40,6 +42,10 @@ export const sugerencias = grupoSugerencias?.items.length
   : { items: cartaCompleta.sections.flatMap((s) => s.items).filter((i) => i.suggestion) };
 export const carta: MenuData = { ...cartaCompleta, sections: cartaCompleta.sections.filter((s) => s.id !== 'sugerencias') };
 export const bodega = pick(/bodega/i);
+/** Posición del grupo "Sugerencias" en la carta (los nombres cambian con el idioma, la posición no). */
+export const sugerenciasPos = cartaCompleta.sections.findIndex((s) => s.id === 'sugerencias');
+export const cartaCompletaPos = em.menus.indexOf(cartaCompleta);
+export const bodegaPos = em.menus.indexOf(bodega);
 
 const platos = carta.sections.flatMap((s) => s.items);
 /** Platos destacados de reserva: se buscan por nombre en la carta de Eligemenú. */
