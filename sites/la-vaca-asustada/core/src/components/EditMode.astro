@@ -1,0 +1,262 @@
+---
+/**
+ * Modo edición en contexto para restaurantes con acceso eligemenu.
+ * Incluir en el layout pasando eligemenuSlug desde cada página de carta/menú.
+ * El botón ✏️ Editar solo es visible a quien tenga acceso; el popup gestiona la autenticación.
+ */
+interface Props { slug: string }
+const { slug } = Astro.props;
+const WRITE_API = 'https://jcfiarsoqvczjavikgoh.supabase.co/functions/v1/wordpress-api-write';
+const ELIGEMENU_URL = 'https://eligemenu.com';
+---
+
+<div id="em-bar" aria-hidden="true" role="status">
+  ✏️ Modo edición — eligemenu
+  <button id="em-bar-exit" type="button">✕ Salir</button>
+</div>
+<button id="em-fab" type="button" title="Editar este menú">✏️ Editar</button>
+
+<style is:global>
+  #em-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+    background: #1d4ed8; color: #fff;
+    padding: 7px 14px; font-size: 13px; font-weight: 600;
+    display: none; align-items: center; justify-content: space-between;
+    font-family: system-ui, sans-serif;
+  }
+  body.em-edit-mode #em-bar { display: flex; }
+  body.em-edit-mode { padding-top: 38px !important; }
+  #em-bar-exit {
+    background: rgba(255,255,255,.18); border: none; color: #fff;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+  }
+  #em-fab {
+    position: fixed; bottom: 20px; right: 20px; z-index: 9997;
+    background: #1d4ed8; color: #fff; border: none; border-radius: 999px;
+    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3); font-family: system-ui, sans-serif;
+  }
+  body.em-edit-mode #em-fab { display: none; }
+  body.em-edit-mode [data-em-type] { position: relative; }
+  body.em-edit-mode [data-em-type]:hover { outline: 2px dashed #60a5fa; outline-offset: 2px; }
+  .em-edit-btn {
+    display: none; position: absolute; top: 4px; right: 4px; z-index: 100;
+    background: #1d4ed8; color: #fff; border: none; border-radius: 4px;
+    padding: 2px 7px; font-size: 11px; cursor: pointer; line-height: 1.5;
+    font-family: system-ui, sans-serif;
+  }
+  body.em-edit-mode [data-em-type]:hover .em-edit-btn { display: inline-block; }
+  .em-inline-form {
+    background: #fff; border: 2px solid #1d4ed8; border-radius: 6px;
+    padding: 10px; margin: 6px 0; display: flex; flex-direction: column; gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12); z-index: 200; position: relative;
+    font-family: system-ui, sans-serif;
+  }
+  .em-inline-form label { font-size: 11px; color: #6b7280; font-weight: 500; }
+  .em-inline-form input, .em-inline-form textarea {
+    border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px;
+    font-size: 13px; width: 100%; box-sizing: border-box; font-family: inherit;
+  }
+  .em-inline-form textarea { resize: vertical; }
+  .em-inline-form .em-row { display: flex; gap: 8px; }
+  .em-inline-form .em-row input { flex: 1; }
+  .em-form-actions { display: flex; gap: 6px; margin-top: 2px; }
+  .em-btn-save { background: #16a34a; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .em-btn-cancel { background: #9ca3af; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 12px; }
+  .em-toast {
+    position: fixed; bottom: 70px; right: 20px; z-index: 10000;
+    padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    color: #fff; max-width: 280px; font-family: system-ui, sans-serif;
+    pointer-events: none;
+  }
+</style>
+
+<script define:vars={{ slug, WRITE_API, ELIGEMENU_URL }}>
+(function () {
+  'use strict';
+  var TOKEN_KEY = 'em_tok_' + slug;
+  var popup = null;
+  var editMode = false;
+
+  function getToken() { return sessionStorage.getItem(TOKEN_KEY); }
+  function setToken(t) { sessionStorage.setItem(TOKEN_KEY, t); }
+  function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
+
+  function showToast(msg, type) {
+    var t = document.createElement('div');
+    t.className = 'em-toast';
+    t.style.background = type === 'error' ? '#dc2626' : '#16a34a';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 3000);
+  }
+
+  async function patch(type, id, body) {
+    var res = await fetch(WRITE_API + '/' + type + '/' + id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) { clearToken(); deactivate(); showToast('Sesión expirada. Vuelve a iniciar sesión.', 'error'); return null; }
+    return res.ok ? res.json() : null;
+  }
+
+  function openPopup() {
+    var origin = encodeURIComponent(location.origin || location.href.split('/').slice(0, 3).join('/'));
+    popup = window.open(
+      ELIGEMENU_URL + '/widget-login?restaurant_slug=' + slug + '&origin=' + origin,
+      'em_edit', 'width=420,height=580,resizable=yes'
+    );
+  }
+
+  window.addEventListener('message', function (evt) {
+    if (evt.origin !== ELIGEMENU_URL) return;
+    if (!evt.data || evt.data.type !== 'em-widget-auth' || evt.data.restaurantSlug !== slug) return;
+    setToken(evt.data.token);
+    if (popup) { try { popup.close(); } catch (e) {} popup = null; }
+    activate();
+  });
+
+  var fab = document.getElementById('em-fab');
+  var bar = document.getElementById('em-bar');
+  var exitBtn = document.getElementById('em-bar-exit');
+
+  fab.addEventListener('click', function () {
+    if (editMode) return;
+    if (getToken()) activate();
+    else openPopup();
+  });
+
+  exitBtn.addEventListener('click', deactivate);
+
+  function activate() {
+    editMode = true;
+    document.body.classList.add('em-edit-mode');
+    bar.setAttribute('aria-hidden', 'false');
+    attachControls();
+  }
+
+  function deactivate() {
+    document.body.classList.remove('em-edit-mode');
+    editMode = false;
+    bar.setAttribute('aria-hidden', 'true');
+    document.querySelectorAll('.em-edit-btn').forEach(function (b) { b.remove(); });
+    document.querySelectorAll('.em-inline-form').forEach(function (f) { f.remove(); });
+  }
+  window.__emDeactivate = deactivate;
+
+  function attachControls() {
+    document.querySelectorAll('[data-em-type][data-em-id]').forEach(function (el) {
+      if (el.querySelector('.em-edit-btn')) return;
+      var btn = document.createElement('button');
+      btn.className = 'em-edit-btn';
+      btn.type = 'button';
+      btn.textContent = '✏️';
+      btn.title = 'Editar';
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openEditForm(el);
+      });
+      el.appendChild(btn);
+    });
+  }
+
+  function openEditForm(container) {
+    document.querySelectorAll('.em-inline-form').forEach(function (f) { f.remove(); });
+
+    var type = container.getAttribute('data-em-type');
+    var id = container.getAttribute('data-em-id');
+    var isDish = type === 'dish';
+
+    var form = document.createElement('div');
+    form.className = 'em-inline-form';
+
+    function field(labelText, inputEl) {
+      var label = document.createElement('label');
+      label.textContent = labelText;
+      form.appendChild(label);
+      form.appendChild(inputEl);
+      return inputEl;
+    }
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = container.getAttribute('data-em-name') || '';
+    nameInput.maxLength = 200;
+    field('Nombre', nameInput);
+
+    var descInput = document.createElement('textarea');
+    descInput.rows = 2;
+    descInput.value = container.getAttribute('data-em-desc') || '';
+    descInput.maxLength = 500;
+    field('Descripción', descInput);
+
+    var price1Input = null, price2Input = null;
+    if (isDish) {
+      var priceRow = document.createElement('div');
+      priceRow.className = 'em-row';
+      var p1 = document.createElement('input'); p1.type = 'number'; p1.min = '0'; p1.max = '9999'; p1.step = '0.01';
+      p1.value = container.getAttribute('data-em-price-1') || '';
+      p1.placeholder = 'Precio 1 (€)';
+      var p2 = document.createElement('input'); p2.type = 'number'; p2.min = '0'; p2.max = '9999'; p2.step = '0.01';
+      p2.value = container.getAttribute('data-em-price-2') || '';
+      p2.placeholder = 'Precio 2 (€)';
+      priceRow.appendChild(p1); priceRow.appendChild(p2);
+      var priceLabel = document.createElement('label');
+      priceLabel.textContent = 'Precio 1 / Precio 2 (€)';
+      form.appendChild(priceLabel);
+      form.appendChild(priceRow);
+      price1Input = p1; price2Input = p2;
+    }
+
+    var actions = document.createElement('div');
+    actions.className = 'em-form-actions';
+
+    var saveBtn = document.createElement('button');
+    saveBtn.type = 'button'; saveBtn.className = 'em-btn-save'; saveBtn.textContent = 'Guardar';
+    saveBtn.addEventListener('click', async function () {
+      saveBtn.disabled = true; saveBtn.textContent = 'Guardando…';
+      var body = {};
+      var name = nameInput.value.trim();
+      if (name) body.name = name;
+      var desc = descInput.value.trim();
+      body.description = desc || null;
+      if (isDish && price1Input) {
+        body.price_1 = price1Input.value !== '' ? parseFloat(price1Input.value) : null;
+        body.price_2 = price2Input.value !== '' ? parseFloat(price2Input.value) : null;
+      }
+      var ok = await patch(type, id, body);
+      if (ok) {
+        // Actualizar data attributes
+        if (name) container.setAttribute('data-em-name', name);
+        container.setAttribute('data-em-desc', desc);
+        if (isDish) {
+          container.setAttribute('data-em-price-1', body.price_1 != null ? String(body.price_1) : '');
+          container.setAttribute('data-em-price-2', body.price_2 != null ? String(body.price_2) : '');
+        }
+        // Actualizar texto visible
+        var nameEl = container.querySelector('[data-em-field="name"]');
+        if (nameEl && name) nameEl.textContent = name;
+        var descEl = container.querySelector('[data-em-field="description"]');
+        if (descEl) descEl.textContent = desc;
+        form.remove();
+        showToast('Guardado en eligemenu ✓', 'ok');
+      } else {
+        saveBtn.disabled = false; saveBtn.textContent = 'Guardar';
+      }
+    });
+
+    var cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button'; cancelBtn.className = 'em-btn-cancel'; cancelBtn.textContent = 'Cancelar';
+    cancelBtn.addEventListener('click', function () { form.remove(); });
+
+    actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
+    form.appendChild(actions);
+
+    container.insertBefore(form, container.querySelector('.em-edit-btn'));
+    nameInput.focus();
+  }
+
+  if (getToken()) fab.textContent = '✏️ Editar (activo)';
+})();
+</script>
