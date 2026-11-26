@@ -6,7 +6,7 @@ import Layout from './Layout.astro';
 import MenuCarta from './MenuCarta.astro';
 import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
 import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
-import { restaurantId, site } from '../data/index.ts';
+import { restaurantId, site, ELIGEMENU_SLUG } from '../data/index.ts';
 import { cartaIdioma, cartaPath, LANGS, T, type CartaId, type Lang } from '../data/cartas.ts';
 
 interface Props { id: CartaId; lang?: Lang }
@@ -31,7 +31,8 @@ const url = (x: Lang) => new URL(cartaPath(id, x), site.url).href;
 const jsonLd = id === 'carta' && c.translated ? [menuJsonLd({ ...site, lang }, menu, url(lang))] : [];
 const p = id === 'carta' ? t.carta : t.bodega;
 ---
-<Layout title={p.title} path={path} description={p.description} lang={shownLang} noindex={!c.translated} jsonLd={jsonLd}>
+<Layout title={p.title} path={path} description={p.description} lang={shownLang} noindex={!c.translated} jsonLd={jsonLd}
+  eligemenuSlug={id === 'carta' && lang === 'es' ? ELIGEMENU_SLUG : undefined}>
   <Fragment slot="head">
     {c.translated && alternates.length > 1 && alternates.map((x) => <link rel="alternate" hreflang={x} href={url(x)} />)}
     {c.translated && alternates.length > 1 && <link rel="alternate" hreflang="x-default" href={url('es')} />}

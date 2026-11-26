@@ -76,6 +76,8 @@ export const MenuItem = z.object({
   suggestion: z.boolean().default(false),
   tagline: z.string().optional(),
   image: z.string().optional(),
+  /** UUID del plato en Eligemenú. Se inyecta al compilar; no forma parte de los JSON de datos. */
+  emId: z.string().uuid().optional(),
 });
 
 export const MenuSection = z.object({
@@ -87,6 +89,8 @@ export const MenuSection = z.object({
   /** Cabeceras de las columnas de precio cuando hay precio doble. */
   priceHeaders: z.array(z.string()).optional(),
   items: z.array(MenuItem).min(1),
+  /** UUID del grupo en Eligemenú. Se inyecta al compilar; no forma parte de los JSON de datos. */
+  emId: z.string().uuid().optional(),
 });
 
 export const Menu = z.object({

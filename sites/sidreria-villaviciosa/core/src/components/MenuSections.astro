@@ -24,17 +24,20 @@ const mainSections = menu.sections.filter((s) => !s.sub);
   {menu.sections.map((s) => {
     const Tag = s.sub ? Hsub : H;
     return (
-      <section class:list={['menu__sec', { 'menu__sec--sub': s.sub }]} id={s.id} aria-labelledby={`${s.id}-h`}>
-        <Tag id={`${s.id}-h`} class="menu__h">{s.name}</Tag>
-        {s.note && <p class="menu__note">{s.note}</p>}
+      <section class:list={['menu__sec', { 'menu__sec--sub': s.sub }]} id={s.id} aria-labelledby={`${s.id}-h`}
+        data-em-id={s.emId} data-em-type="menu-group" data-em-name={s.name} data-em-desc={s.note ?? ''}>
+        <Tag id={`${s.id}-h`} class="menu__h"><span data-em-field="name">{s.name}</span></Tag>
+        {s.note && <p class="menu__note"><span data-em-field="description">{s.note}</span></p>}
         {s.priceHeaders && <p class="menu__ph" aria-hidden="true">{s.priceHeaders.filter(Boolean).join(' · ')}</p>}
         <ul class="menu__list">
           {s.items.map((i) => {
             const p = prices(i);
             return (
-              <li class="menu__item">
+              <li class="menu__item" data-em-id={i.emId} data-em-type="dish"
+                data-em-name={i.name} data-em-desc={i.description ?? ''}
+                data-em-price-1={i.price != null ? String(i.price) : ''} data-em-price-2={i.price2 != null ? String(i.price2) : ''}>
                 <div class="menu__row">
-                  <span class="menu__name">{i.name}</span>
+                  <span class="menu__name" data-em-field="name">{i.name}</span>
                   {p.length > 0 && <span class="menu__dots" aria-hidden="true"></span>}
                   {p.length > 0 && (
                     <span class="menu__price">
@@ -46,7 +49,7 @@ const mainSections = menu.sections.filter((s) => !s.sub);
                     </span>
                   )}
                 </div>
-                {i.description && <p class="menu__desc">{i.description}</p>}
+                {i.description && <p class="menu__desc"><span data-em-field="description">{i.description}</span></p>}
                 {i.allergens?.length ? (
                   <p class="menu__all"><span class="visually-hidden">Alérgenos: </span>{i.allergens.map((a) => ALLERGENS[a]).join(' · ')}</p>
                 ) : null}

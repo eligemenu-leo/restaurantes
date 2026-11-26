@@ -52,7 +52,7 @@ const jsonLd = c.translated
   : [];
 ---
 <Layout title={title} path={cartaPath(id, lang)} description={description} lang={shownLang} noindex={!c.translated}
-  jsonLd={jsonLd}>
+  jsonLd={jsonLd} eligemenuSlug={lang === 'es' ? l.slug : undefined}>
   <Fragment slot="head">
     {c.translated && alternates.length > 1 && alternates.map((x) => <link rel="alternate" hreflang={x} href={url(x)} />)}
     {c.translated && alternates.length > 1 && <link rel="alternate" hreflang="x-default" href={url('es')} />}
@@ -136,13 +136,15 @@ const jsonLd = c.translated
             {s.note && <p class="panel__note">{s.note}</p>}
             <ul class="dishes">
               {s.items.map((i) => (
-                <li class="dish">
+                <li class="dish" data-em-id={i.emId} data-em-type="dish"
+                  data-em-name={i.name} data-em-desc={i.description ?? ''}
+                  data-em-price-1={i.price != null ? String(i.price) : ''} data-em-price-2={i.price2 != null ? String(i.price2) : ''}>
                   <p class="dish__head">
-                    <span class="dish__name">{i.name}</span>
+                    <span class="dish__name" data-em-field="name">{i.name}</span>
                     {i.price != null && <span class="dish__lead" aria-hidden="true"></span>}
                     {i.price != null && <span class="dish__price">{fmt(i.price, i.unit)}{i.price2 != null && <> · {fmt(i.price2, 'racion')}</>}</span>}
                   </p>
-                  {i.description && <p class="dish__desc">{i.description}</p>}
+                  {i.description && <p class="dish__desc"><span data-em-field="description">{i.description}</span></p>}
                   {i.allergens?.length ? <p class="dish__all"><span class="visually-hidden">{t.allergens}: </span>{i.allergens.map(allergen).join(' · ')}</p> : null}
                 </li>
               ))}
