@@ -2,22 +2,24 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { toMenu, loadMenus, allergenKey, type EMMenu } from './eligemenu.ts';
 
+// Eligemenú identifica platos y grupos con UUID (el esquema lo exige desde que se guardan como emId).
+const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const dish = (o: Partial<Record<string, unknown>>) => ({
-  id: 'd', name: 'Plato', description: null, image_url: null, price_1: 10, price_2: null, price_unit: null, price_unit_2: null,
+  id: uuid(1), name: 'Plato', description: null, image_url: null, price_1: 10, price_2: null, price_unit: null, price_unit_2: null,
   price_unit_suffix: null, price_unit_2_suffix: null, display_order: 0, is_specialty: false, is_suggestion: false, dish_allergens: [], ...o,
 });
 const group = (o: Partial<Record<string, unknown>>) => ({
-  id: 'g', name: 'Grupo', description: null, display_order: 0, image_url: null, prices_visible: true, has_dual_pricing: false,
+  id: uuid(2), name: 'Grupo', description: null, display_order: 0, image_url: null, prices_visible: true, has_dual_pricing: false,
   price_header_1: null, price_header_2: null, parent_group_id: null, dishes: [], ...o,
 });
 const menu: EMMenu = {
   id: 'm', name: 'Carta', description: null, display_order: 0, prices_visible: true,
   menu_groups: [
-    group({ id: 'b', name: 'Postres', display_order: 2, dishes: [dish({ name: 'Tarta', price_1: 6.5, dish_allergens: [{ allergen: { id: '1', name: 'Huevos', icon_url: null } }, { allergen: { id: '2', name: 'Lácteos', icon_url: null } }] })] }),
-    group({ id: 'a', name: 'Al carbón', display_order: 1, dishes: [dish({ name: 'T-bone', price_1: 76, price_unit: 'kg', display_order: 2, is_suggestion: true }), dish({ name: 'Chuleta', price_1: 94, price_unit: 'kg', display_order: 1, is_specialty: true })] }),
-    group({ id: 'c', name: 'Vinos', display_order: 3, has_dual_pricing: true, price_header_1: 'Botella', price_header_2: 'Copa', dishes: [dish({ name: 'Rioja', price_1: 20, price_2: 4 })] }),
-    group({ id: 'c1', name: 'Tintos', parent_group_id: 'c', dishes: [dish({ name: 'Ribera', price_1: 24 })] }),
-    group({ id: 'v', name: 'Vacío', display_order: 9, dishes: [] }),
+    group({ id: uuid(3), name: 'Postres', display_order: 2, dishes: [dish({ name: 'Tarta', price_1: 6.5, dish_allergens: [{ allergen: { id: '1', name: 'Huevos', icon_url: null } }, { allergen: { id: '2', name: 'Lácteos', icon_url: null } }] })] }),
+    group({ id: uuid(4), name: 'Al carbón', display_order: 1, dishes: [dish({ name: 'T-bone', price_1: 76, price_unit: 'kg', display_order: 2, is_suggestion: true }), dish({ name: 'Chuleta', price_1: 94, price_unit: 'kg', display_order: 1, is_specialty: true })] }),
+    group({ id: uuid(5), name: 'Vinos', display_order: 3, has_dual_pricing: true, price_header_1: 'Botella', price_header_2: 'Copa', dishes: [dish({ name: 'Rioja', price_1: 20, price_2: 4 })] }),
+    group({ id: uuid(6), name: 'Tintos', parent_group_id: uuid(5), dishes: [dish({ name: 'Ribera', price_1: 24 })] }),
+    group({ id: uuid(7), name: 'Vacío', display_order: 9, dishes: [] }),
   ],
 };
 
