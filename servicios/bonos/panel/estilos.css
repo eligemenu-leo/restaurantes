@@ -70,8 +70,9 @@ fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding:
 .chips a[aria-current="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
 .lista { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .lista li + li { border-top: 1px solid var(--line); }
-.lista a, .lista .fila { display: grid; grid-template-columns: 1fr auto; gap: .2rem .75rem; padding: .75rem 1rem; text-decoration: none; }
-.lista a:hover { background: var(--accent-soft); }
+.lista > li > a, .lista .fila { display: grid; grid-template-columns: 1fr auto; gap: .2rem .75rem; padding: .75rem 1rem; text-decoration: none; }
+.lista > li > a:hover { background: var(--accent-soft); }
+.lista .sub a { color: inherit; }
 .lista .codigo { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .02em; }
 .lista .sub { color: var(--muted); font-size: .88rem; grid-column: 1; }
 .lista .der { text-align: right; font-variant-numeric: tabular-nums; }
@@ -114,3 +115,4 @@ table { border-collapse: collapse; width: 100%; font-size: .92rem; }
 th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
 th { color: var(--muted); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.cargando { padding: 3rem 1rem; text-align: center; color: var(--muted); }

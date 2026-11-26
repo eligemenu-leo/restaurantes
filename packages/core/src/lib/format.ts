@@ -11,10 +11,15 @@ export function price(value: number, unit = 'racion', opts: { hideZeroDecimals?:
   return f.format(value) + (UNIT[unit] ?? '');
 }
 
+/** Teléfono en formato internacional ("663 20 06 15" → "+34663200615"). */
+export function intlPhone(phone: string): string {
+  const digits = phone.replace(/[^\d+]/g, '');
+  return digits.startsWith('+') ? digits : '+34' + digits;
+}
+
 /** Enlace tel: limpio a partir de un teléfono escrito para humanos. */
 export function telHref(phone: string): string {
-  const digits = phone.replace(/[^\d+]/g, '');
-  return 'tel:' + (digits.startsWith('+') ? digits : '+34' + digits);
+  return 'tel:' + intlPhone(phone);
 }
 
 export function mapsHref(query: string): string {

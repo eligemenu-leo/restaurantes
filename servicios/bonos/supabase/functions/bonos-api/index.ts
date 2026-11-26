@@ -1,6 +1,7 @@
 // API del servicio de bonos, todo en una función para no tener que desplegar muchas:
 //   GET  /bonos-api/config?comercio=…   tipos de bono en venta (público, lo lee la web)
 //   GET  /bonos-api/qr?c=VACA-XXXX-XXXX imagen del QR del bono (público, va en el correo; abre /gestion/ de la web)
+//   GET  /bonos-api/imagen?c=…&i=…   imagen del bono con el importe (público, va en el correo y en Google Wallet)
 //   GET  /bonos-api/cartera/apple?c=…  el bono para Apple Wallet (.pkpass; va en el correo)
 //   GET  /bonos-api/cartera/google?c=… lleva a "Guardar en Google Wallet" (va en el correo)
 //   POST /bonos-api/reenviar            reenvía el correo del bono (panel, administrador)
@@ -10,6 +11,7 @@ import { db, enVenta, type Bono, type Comercio, type TipoBono } from '../_shared
 import { b64decode } from '../_shared/redsys.ts';
 import { enviarCorreo } from '../_shared/correo.ts';
 import { correoBono, urlFicha } from '../_shared/plantillas.ts';
+import { aJpeg, banda, imagenDeWeb } from '../_shared/imagen.ts';
 import { appleConfigurado, enlaceGoogle, googleConfigurado, pkpass } from '../_shared/cartera.ts';
 
 const CORS = {
@@ -29,6 +31,7 @@ Deno.serve(async (req) => {
   try {
     if (req.method === 'GET' && ruta === 'config') return await config(url);
     if (req.method === 'GET' && ruta === 'qr') return await qr(url);
+    if (req.method === 'GET' && ruta === 'imagen') return await imagen(url);
     if (req.method === 'GET' && url.pathname.includes('/cartera/')) return await cartera(url, ruta);
     if (req.method === 'POST' && ruta === 'reenviar') return await reenviar(req);
     if (req.method === 'POST' && ruta === 'usuarios') return await usuarios(req);
@@ -65,6 +68,21 @@ async function qr(url: URL) {
   q.make();
   const gif = b64decode(q.createDataURL(6, 4).split(',')[1]);
   return new Response(gif, { headers: { ...CORS, 'Content-Type': 'image/gif', 'Cache-Control': 'public, max-age=31536000, immutable' } });
+}
+
+/** La foto del bono con el importe pintado, como la vista previa de la web. `i` es el importe en céntimos
+ *  (el del bono o su saldo cuando se envió el correo); si no vale, se usa el importe del bono. */
+async function imagen(url: URL) {
+  const codigo = (url.searchParams.get('c') ?? '').toUpperCase();
+  if (!FORMATO_CODIGO.test(codigo)) return error('Código no válido');
+  const { data: b } = await db().from('bonos').select('importe_cent, comercios(web)').eq('codigo', codigo).maybeSingle();
+  if (!b) return error('Ese bono no existe', 404);
+  const pedido = Number(url.searchParams.get('i'));
+  const cent = Number.isInteger(pedido) && pedido > 0 && pedido <= b.importe_cent ? pedido : b.importe_cent;
+  const img = await imagenDeWeb((b.comercios as unknown as Pick<Comercio, 'web'> | null)?.web, cent);
+  if (!img) return error('No disponible', 404);
+  const jpg = aJpeg(url.searchParams.get('f') === 'banda' ? banda(img, 1032) : img, 80);
+  return new Response(jpg as Uint8Array<ArrayBuffer>, { headers: { ...CORS, 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=31536000, immutable' } });
 }
 
 /** El bono en la Cartera del móvil. Se genera en el momento, así que lleva el saldo de ese instante. */

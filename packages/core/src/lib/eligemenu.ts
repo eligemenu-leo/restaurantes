@@ -103,6 +103,7 @@ export function toItem(d: EMDish, group: Pick<EMMenuGroup, 'prices_visible' | 'h
     featured: Boolean(d.is_specialty),
     suggestion: Boolean(d.is_suggestion),
     ...(d.image_url ? { image: d.image_url } : {}),
+    emId: d.id,
   };
 }
 
@@ -128,6 +129,7 @@ export function toMenu(menu: EMMenu, updated = new Date().toISOString().slice(0,
         ...(g.description?.trim() ? { note: g.description.trim() } : {}),
         ...(g.has_dual_pricing && (g.price_header_1 || g.price_header_2) ? { priceHeaders: [g.price_header_1 ?? '', g.price_header_2 ?? ''] } : {}),
         items: [...(g.dishes ?? [])].sort(byOrder).map((d) => toItem(d, { prices_visible: menu.prices_visible !== false && g.prices_visible !== false, has_dual_pricing: g.has_dual_pricing })),
+        emId: g.id,
       };
     })
     .filter((s) => s.items.length > 0);

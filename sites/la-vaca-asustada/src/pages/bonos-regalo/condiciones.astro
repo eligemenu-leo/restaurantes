@@ -1,0 +1,110 @@
+---
+// Condiciones de compra de los bonos regalo: las piden Redsys y el art. 10 y 27 de la LSSICE
+// (identificación del vendedor, anulaciones, devoluciones y desistimiento). Incluye el modelo
+// de formulario de desistimiento del anexo B del RDL 1/2007 (Ley General de Consumidores).
+import Layout from '../../components/Layout.astro';
+import { telHref } from '@rea/core/lib/format.ts';
+import { bonos } from '../../data/bonos.ts';
+import { soporte } from '../../data/soporte.ts';
+import { titular } from '../../data/titular.ts';
+
+const lista = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}` : xs[0];
+const locales = lista(bonos.locales);
+const vendedor = titular.razonSocial ?? 'el titular del comercio';
+const asunto = encodeURIComponent('Desistimiento de un bono regalo de La Vaca Asustada');
+---
+<Layout title="Condiciones de compra de los bonos regalo" path="/bonos-regalo/condiciones/"
+  description="Condiciones de compra de los bonos regalo de La Vaca Asustada: vendedor, pago, uso, anulaciones, devoluciones y derecho de desistimiento.">
+  <article class="wrap section legal">
+    <p class="eyebrow">Bonos regalo</p>
+    <h1>Condiciones de compra</h1>
+    <p class="lead">Estas condiciones se aplican a los bonos regalo que se compran en esta web. Al marcar la casilla de aceptación antes de pagar, confirmas que las has leído.</p>
+
+    <nav class="resumen" aria-labelledby="resumen-h">
+      <p id="resumen-h"><strong>Política de anulaciones, devoluciones y desistimiento</strong></p>
+      <ul>
+        <li><a href="#anulaciones">Anulaciones</a>: sin cargo antes de pagar; después, mediante el desistimiento.</li>
+        <li><a href="#desistimiento">Desistimiento</a>: 14 días naturales desde la compra si el bono no se ha usado.</li>
+        <li><a href="#devoluciones">Devoluciones</a>: importe completo a la misma tarjeta en un máximo de 14 días.</li>
+      </ul>
+    </nav>
+
+    <h2>1. Quién vende los bonos</h2>
+    <ul class="datos">
+      {titular.razonSocial && <li><strong>Razón social:</strong> {titular.razonSocial}</li>}
+      <li><strong>CIF:</strong> {titular.cif}</li>
+      {titular.domicilio && <li><strong>Domicilio social:</strong> {titular.domicilio}</li>}
+      {titular.telefono && <li><strong>Teléfono de la sociedad:</strong> <a href={telHref(titular.telefono)}>+34 {titular.telefono}</a></li>}
+      <li><strong>Nombre comercial:</strong> La Vaca Asustada</li>
+      <li><strong>Correo:</strong> <a href={`mailto:${soporte.email}`}>{soporte.email}</a></li>
+      <li><strong>Atención al cliente:</strong> <a href={telHref(soporte.telefono)}>+34 {soporte.telefono}</a></li>
+    </ul>
+
+    <h2>2. Qué compras</h2>
+    <p>Un bono regalo por el importe que elijas, con los impuestos incluidos, para gastar en nuestros restaurantes de {locales}. El precio es el que se muestra al elegir el importe y no tiene gastos añadidos.</p>
+
+    <h2>3. Cómo se compra y se paga</h2>
+    <ol>
+      <li>Eliges el importe, escribes tu nombre, tu correo y un teléfono de contacto y, si quieres, para quién es y un mensaje.</li>
+      <li>Aceptas estas condiciones y la política de privacidad, y pulsas «Pagar con tarjeta».</li>
+      <li>Pagas en la pasarela segura de Redsys. Nunca vemos ni guardamos los datos de tu tarjeta.</li>
+      <li>Cuando el banco confirma el pago, la compra queda hecha y te enviamos el bono por correo al momento.</li>
+    </ol>
+    <p>El contrato se hace en español. Guardamos un registro de cada pedido, y el correo del bono te sirve de justificante. Si ves un error en tus datos antes de pagar, puedes volver atrás y corregirlo.</p>
+
+    <h2>4. Cómo se usa</h2>
+    <ul>
+      <li>Enseña el correo, el bono en la Cartera del móvil o di el código al pedir la cuenta.</li>
+      <li>Puedes gastarlo de una vez o en varias visitas hasta agotar el saldo. No se cambia por dinero.</li>
+      <li>Es válido hasta la fecha de caducidad que aparece al elegir el importe y en el propio bono.</li>
+      <li>Si pierdes el correo, escríbenos y te lo reenviamos sin coste.</li>
+    </ul>
+
+    <h2 id="politica">5. Política de anulaciones, devoluciones y desistimiento</h2>
+
+    <h3 id="anulaciones">5.1. Anulaciones</h3>
+    <p>Puedes anular la compra antes de pagar cerrando la pasarela de pago: no se hace ningún cargo. Una vez pagado, puedes anularla ejerciendo el derecho de desistimiento (punto 5.2).</p>
+    <p>Podemos anular un bono si el pago se deniega o se devuelve, o si hay indicios de uso fraudulento. Te lo comunicaremos por correo.</p>
+
+    <h3 id="desistimiento">5.2. Derecho de desistimiento</h3>
+    <p>Tienes <strong>14 días naturales desde la compra</strong> para desistir sin dar ninguna explicación, siempre que el bono no se haya usado. Para hacerlo, escríbenos a <a href={`mailto:${soporte.email}?subject=${asunto}`}>{soporte.email}</a> con el código del bono, o envíanos el modelo de formulario de más abajo. Basta con que nos lo envíes antes de que acabe el plazo.</p>
+    <p>Al desistir, el bono queda anulado y te devolvemos el importe completo, sin ningún coste.</p>
+
+    <h3 id="devoluciones">5.3. Devoluciones</h3>
+    <ul>
+      <li>Devolvemos el dinero en la misma tarjeta con la que pagaste, a través de Redsys, en un plazo máximo de 14 días desde que recibimos tu solicitud. Según tu banco, puede tardar unos días más en aparecer en tu cuenta.</li>
+      <li>Si te cobramos de más o por error, te devolvemos la diferencia en cuanto lo comprobemos.</li>
+      <li>Pasados los 14 días, o si el bono ya se ha usado en parte, no se devuelve el importe, sin perjuicio de tus derechos legales.</li>
+      <li>Un bono caducado no se devuelve ni se canjea.</li>
+    </ul>
+
+    <h2>6. Dudas y reclamaciones</h2>
+    <p>Para cualquier duda o problema, ponte en contacto con <a href="/atencion-al-cliente/">atención al cliente</a> ({soporte.email} · +34 {soporte.telefono}). Respondemos lo antes posible. Tienes a tu disposición hojas de reclamación en nuestros restaurantes. Estas condiciones se rigen por la ley española y, si hubiera un conflicto, son competentes los juzgados de tu domicilio.</p>
+
+    <h2 id="formulario">Modelo de formulario de desistimiento</h2>
+    <p>Rellénalo y envíalo solo si quieres desistir del contrato.</p>
+    <blockquote class="modelo">
+      <p>A la atención de {vendedor}{titular.domicilio ? `, ${titular.domicilio}` : ''}, {soporte.email}:</p>
+      <p>Por la presente le comunico que desisto del contrato de compra del siguiente bono regalo:</p>
+      <p>Código del bono: ______<br />Comprado el: ______<br />Nombre del comprador: ______<br />Correo usado en la compra: ______<br />Firma (solo si se envía en papel): ______<br />Fecha: ______</p>
+    </blockquote>
+
+    <p class="actualizado">Última actualización: 21 de noviembre de 2026.</p>
+    <div class="btn-row">{bonos.activo && bonos.publico && <a class="btn" href="/bonos-regalo/">Bonos regalo</a>}<a class={bonos.activo && bonos.publico ? 'btn btn--ghost' : 'btn'} href="/atencion-al-cliente/">Atención al cliente</a></div>
+  </article>
+</Layout>
+<style>
+  .legal { max-width: calc(var(--w-text) + 2 * var(--space)); }
+  .legal h2 { margin-top: 2.5rem; font-size: clamp(1.4rem, 3vw, 1.9rem); text-transform: none; }
+  .legal ul, .legal ol { padding-left: 1.2rem; }
+  .legal li { margin-bottom: 0.5rem; }
+  .datos { list-style: none; padding: 1.5rem 1.75rem !important; border: 3px double var(--c-accent); }
+  .datos li { margin: 0 0 0.25rem; overflow-wrap: anywhere; }
+  .legal h3 { margin-top: 1.75rem; font-size: clamp(1.15rem, 2.4vw, 1.4rem); text-transform: none; }
+  .resumen { margin-top: 2rem; padding: 1.25rem 1.5rem; border: 3px double var(--c-accent); }
+  .resumen p { margin: 0 0 0.5rem; }
+  .resumen ul { margin: 0; }
+  .modelo { margin: 1rem 0 0; padding: 1rem 1.5rem; border-left: 3px solid var(--c-accent); color: var(--c-muted); }
+  .actualizado { margin-top: 2.5rem; color: var(--c-muted); font-size: 0.9rem; }
+  .btn-row { margin-top: 2rem; }
+</style>

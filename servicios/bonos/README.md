@@ -52,6 +52,15 @@ crear bonos a mano, tipos de bono con validez y periodo de venta, ajustes y usua
   `insert into miembros (user_id, comercio_id, rol, email) select id, 'la-vaca-asustada', 'admin', email from auth.users where email = '…';`
   Los demás usuarios se añaden desde el propio panel.
 
+## Imagen del bono (correo y Cartera)
+
+El correo, la tira del pase de Apple y la cabecera del de Google llevan la misma foto del bono que la vista
+previa de la web, con el importe pintado encima en dorado y girado igual (`_shared/imagen.ts`, servida en
+`bonos-api/imagen?c=…&i=…`). Cada web publica en `/bonos-regalo/` la foto sin importe (`bono-base.jpg`,
+cuadrada) y la letra del importe (`bono-fuente.ttf`). Si se cambia el sitio, el tamaño o el giro del importe
+en la web, hay que cambiar también `IMPORTE` en `imagen.ts`.
+- Pruebas: `deno test --allow-read --allow-env --node-modules-dir=none test/imagen.deno.ts`
+
 ## Bono en la Cartera del móvil (Apple Wallet y Google Wallet)
 
 El correo del bono muestra "Añadir a Apple Wallet" y "Añadir a Google Wallet" en cuanto existen los secretos de
@@ -59,7 +68,8 @@ cada plataforma (si faltan, no aparece el botón). El pase se genera al pulsar, 
 `bonos-api/cartera/apple` y `bonos-api/cartera/google` (`_shared/cartera.ts`).
 
 - Imágenes: cada web publica `/bonos-regalo/cartera/` con `icon.png` (29 px, @2x, @3x), `logo.png` (alto 50 px,
-  @2x, @3x) y `logo-google.png` (660×660; Google lo recorta en círculo).
+  @2x, @3x) y `logo-google.png` (660×660; Google lo recorta en círculo). La tira de Apple y la cabecera de
+  Google salen de la imagen del bono (ver arriba).
 - Apple (secretos): `APPLE_TEAM_ID`, `APPLE_PASS_TYPE_ID` (p. ej. `pass.com.eligemenu.bonos`) y, en base64,
   `APPLE_PASS_CERT` (el `.cer` del Pass Type ID), `APPLE_PASS_KEY` (la clave privada PEM con la que se hizo
   la solicitud del certificado) y `APPLE_WWDR_CERT` (intermedio de Apple "Worldwide Developer Relations G4").

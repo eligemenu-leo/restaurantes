@@ -1,9 +1,17 @@
 {
   "activo": true,
+  "publico": true,
   "endpoint": "https://itbczgolpjezaiitjnno.supabase.co/functions/v1/bonos-pedido",
   "comercio": "la-vaca-asustada",
-  "importes": [50, 100, 150],
+  "importes": [
+    50,
+    100,
+    150
+  ],
   "validezMeses": 12,
-  "locales": ["Gijón", "Oviedo"],
+  "locales": [
+    "Gijón",
+    "Oviedo"
+  ],
   "email": "info@lavacaasustada.com"
 }

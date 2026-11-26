@@ -22,8 +22,9 @@ Deno.test('fin del día en hora de España (verano e invierno)', () => {
 Deno.test('pass.json con saldo, caducidad y QR a la ficha del panel', () => {
   const p = passJson(c, b, { passTypeIdentifier: 'pass.test', teamIdentifier: 'ABCDE12345' });
   assertEquals(p.serialNumber, 'VACA-432Q-PB7X');
-  assertEquals(p.storeCard.primaryFields[0].value, 35.5);
-  assertEquals(p.storeCard.primaryFields[0].label, 'Saldo');
+  assertEquals(p.storeCard.headerFields[0].value, 35.5);
+  assertEquals(p.storeCard.headerFields[0].label, 'Saldo');
+  assertEquals(p.storeCard.primaryFields.length, 0);
   assertEquals(p.barcodes[0].message, 'https://lavacaasustada.com/gestion/#/bono/VACA-432Q-PB7X');
   assertEquals(p.expirationDate, '2027-07-31T23:59:59+02:00');
 });
@@ -61,16 +62,24 @@ Deno.test('el .pkpass lleva manifest correcto y una firma PKCS#7 válida', async
 
 Deno.test('Google: objeto con saldo en micros, QR y caducidad; JWT RS256 verificable', async () => {
   const { clase, objeto } = objetosGoogle(c, b, '3388000000012345678');
-  assertEquals(clase.id, '3388000000012345678.bonos_la-vaca-asustada');
-  assertEquals(objeto.id, '3388000000012345678.VACA-432Q-PB7X');
-  assertEquals(objeto.balance.micros, '35500000');
-  assertEquals(clase.programLogo.sourceUri.uri, 'https://lavacaasustada.com/bonos-regalo/cartera/logo-google.png');
+  assertEquals(clase.id, '3388000000012345678.bono_la-vaca-asustada');
+  assertEquals(objeto.id, '3388000000012345678.bono_VACA-432Q-PB7X');
+  assertEquals(objeto.header.defaultValue.value, '35,50\u00a0€');
+  assertEquals(objeto.subheader.defaultValue.value, 'Saldo del bono regalo');
+  assertEquals(objeto.heroImage.sourceUri.uri, 'https://ejemplo.supabase.co/functions/v1/bonos-api/imagen?c=VACA-432Q-PB7X&i=3550&f=banda');
+  assertEquals(objeto.logo.sourceUri.uri, 'https://lavacaasustada.com/bonos-regalo/cartera/logo-google.png');
+  // El frente muestra Válido hasta | Dónde y Código | Para, que existen siempre en el objeto.
+  const filas = clase.classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos;
+  const ids = filas.flatMap((f) => [f.twoItems.startItem, f.twoItems.endItem])
+    .map((i) => i.firstValue.fields[0].fieldPath.match(/'(.+)'/)![1]);
+  assertEquals(ids, ['caduca', 'donde', 'codigo', 'para']);
+  for (const id of ids) assert(objeto.textModulesData.some((m) => m.id === id), id);
   const par = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
   const pkcs8 = new Uint8Array(await crypto.subtle.exportKey('pkcs8', par.privateKey));
   const pem = `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...pkcs8))}\n-----END PRIVATE KEY-----\n`;
-  const jwt = await jwtRs256({ aud: 'google', payload: { giftCardObjects: [{ id: objeto.id }] } }, pem);
+  const jwt = await jwtRs256({ aud: 'google', payload: { genericObjects: [{ id: objeto.id }] } }, pem);
   const [h, p, f] = jwt.split('.');
   const dec = (s: string) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (ch) => ch.charCodeAt(0));
   assert(await crypto.subtle.verify('RSASSA-PKCS1-v1_5', par.publicKey, dec(f), new TextEncoder().encode(`${h}.${p}`)));
-  assertEquals(JSON.parse(new TextDecoder().decode(dec(p))).payload.giftCardObjects[0].id, objeto.id);
+  assertEquals(JSON.parse(new TextDecoder().decode(dec(p))).payload.genericObjects[0].id, objeto.id);
 });

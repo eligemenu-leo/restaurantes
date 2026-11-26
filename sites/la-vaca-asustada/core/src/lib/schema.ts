@@ -34,6 +34,10 @@ export const Location = z.object({
   closedDays: z.array(z.enum(DAYS)).default([]),
   reservationUrl: z.string().url().optional(),
   mapsQuery: z.string().optional(),
+  /** Página propia del local dentro de la web (p. ej. "/menu-gijon/"); en los datos estructurados es su URL y su carta. */
+  path: z.string().regex(/^\/.*\/$/).optional(),
+  /** Coordenadas del local, para los datos estructurados. */
+  geo: z.object({ lat: z.number(), lng: z.number() }).optional(),
 });
 
 /** Los 14 alérgenos de declaración obligatoria (Reglamento UE 1169/2011). */
@@ -72,6 +76,8 @@ export const MenuItem = z.object({
   suggestion: z.boolean().default(false),
   tagline: z.string().optional(),
   image: z.string().optional(),
+  /** UUID del plato en Eligemenú. Se inyecta al compilar; no forma parte de los JSON de datos. */
+  emId: z.string().uuid().optional(),
 });
 
 export const MenuSection = z.object({
@@ -83,6 +89,8 @@ export const MenuSection = z.object({
   /** Cabeceras de las columnas de precio cuando hay precio doble. */
   priceHeaders: z.array(z.string()).optional(),
   items: z.array(MenuItem).min(1),
+  /** UUID del grupo en Eligemenú. Se inyecta al compilar; no forma parte de los JSON de datos. */
+  emId: z.string().uuid().optional(),
 });
 
 export const Menu = z.object({

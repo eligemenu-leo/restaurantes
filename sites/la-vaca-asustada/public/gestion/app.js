@@ -78,6 +78,15 @@ const enviar = (sel, fn) => {
   });
 };
 
+/** Correo y teléfono como enlaces (sin anidar dentro de otro enlace: `enlaces=false` los deja en texto). */
+const telHref = (t) => `tel:${String(t).replace(/[^+0-9]/g, '')}`;
+function contacto(email, tel, enlaces = true) {
+  const partes = [];
+  if (email) partes.push(enlaces ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : esc(email));
+  if (tel) partes.push(enlaces ? `<a href="${esc(telHref(tel))}">${esc(tel)}</a>` : esc(tel));
+  return partes.join(' · ');
+}
+
 // ───────────── Sesión y restaurante ─────────────
 async function cargarMembresias() {
   const { data, error } = await sb.from('miembros').select('comercio_id, rol').eq('user_id', estado.sesion.user.id);
@@ -223,7 +232,7 @@ async function vistaInicio() {
     ${!c.venta_activa ? '<p class="alerta">La venta en la web está <strong>pausada</strong>. Puedes reactivarla en Ajustes.</p>' : ''}
     <form class="buscar" id="f-buscar" role="search">
       <label class="visually-hidden" for="q">Buscar un bono</label>
-      <input id="q" name="q" placeholder="Código, nombre o correo" autocomplete="off" autocapitalize="characters">
+      <input id="q" name="q" placeholder="Código, nombre, correo o teléfono" autocomplete="off" autocapitalize="characters">
       <button class="btn" type="submit">Buscar</button>
     </form>
     <div class="acciones" style="margin-bottom:1.25rem">
@@ -237,11 +246,21 @@ async function vistaInicio() {
       <a class="cifra" href="#/bonos?estado=pronto"><span>Caducan en 30 días</span><strong>${r.caducan_30}</strong><small>bonos</small></a>
       <a class="cifra" href="#/bonos?estado=caducados"><span>Caducado sin usar</span><strong>${euros(r.caducado_cent)}</strong></a>
       <a class="cifra" href="#/bonos?estado=anulados"><span>Anulados</span><strong>${r.anulados}</strong></a>
+      ${esAdmin() ? '<a class="cifra" href="#/pagos?estado=intentos" id="intentos"><span>Compras sin pagar este mes</span><strong>…</strong><small>denegadas o sin terminar</small></a>' : ''}
     </div>
     <div class="tarjeta"><h2>Ventas de los últimos 12 meses</h2>
       ${r.por_mes.length ? `<div class="barras">${r.por_mes.map((m) => `<div class="barra"><span>${nombreMes(m.mes)}</span><div style="width:${Math.round((m.cent / max) * 100)}%"></div><span>${euros(m.cent)} · ${m.vendidos}</span></div>`).join('')}</div>` : '<p class="ayuda">Todavía no hay ventas.</p>'}
     </div>`, 'Inicio');
   enviar('#f-buscar', ({ q }) => { location.hash = `#/bonos?q=${encodeURIComponent(q.trim())}`; });
+  if (esAdmin()) {
+    // Desde el día 1 del mes en Madrid.
+    const [a, m] = hoy().split('-').map(Number);
+    const desde = new Date(Date.UTC(a, m - 1, 1) - 72e5).toISOString(); // medianoche en Madrid, con margen
+    const { count } = await sb.from('pedidos').select('id', { count: 'exact', head: true })
+      .eq('comercio_id', c.id).neq('estado', 'pagado').gte('creado', desde);
+    const el = $vista.querySelector('#intentos strong');
+    if (el) el.textContent = count ?? '—';
+  }
 }
 
 /** Descarga un CSV para Excel (separado por ;, con BOM). cols = [[campo, título], …]. */
@@ -270,7 +289,7 @@ function consultaBonos(filtro, q) {
   if (filtro === 'anulados') s = s.eq('estado', 'anulado');
   if (filtro === 'manuales') s = s.eq('origen', 'manual');
   const t = q.trim().replace(/[%,()*"\\]/g, ' ').trim();
-  if (t) s = s.or(['codigo', 'titular_nombre', 'titular_email', 'destinatario_nombre'].map((c) => `${c}.ilike."*${t}*"`).join(','));
+  if (t) s = s.or(['codigo', 'titular_nombre', 'titular_email', 'titular_telefono', 'destinatario_nombre'].map((c) => `${c}.ilike."*${t}*"`).join(','));
   return s.order('creado', { ascending: false });
 }
 
@@ -284,7 +303,7 @@ async function vistaBonos(_, params) {
   pintar(`<h1>Bonos</h1>
     <form class="buscar" id="f-buscar" role="search">
       <label class="visually-hidden" for="q">Buscar</label>
-      <input id="q" name="q" value="${esc(q)}" placeholder="Código, nombre o correo" autocomplete="off">
+      <input id="q" name="q" value="${esc(q)}" placeholder="Código, nombre, correo o teléfono" autocomplete="off">
       <button class="btn" type="submit">Buscar</button>
     </form>
     <nav class="chips" aria-label="Filtrar por estado">${FILTROS.map(([k, t]) => `<a href="#/bonos?estado=${k}${q ? `&q=${encodeURIComponent(q)}` : ''}"${k === filtro ? ' aria-current="true"' : ''}>${t}</a>`).join('')}</nav>
@@ -304,7 +323,8 @@ async function vistaBonos(_, params) {
       <span class="codigo">${esc(b.codigo)}</span>
       <span class="der"><strong>${euros(b.saldo_cent)}</strong>${b.saldo_cent !== b.importe_cent ? ` <small class="ayuda">de ${euros(b.importe_cent)}</small>` : ''}</span>
       <span class="sub">${esc(b.titular_nombre || 'Sin nombre')}${b.destinatario_nombre ? ` → ${esc(b.destinatario_nombre)}` : ''} · caduca ${fecha(b.caduca)}</span>
-      <span class="der">${etiqueta(b)}</span></a></li>`).join(''));
+      <span class="der">${etiqueta(b)}</span>
+      ${b.titular_email || b.titular_telefono ? `<span class="sub">${contacto(b.titular_email, b.titular_telefono, false)}</span>` : ''}</a></li>`).join(''));
     $mas.hidden = data.length < POR_PAGINA;
     pagina++;
   };
@@ -313,7 +333,7 @@ async function vistaBonos(_, params) {
     const { data, error } = await consultaBonos(filtro, q).limit(5000);
     if (error) return aviso(error.message, true);
     const cols = [['codigo', 'Código'], ['estado_txt', 'Estado'], ['importe', 'Importe'], ['saldo', 'Saldo'], ['creado_txt', 'Creado'],
-      ['caduca_txt', 'Caduca'], ['origen', 'Origen'], ['titular_nombre', 'Titular'], ['titular_email', 'Correo'], ['destinatario_nombre', 'Para'], ['nota', 'Nota']];
+      ['caduca_txt', 'Caduca'], ['origen', 'Origen'], ['titular_nombre', 'Titular'], ['titular_email', 'Correo'], ['titular_telefono', 'Teléfono'], ['destinatario_nombre', 'Para'], ['nota', 'Nota']];
     const filas = data.map((b) => ({ ...b, estado_txt: situacion(b).texto, importe: deCent(b.importe_cent), saldo: deCent(b.saldo_cent),
       creado_txt: fecha(b.creado), caduca_txt: fecha(b.caduca) }));
     descargarCsv(cols, filas, `bonos-${estado.comercio.id}-${hoy()}.csv`);
@@ -323,7 +343,7 @@ async function vistaBonos(_, params) {
 
 // ───────────── Pagos con tarjeta (Redsys) ─────────────
 // Cada intento de compra en la web es un pedido: pagado, denegado o sin terminar (el cliente no llegó a pagar).
-const FILTROS_PAGO = [['pagado', 'Cobrados'], ['denegado', 'Denegados'], ['pendiente', 'Sin terminar'], ['', 'Todos']];
+const FILTROS_PAGO = [['pagado', 'Cobrados'], ['intentos', 'Fallidos y sin terminar'], ['denegado', 'Denegados'], ['pendiente', 'Sin terminar'], ['', 'Todos']];
 const RESPUESTAS_REDSYS = {
   '0101': 'Tarjeta caducada', '0102': 'Tarjeta bloqueada', '0104': 'Operación no permitida', '0116': 'Saldo insuficiente',
   '0118': 'Tarjeta no registrada', '0129': 'CVV incorrecto', '0180': 'Tarjeta no admitida', '0184': 'Fallo al autenticar al titular',
@@ -350,7 +370,7 @@ async function vistaPagos(_, params) {
   const enMes = (iso) => new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }).slice(0, 7) === mes;
   const url = (e, ms) => `#/pagos?estado=${e}&mes=${ms}`;
 
-  pintar(`<h1>Pagos con tarjeta</h1>
+  pintar(`<h1>Pagos e intentos de compra</h1>
     ${estado.comercio.redsys_entorno === 'pruebas' ? '<p class="alerta">El pago está en <strong>modo de pruebas</strong>: estas operaciones no son cobros reales.</p>' : ''}
     <form class="buscar" id="f-mes">
       <label for="mes">Mes</label>
@@ -361,16 +381,17 @@ async function vistaPagos(_, params) {
     <div class="rejilla" id="cifras"></div>
     <ul class="lista" id="lista"><li class="vacio">Cargando…</li></ul>
     <div class="acciones" style="margin-top:1rem"><button class="btn btn--sec" id="csv">Descargar CSV</button></div>
+    <p class="ayuda">Cada vez que alguien pulsa «Comprar» en la web queda aquí un pedido: cobrado, denegado por el banco o sin terminar (salió de la pasarela sin pagar). Con el correo y el teléfono puedes contactar con quien no terminó la compra.</p>
     <p class="ayuda">El número de pedido es el mismo que aparece en el portal de Redsys, para cuadrar las operaciones con el banco.</p>`, 'Pagos');
   enviar('#f-mes', ({ mes: nm }) => { location.hash = url(filtro, nm); });
 
   const { data, error } = await sb.from('pedidos')
-    .select('num_pedido, importe_cent, comprador_nombre, comprador_email, destinatario_nombre, estado, redsys_respuesta, redsys_autorizacion, creado, actualizado, bonos(codigo)')
+    .select('num_pedido, importe_cent, comprador_nombre, comprador_email, comprador_telefono, destinatario_nombre, estado, redsys_respuesta, redsys_autorizacion, creado, actualizado, bonos(codigo)')
     .eq('comercio_id', estado.comercio.id).gte('creado', desde).lt('creado', hasta)
     .order('creado', { ascending: false }).limit(5000);
   if (error) throw error;
   const delMes = data.filter((p) => enMes(p.creado));
-  const lista = filtro ? delMes.filter((p) => p.estado === filtro) : delMes;
+  const lista = filtro === 'intentos' ? delMes.filter((p) => p.estado !== 'pagado') : filtro ? delMes.filter((p) => p.estado === filtro) : delMes;
   const cobrados = delMes.filter((p) => p.estado === 'pagado');
   const n = (e) => delMes.filter((p) => p.estado === e).length;
 
@@ -383,7 +404,7 @@ async function vistaPagos(_, params) {
     const codigo = codigoBonoDe(p);
     const cuerpo = `<span><span class="codigo">${esc(p.num_pedido)}</span> ${etiquetaPago(p)}</span>
       <span class="der"><strong>${euros(p.importe_cent)}</strong></span>
-      <span class="sub">${fechaHora(p.creado)} · ${esc(p.comprador_nombre)} · ${esc(p.comprador_email)}</span>
+      <span class="sub">${fechaHora(p.creado)} · ${esc(p.comprador_nombre)} · ${contacto(p.comprador_email, p.comprador_telefono, !codigo)}</span>
       <span class="sub">${esc(textoRespuesta(p))}${codigo ? ` · bono <strong>${esc(codigo)}</strong>` : ''}</span>`;
     return `<li>${codigo ? `<a href="#/bono/${esc(codigo)}">${cuerpo}</a>` : `<div class="fila">${cuerpo}</div>`}</li>`;
   }).join('') : '<li class="vacio">No hay pagos con estos filtros en este mes.</li>';
@@ -391,7 +412,7 @@ async function vistaPagos(_, params) {
   $vista.querySelector('#csv').onclick = () => {
     const cols = [['num_pedido', 'Pedido Redsys'], ['fecha', 'Fecha'], ['estado_txt', 'Resultado'], ['importe', 'Importe'],
       ['redsys_respuesta', 'Código respuesta'], ['redsys_autorizacion', 'Autorización'], ['comprador_nombre', 'Comprador'],
-      ['comprador_email', 'Correo'], ['destinatario_nombre', 'Para'], ['bono', 'Bono']];
+      ['comprador_email', 'Correo'], ['comprador_telefono', 'Teléfono'], ['destinatario_nombre', 'Para'], ['bono', 'Bono']];
     const filas = lista.map((p) => ({ ...p, fecha: fechaHora(p.creado), estado_txt: ESTADO_PAGO[p.estado][1], importe: deCent(p.importe_cent), bono: codigoBonoDe(p) }));
     descargarCsv(cols, filas, `pagos-${estado.comercio.id}-${mes}.csv`);
   };
@@ -447,7 +468,7 @@ async function vistaBono(codigo) {
     <div class="tarjeta"><h2>Datos</h2><dl class="datos">
       <dt>Importe</dt><dd>${euros(b.importe_cent)}${tipo ? ` · ${esc(tipo.nombre)}` : ''}</dd>
       <dt>Caduca</dt><dd>${fecha(b.caduca)}</dd>
-      <dt>Titular</dt><dd>${esc(b.titular_nombre || '—')}${b.titular_email ? `<br><a href="mailto:${esc(b.titular_email)}">${esc(b.titular_email)}</a>` : ''}</dd>
+      <dt>Titular</dt><dd>${esc(b.titular_nombre || '—')}${b.titular_email || b.titular_telefono ? `<br>${contacto(b.titular_email, b.titular_telefono)}` : ''}</dd>
       ${b.destinatario_nombre ? `<dt>Para</dt><dd>${esc(b.destinatario_nombre)}</dd>` : ''}
       ${b.mensaje ? `<dt>Mensaje</dt><dd>«${esc(b.mensaje)}»</dd>` : ''}
       ${b.nota ? `<dt>Nota interna</dt><dd>${esc(b.nota)}</dd>` : ''}
@@ -463,6 +484,7 @@ async function vistaBono(codigo) {
             <label class="campo"><span>Titular</span><input name="titular_nombre" maxlength="120" value="${esc(b.titular_nombre)}"></label>
             <label class="campo"><span>Correo del titular</span><input name="titular_email" type="email" maxlength="200" value="${esc(b.titular_email)}"></label>
           </div>
+          <label class="campo"><span>Teléfono del titular</span><input name="titular_telefono" type="tel" maxlength="30" value="${esc(b.titular_telefono)}"></label>
           <label class="campo"><span>Para</span><input name="destinatario" maxlength="120" value="${esc(b.destinatario_nombre)}"></label>
           <label class="campo"><span>Mensaje del bono</span><textarea name="mensaje" maxlength="500">${esc(b.mensaje)}</textarea></label>
           <label class="campo"><span>Nota interna</span><textarea name="nota" maxlength="1000">${esc(b.nota)}</textarea><small>Solo la ve el restaurante.</small></label>
@@ -506,7 +528,7 @@ async function vistaBono(codigo) {
   });
   enviar('#f-editar', async (d) => {
     if (await hacer(sb.rpc('editar_bono', { p_codigo: codigo, p_caduca: d.caduca, p_titular_nombre: d.titular_nombre, p_titular_email: d.titular_email,
-      p_destinatario: d.destinatario, p_mensaje: d.mensaje, p_nota: d.nota }), 'Cambios guardados')) recargar();
+      p_destinatario: d.destinatario, p_mensaje: d.mensaje, p_nota: d.nota, p_titular_telefono: d.titular_telefono }), 'Cambios guardados')) recargar();
   });
   enviar('#f-reenviar', async ({ email }) => { if (await hacer(api('reenviar', { codigo, email }), `Correo enviado a ${email}`)) recargar(); });
   enviar('#f-anular', async ({ motivo }) => {
@@ -566,7 +588,7 @@ async function vistaEscanear() {
 
 // ───────────── Crear bono a mano ─────────────
 async function vistaNuevo() {
-  const { data: tipos } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('orden').order('importe_cent');
+  const { data: tipos } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('importe_cent').order('orden');
   pintar(`<h1>Crear bono</h1>
     <p class="ayuda">Para ventas en el local, regalos o cortesías. No pasa por la pasarela de pago.</p>
     <form id="f-nuevo" class="tarjeta">
@@ -581,6 +603,7 @@ async function vistaNuevo() {
         <label class="campo"><span>Titular</span><input name="titular_nombre" maxlength="120"></label>
         <label class="campo"><span>Correo del titular</span><input name="titular_email" id="email" type="email" maxlength="200"></label>
       </div>
+      <label class="campo"><span>Teléfono del titular <small>(opcional)</small></span><input name="titular_telefono" type="tel" maxlength="30"></label>
       <label class="campo"><span>Para <small>(opcional)</small></span><input name="destinatario" maxlength="120"></label>
       <label class="campo"><span>Mensaje <small>(opcional, sale en el bono)</small></span><textarea name="mensaje" maxlength="500"></textarea></label>
       <label class="campo"><span>Nota interna <small>(opcional)</small></span><input name="nota" maxlength="1000" placeholder="Pagado en efectivo, cortesía…"></label>
@@ -601,7 +624,7 @@ async function vistaNuevo() {
     if (!(cent > 0)) return aviso('Escribe un importe válido', true);
     const b = await hacer(sb.rpc('crear_bono_manual', { p_comercio: estado.comercio.id, p_tipo: d.tipo || null, p_importe_cent: cent,
       p_caduca: d.caduca, p_titular_nombre: d.titular_nombre, p_titular_email: d.titular_email, p_destinatario: d.destinatario,
-      p_mensaje: d.mensaje, p_nota: d.nota }));
+      p_mensaje: d.mensaje, p_nota: d.nota, p_titular_telefono: d.titular_telefono }));
     if (!b) return;
     if (d.enviar && d.titular_email) await hacer(api('reenviar', { codigo: b.codigo }), `Bono ${b.codigo} creado y enviado`);
     else aviso(`Bono ${b.codigo} creado`);
@@ -620,7 +643,7 @@ function situacionTipo(t) {
 const validezTexto = (t) => (t.caduca_fija ? `Caduca el ${fecha(t.caduca_fija)}` : `Válido ${t.validez_meses} ${t.validez_meses === 1 ? 'mes' : 'meses'}`);
 
 async function vistaTipos() {
-  const { data: tipos, error } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('orden').order('importe_cent');
+  const { data: tipos, error } = await sb.from('tipos_bono').select('*').eq('comercio_id', estado.comercio.id).order('importe_cent').order('orden');
   if (error) throw error;
   pintar(`<h1>Tipos de bono</h1>
     <p class="ayuda">Son los bonos que se pueden comprar en la web. Los cambios se ven en la web en un minuto, sin tocar nada más.</p>
@@ -664,7 +687,7 @@ async function vistaTipo(id) {
       </fieldset>
       <div class="dos">
         <label class="check"><input type="checkbox" name="activo" value="si"${t.activo ? ' checked' : ''}> Activo (se puede comprar)</label>
-        <label class="campo"><span>Orden en la web</span><input name="orden" type="number" value="${t.orden ?? 0}"><small>Los números más bajos salen primero.</small></label>
+        <label class="campo"><span>Orden en la web</span><input name="orden" type="number" value="${t.orden ?? 0}"><small>La web ordena los bonos de menor a mayor precio; esto solo decide entre bonos del mismo precio (los números más bajos, primero).</small></label>
       </div>
       <div class="acciones"><button class="btn" type="submit">${nuevo ? 'Crear' : 'Guardar'}</button>
         ${nuevo ? '' : '<button class="btn btn--peligro" type="button" id="borrar">Borrar</button>'}</div>
@@ -751,13 +774,18 @@ function claveAleatoria() {
 }
 
 // ───────────── Arranque ─────────────
+// Supabase avisa varias veces al abrir (INITIAL_SESSION y SIGNED_IN). Todas esperan a la misma carga
+// de restaurantes, para no pintar "Sin acceso" mientras aún se está comprobando.
+let cargando = null;
 async function alCambiarSesion(sesion) {
   const antes = estado.sesion?.user.id;
   estado.sesion = sesion;
   if (sesion && sesion.user.id !== antes) {
-    try { await cargarMembresias(); } catch (e) { console.error(e); }
+    cargando = cargarMembresias().catch((e) => console.error(e));
   }
-  if (!sesion) { estado.membresias = []; estado.comercio = null; }
+  if (sesion && cargando) await cargando;
+  if (estado.sesion !== sesion) return; // la sesión cambió mientras cargaba: ya pinta la llamada nueva
+  if (!sesion) { estado.membresias = []; estado.comercio = null; cargando = null; }
   router();
 }
 

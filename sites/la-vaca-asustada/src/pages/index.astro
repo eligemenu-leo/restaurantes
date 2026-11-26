@@ -4,7 +4,7 @@ import { getImage, Image } from 'astro:assets';
 import Layout from '../components/Layout.astro';
 import Photo from '@rea/core/components/Photo.astro';
 import Reserva from '../components/Reserva.astro';
-import { restaurantGraph } from '@rea/core/lib/jsonld.ts';
+import { restaurants } from '../data/seo.ts';
 import { site } from '../data/index.ts';
 import cuchillos from '../assets/web/Cuchillos.png';
 import poster from '../assets/web/brasa-poster.jpg';
@@ -38,7 +38,7 @@ const cortes = [
 ];
 ---
 <Layout title="La Vaca Asustada · Restaurante de carne madurada en Gijón y Oviedo" path="/" overlayHeader
-  jsonLd={[restaurantGraph(site, `${site.url}/menu/`)]}>
+  jsonLd={[restaurants()]}>
   <Fragment slot="head"><link rel="preload" as="image" href={posterImg.src} fetchpriority="high" /></Fragment>
 
   <!-- 1. Vídeo de la brasa con el nombre y los dos botones de reserva -->
@@ -48,8 +48,7 @@ const cortes = [
     </video>
     <div class="hero__in">
       <Image class="hero__knives" src={cuchillos} width={200} alt="" loading="eager" />
-      <h1>La Vaca Asustada</h1>
-      <p class="hero__sub">Restaurante de carne madurada en Gijón y Oviedo</p>
+      <h1><span class="hero__name">La Vaca Asustada</span> <span class="hero__sub">Restaurante de carne madurada en Gijón y Oviedo</span></h1>
       <div class="hero__btns">
         <Reserva id="hero" />
       </div>
@@ -156,8 +155,10 @@ const cortes = [
   @media (prefers-reduced-motion: reduce) { .hero__video { display: none; } }
   .hero__in { display: flex; flex-direction: column; align-items: center; }
   .hero__knives { width: 100px; height: auto; margin-bottom: 1.5rem; }
-  .hero h1 { max-width: 900px; margin: 0; padding-bottom: 20px; color: #fff; font: 400 clamp(2.6rem, 7.4vw, 5rem)/1 var(--f-alt); text-transform: uppercase; letter-spacing: 2.3px; word-spacing: 4px; }
-  .hero__sub { margin: 0 0 2rem; font: 700 0.75rem/1.2 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
+  /* El H1 lleva el nombre y la frase de debajo, cada uno con su aspecto de la web original. */
+  .hero h1 { max-width: 900px; margin: 0 0 2rem; font: inherit; }
+  .hero__name { display: block; padding-bottom: 20px; color: #fff; font: 400 clamp(2.6rem, 7.4vw, 5rem)/1 var(--f-alt); text-transform: uppercase; letter-spacing: 2.3px; word-spacing: 4px; }
+  .hero__sub { display: block; text-wrap: wrap; font: 700 0.75rem/1.2 var(--f-label); letter-spacing: 2.4px; word-spacing: 2px; text-transform: uppercase; color: var(--c-accent-2); }
   .hero__btns { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
 
   /* 2. Carnes TOP */
