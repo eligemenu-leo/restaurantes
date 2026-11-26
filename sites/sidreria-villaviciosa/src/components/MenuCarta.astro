@@ -14,10 +14,6 @@ const Hsub = `h${headingLevel + 1}` as 'h3' | 'h4';
 const hasAllergens = menu.sections.some((s) => s.items.some((i) => i.allergens?.length));
 const updated = new Date(menu.updated + 'T12:00:00').toLocaleDateString(t.locale, { month: 'long', year: 'numeric' });
 const fmt = (v: number, unit: string, label?: string) => price(v, unit, { hideZeroDecimals }) + (label ? ` ${label}` : '');
-const prices = (i: MenuItemData) => [
-  i.price != null ? fmt(i.price, i.unit, i.priceLabel) : null,
-  i.price2 != null ? fmt(i.price2, 'racion', i.price2Label) : null,
-].filter(Boolean) as string[];
 const mainSections = menu.sections.filter((s) => !s.sub);
 ---
 <div class="menu">
@@ -28,33 +24,31 @@ const mainSections = menu.sections.filter((s) => !s.sub);
   )}
   {menu.sections.map((s) => {
     const Tag = s.sub ? Hsub : H;
+    // Plato vacío y oculto: el modo edición lo copia para dibujar los platos ocultos de este grupo.
+    const items: Array<MenuItemData & { tpl?: boolean }> = [...s.items, ...(s.emId ? [{ name: '', unit: 'racion', price: 0, featured: false, suggestion: false, tpl: true } as MenuItemData & { tpl: boolean }] : [])];
     return (
       <section class:list={['menu__sec', { 'menu__sec--sub': s.sub }]} id={s.id} aria-labelledby={`${s.id}-h`}
-        data-em-id={s.emId} data-em-type="menu-group" data-em-name={s.name} data-em-desc={s.note ?? ''}>
+        data-em-id={s.emId} data-em-type="menu-group">
         <Tag id={`${s.id}-h`} class="menu__h"><span data-em-field="name">{s.name}</span></Tag>
-        {s.note && <p class="menu__note"><span data-em-field="description">{s.note}</span></p>}
+        <p class="menu__note" data-em-field="description" data-em-optional data-em-placeholder="Añadir nota del grupo" hidden={!s.note}>{s.note}</p>
         {s.priceHeaders && <p class="menu__ph" aria-hidden="true">{s.priceHeaders.filter(Boolean).join(' · ')}</p>}
-        <ul class="menu__list">
-          {s.items.map((i) => {
-            const p = prices(i);
+        <ul class="menu__list" data-em-list={s.emId}>
+          {items.map((i) => {
+            const p1 = i.price != null ? fmt(i.price, i.unit, i.priceLabel) : null;
+            const p2 = i.price2 != null ? fmt(i.price2, 'racion', i.price2Label) : null;
             return (
-              <li class="menu__item" data-em-id={i.emId} data-em-type="dish"
-                data-em-name={i.name} data-em-desc={i.description ?? ''}
-                data-em-price-1={i.price != null ? String(i.price) : ''} data-em-price-2={i.price2 != null ? String(i.price2) : ''}>
+              <li class="menu__item" data-em-id={i.emId} data-em-type="dish" hidden={i.tpl} data-em-tpl={i.tpl ? '' : undefined}>
                 <div class="menu__row">
                   <span class="menu__name" data-em-field="name">{i.name}</span>
-                  {p.length > 0 && <span class="menu__dots" aria-hidden="true"></span>}
-                  {p.length > 0 && (
+                  {(p1 || p2) && <span class="menu__dots" aria-hidden="true"></span>}
+                  {(p1 || p2) && (
                     <span class="menu__price">
-                      {p.map((t, n) => (
-                        <span class:list={{ 'menu__price2': n > 0 }}>
-                          {s.priceHeaders?.[n] && <span class="visually-hidden">{s.priceHeaders[n]}: </span>}{t}
-                        </span>
-                      ))}
+                      {p1 && <span>{s.priceHeaders?.[0] && <span class="visually-hidden">{s.priceHeaders[0]}: </span>}<span data-em-field="price_1">{p1}</span></span>}
+                      {p2 && <span class="menu__price2">{s.priceHeaders?.[1] && <span class="visually-hidden">{s.priceHeaders[1]}: </span>}<span data-em-field="price_2">{p2}</span></span>}
                     </span>
                   )}
                 </div>
-                {i.description && <p class="menu__desc"><span data-em-field="description">{i.description}</span></p>}
+                <p class="menu__desc" data-em-field="description" data-em-optional data-em-placeholder="Añadir descripción" hidden={!i.description}>{i.description}</p>
                 {i.allergens?.length ? (
                   <p class="menu__all"><span class="visually-hidden">{t.allergens}: </span>{i.allergens.map(allergen).join(' · ')}</p>
                 ) : null}

@@ -1,8 +1,22 @@
 ---
 /**
- * Modo edición en contexto para restaurantes con acceso eligemenu.
- * Incluir en el layout pasando eligemenuSlug desde cada página de carta/menú.
- * El botón ✏️ Editar solo es visible a quien tenga acceso; el popup gestiona la autenticación.
+ * Modo edición en contexto con Eligemenú: el dueño del restaurante corrige la carta sobre la propia web.
+ *
+ * - El botón ✏️ Editar no lo ve el público: aparece al abrir la página con ?editar (o #editar)
+ *   y, después de entrar una vez, en ese navegador siempre.
+ * - Al entrar (ventana de Eligemenú), se piden los datos actuales con los platos ocultos incluidos:
+ *   la página se pone al día aunque la web aún no se haya vuelto a publicar.
+ * - Los textos se editan directamente donde se ven (nombre, descripción, precio) y se guardan
+ *   al salir del campo o pulsar Intro. Esc deshace. Cada plato tiene un botón para ocultarlo o mostrarlo.
+ *
+ * Marcas que pone la página (las usa MenuSections y cada web en sus listas):
+ *   data-em-type="dish|menu-group|daily-menu|daily-dish|daily-group" data-em-id="<uuid>"
+ *     dentro, data-em-field="name|description|price_1|price_2|price|half_price|observations"
+ *   data-em-list="<uuid del grupo>" en la lista de platos de un grupo, con un plato de muestra vacío
+ *     (hidden data-em-tpl, o un <template data-em-tpl>) para dibujar los platos ocultos.
+ *   data-em-optional en un campo que se oculta cuando está vacío (descripción, nota); con
+ *     data-em-show-empty, su texto de ayuda se ve siempre en modo edición.
+ *   El botón Ocultar/Mostrar sale en los platos que son hijos directos de una lista data-em-list.
  */
 interface Props { slug: string }
 const { slug } = Astro.props;
@@ -10,253 +24,333 @@ const WRITE_API = 'https://jcfiarsoqvczjavikgoh.supabase.co/functions/v1/wordpre
 const ELIGEMENU_URL = 'https://eligemenu.com';
 ---
 
-<div id="em-bar" aria-hidden="true" role="status">
-  ✏️ Modo edición — eligemenu
+<div id="em-bar" hidden role="region" aria-label="Modo edición">
+  <span>✏️ Modo edición: pulsa un texto para cambiarlo. Se guarda al salir del campo.</span>
   <button id="em-bar-exit" type="button">✕ Salir</button>
 </div>
-<button id="em-fab" type="button" title="Editar este menú">✏️ Editar</button>
+<button id="em-fab" type="button" hidden>✏️ Editar</button>
+<div id="em-toast" role="status" aria-live="polite"></div>
 
 <style is:global>
   #em-bar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
-    background: #1d4ed8; color: #fff;
-    padding: 7px 14px; font-size: 13px; font-weight: 600;
-    display: none; align-items: center; justify-content: space-between;
-    font-family: system-ui, sans-serif;
+    background: #1d4ed8; color: #fff; gap: 1rem;
+    padding: 7px 14px; font: 600 13px/1.4 system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: space-between;
   }
-  body.em-edit-mode #em-bar { display: flex; }
+  #em-bar[hidden], #em-fab[hidden] { display: none; }
   body.em-edit-mode { padding-top: 38px !important; }
   #em-bar-exit {
-    background: rgba(255,255,255,.18); border: none; color: #fff;
-    padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+    flex: none; background: rgba(255,255,255,.18); border: none; color: #fff;
+    padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
   }
   #em-fab {
     position: fixed; bottom: 20px; right: 20px; z-index: 9997;
     background: #1d4ed8; color: #fff; border: none; border-radius: 999px;
-    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,.3); font-family: system-ui, sans-serif;
+    padding: 10px 18px; font: 600 14px system-ui, sans-serif; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
   }
   body.em-edit-mode #em-fab { display: none; }
-  body.em-edit-mode [data-em-type] { position: relative; }
-  body.em-edit-mode [data-em-type]:hover { outline: 2px dashed #60a5fa; outline-offset: 2px; }
-  .em-edit-btn {
-    display: none; position: absolute; top: 4px; right: 4px; z-index: 100;
-    background: #1d4ed8; color: #fff; border: none; border-radius: 4px;
-    padding: 2px 7px; font-size: 11px; cursor: pointer; line-height: 1.5;
-    font-family: system-ui, sans-serif;
+  #em-toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;
+    padding: 9px 14px; border-radius: 6px; font: 600 13px system-ui, sans-serif;
+    color: #fff; max-width: min(90vw, 420px); pointer-events: none; display: none;
   }
-  body.em-edit-mode [data-em-type]:hover .em-edit-btn { display: inline-block; }
-  .em-inline-form {
-    background: #fff; border: 2px solid #1d4ed8; border-radius: 6px;
-    padding: 10px; margin: 6px 0; display: flex; flex-direction: column; gap: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.12); z-index: 200; position: relative;
-    font-family: system-ui, sans-serif;
+  #em-toast.em-on { display: block; }
+
+  /* Campos editables: se marcan al pasar por encima y al escribir. */
+  body.em-edit-mode [data-em-field] { cursor: text; border-radius: 2px; outline: 1px dashed transparent; outline-offset: 2px; }
+  body.em-edit-mode [data-em-field]:hover { outline-color: #60a5fa; }
+  body.em-edit-mode [data-em-field]:focus { outline: 2px solid #3b82f6; background: rgb(59 130 246 / 0.15); }
+  /* Campos vacíos (descripción, nota): aparecen con su texto de ayuda al pasar por el plato o al escribir. */
+  [data-em-tpl] { display: none !important; }
+  body.em-edit-mode [data-em-type]:hover > [data-em-field][hidden],
+  body.em-edit-mode [data-em-type]:focus-within > [data-em-field][hidden],
+  body.em-edit-mode [data-em-field][data-em-show-empty][hidden],
+  body.em-edit-mode [data-em-field][hidden]:focus { display: block; }
+  body.em-edit-mode [data-em-field]:empty::before { content: attr(data-em-placeholder); opacity: 0.5; font-style: italic; }
+  body.em-edit-mode [data-em-field].em-saving { opacity: 0.6; }
+  body.em-edit-mode [data-em-list][hidden] { display: revert; }
+
+  /* Platos ocultos: se ven atenuados y tachados solo en modo edición. */
+  body.em-edit-mode [data-em-type='dish'] { position: relative; }
+  [data-em-type='dish'].em-hidden-dish { display: none; }
+  body.em-edit-mode [data-em-type='dish'].em-hidden-dish { display: revert; }
+  body.em-edit-mode .em-hidden-dish :is([data-em-field], [class*='dots'], [class*='desc']) { opacity: 0.45; }
+  body.em-edit-mode .em-hidden-dish [data-em-field='name'] { text-decoration: line-through; }
+  .em-vis {
+    display: none; margin-left: 0.5rem; vertical-align: middle;
+    background: #1d4ed8; color: #fff; border: 0; border-radius: 4px;
+    padding: 3px 8px; font: 600 11px/1.3 system-ui, sans-serif; cursor: pointer; white-space: nowrap;
   }
-  .em-inline-form label { font-size: 11px; color: #6b7280; font-weight: 500; }
-  .em-inline-form input, .em-inline-form textarea {
-    border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 8px;
-    font-size: 13px; width: 100%; box-sizing: border-box; font-family: inherit;
-  }
-  .em-inline-form textarea { resize: vertical; }
-  .em-inline-form .em-row { display: flex; gap: 8px; }
-  .em-inline-form .em-row input { flex: 1; }
-  .em-form-actions { display: flex; gap: 6px; margin-top: 2px; }
-  .em-btn-save { background: #16a34a; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 12px; font-weight: 600; }
-  .em-btn-cancel { background: #9ca3af; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 12px; }
-  .em-toast {
-    position: fixed; bottom: 70px; right: 20px; z-index: 10000;
-    padding: 9px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
-    color: #fff; max-width: 280px; font-family: system-ui, sans-serif;
-    pointer-events: none;
-  }
+  body.em-edit-mode .em-vis { display: inline-block; }
+  .em-hidden-dish .em-vis { background: #16a34a; opacity: 1; }
 </style>
 
 <script define:vars={{ slug, WRITE_API, ELIGEMENU_URL }}>
 (function () {
   'use strict';
-  var TOKEN_KEY = 'em_tok_' + slug;
-  var popup = null;
-  var editMode = false;
+  var TOKEN_KEY = 'em_tok_' + slug, ON_KEY = 'em_on_' + slug, EDITOR_KEY = 'em_editor_' + slug;
+  var store = function (s, k, v) { try { if (v === undefined) return s.getItem(k); if (v === null) s.removeItem(k); else s.setItem(k, v); } catch (e) { return null; } };
+  var getToken = function () { return store(sessionStorage, TOKEN_KEY); };
+  var fab = document.getElementById('em-fab');
+  var bar = document.getElementById('em-bar');
+  var toastEl = document.getElementById('em-toast');
+  var editMode = false, popup = null, full = null, toastTimer = 0;
 
-  function getToken() { return sessionStorage.getItem(TOKEN_KEY); }
-  function setToken(t) { sessionStorage.setItem(TOKEN_KEY, t); }
-  function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
+  // El botón solo aparece a quien lo pide con ?editar / #editar o ya ha entrado alguna vez en este navegador.
+  if (/[?&#]editar\b/.test(location.search + location.hash)) store(localStorage, EDITOR_KEY, '1');
+  if (store(localStorage, EDITOR_KEY) === '1') fab.hidden = false;
 
-  function showToast(msg, type) {
-    var t = document.createElement('div');
-    t.className = 'em-toast';
-    t.style.background = type === 'error' ? '#dc2626' : '#16a34a';
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(function () { t.remove(); }, 3000);
+  function toast(msg, type) {
+    toastEl.textContent = msg;
+    toastEl.style.background = type === 'error' ? '#dc2626' : '#16a34a';
+    toastEl.classList.add('em-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('em-on'); }, type === 'error' ? 6000 : 3500);
   }
 
-  async function patch(type, id, body) {
-    var res = await fetch(WRITE_API + '/' + type + '/' + id, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-      body: JSON.stringify(body),
-    });
-    if (res.status === 401) { clearToken(); deactivate(); showToast('Sesión expirada. Vuelve a iniciar sesión.', 'error'); return null; }
-    return res.ok ? res.json() : null;
+  function expired() {
+    store(sessionStorage, TOKEN_KEY, null);
+    deactivate();
+    toast('La sesión de Eligemenú ha caducado. Pulsa ✏️ Editar para volver a entrar.', 'error');
+  }
+
+  // Si la sesión caduca, Eligemenú responde 401 sin cabeceras CORS y el navegador lo ve como error de red.
+  function api(method, path, body) {
+    return fetch(WRITE_API + path, {
+      method: method,
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+      body: body ? JSON.stringify(body) : undefined,
+    }).then(function (res) {
+      if (res.status === 401) { expired(); return null; }
+      if (!res.ok) return res.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.error || ('HTTP ' + res.status)); });
+      return res.json();
+    }, function () { expired(); return null; });
   }
 
   function openPopup() {
-    var origin = encodeURIComponent(location.origin || location.href.split('/').slice(0, 3).join('/'));
-    popup = window.open(
-      ELIGEMENU_URL + '/widget-login?restaurant_slug=' + slug + '&origin=' + origin,
-      'em_edit', 'width=420,height=580,resizable=yes'
-    );
+    var origin = encodeURIComponent(location.origin);
+    popup = window.open(ELIGEMENU_URL + '/widget-login?restaurant_slug=' + slug + '&origin=' + origin, 'em_edit', 'width=420,height=580,resizable=yes');
+    if (!popup) toast('El navegador ha bloqueado la ventana de Eligemenú. Permite ventanas emergentes para esta web.', 'error');
   }
-
   window.addEventListener('message', function (evt) {
     if (evt.origin !== ELIGEMENU_URL) return;
     if (!evt.data || evt.data.type !== 'em-widget-auth' || evt.data.restaurantSlug !== slug) return;
-    setToken(evt.data.token);
+    store(sessionStorage, TOKEN_KEY, evt.data.token);
+    store(localStorage, EDITOR_KEY, '1');
     if (popup) { try { popup.close(); } catch (e) {} popup = null; }
     activate();
   });
+  fab.addEventListener('click', function () { if (!editMode) { if (getToken()) activate(); else openPopup(); } });
+  document.getElementById('em-bar-exit').addEventListener('click', function () { store(sessionStorage, ON_KEY, null); deactivate(); });
 
-  var fab = document.getElementById('em-fab');
-  var bar = document.getElementById('em-bar');
-  var exitBtn = document.getElementById('em-bar-exit');
+  // ── Datos actuales de Eligemenú (con lo oculto) ─────────────────────────────
+  function index(data) {
+    var ix = { dish: {}, 'menu-group': {}, 'daily-menu': {}, 'daily-group': {}, 'daily-dish': {}, groupDishes: {} };
+    (data.menus || []).forEach(function (m) {
+      (m.menu_groups || []).forEach(function (g) {
+        ix['menu-group'][g.id] = g;
+        ix.groupDishes[g.id] = (g.dishes || []).slice().sort(function (a, b) { return (a.display_order || 0) - (b.display_order || 0); });
+        (g.dishes || []).forEach(function (d) { ix.dish[d.id] = d; });
+      });
+    });
+    (data.daily_menus || []).forEach(function (dm) {
+      ix['daily-menu'][dm.id] = dm;
+      (dm.daily_menu_dish_groups || []).forEach(function (g) {
+        ix['daily-group'][g.id] = g;
+        (g.daily_menu_dishes || []).forEach(function (d) { ix['daily-dish'][d.id] = d; });
+      });
+    });
+    return ix;
+  }
 
-  fab.addEventListener('click', function () {
-    if (editMode) return;
-    if (getToken()) activate();
-    else openPopup();
-  });
+  // ── Precios: se edita el texto tal como se ve ("18,50 €") y se guarda el número ──
+  function parsePrice(text) {
+    var m = String(text).replace(/\s/g, '').match(/\d+(?:[.,]\d{1,2})?/);
+    return m ? Number(m[0].replace(',', '.')) : null;
+  }
+  function formatLike(oldText, n) {
+    var keepDecimals = /\d[.,]\d/.test(oldText) || !Number.isInteger(n);
+    var s = n.toLocaleString('es-ES', { minimumFractionDigits: keepDecimals ? 2 : 0, maximumFractionDigits: 2 });
+    return /\d/.test(oldText) ? oldText.replace(/\d+(?:[.,]\d+)?/, s) : s + ' €';
+  }
+  var PRICE = { price_1: 1, price_2: 1, price: 1, half_price: 1 };
 
-  exitBtn.addEventListener('click', deactivate);
+  function setField(el, value) {
+    if (PRICE[el.dataset.emField]) { if (value != null) el.textContent = formatLike(el.textContent, Number(value)); return; }
+    el.textContent = value || '';
+    if (el.dataset.emOptional != null) el.hidden = !value;
+  }
+
+  // Pone la página al día con los datos de Eligemenú (por si la web aún no se ha vuelto a publicar).
+  function sync(root) {
+    root.querySelectorAll('[data-em-type][data-em-id]').forEach(function (box) {
+      var rec = full[box.dataset.emType] && full[box.dataset.emType][box.dataset.emId];
+      if (!rec) return;
+      box.querySelectorAll('[data-em-field]').forEach(function (el) {
+        if (el.closest('[data-em-type]') !== box) return;
+        var f = el.dataset.emField;
+        if (f in rec && document.activeElement !== el) setField(el, rec[f]);
+      });
+      if (box.dataset.emType === 'dish') box.classList.toggle('em-hidden-dish', rec.is_visible === false);
+    });
+  }
+
+  // Dibuja en cada lista los platos ocultos (con la plantilla de la lista) y la ordena como en Eligemenú.
+  function fillLists() {
+    document.querySelectorAll('[data-em-list]').forEach(function (list) {
+      var dishes = full.groupDishes[list.dataset.emList];
+      var tpl = list.querySelector(':scope > [data-em-tpl]');
+      if (!dishes || !tpl) return;
+      var proto = tpl.tagName === 'TEMPLATE' ? tpl.content.firstElementChild : tpl;
+      dishes.forEach(function (d) {
+        if (list.querySelector('[data-em-type="dish"][data-em-id="' + d.id + '"]')) return;
+        var node = proto.cloneNode(true);
+        node.removeAttribute('hidden');
+        node.removeAttribute('data-em-tpl');
+        node.dataset.emId = d.id;
+        node.dataset.emAdded = '';
+        node.querySelectorAll('[data-em-field]').forEach(function (el) {
+          var v = d[el.dataset.emField];
+          if (PRICE[el.dataset.emField]) { if (v == null) el.remove(); else el.textContent = formatLike(el.textContent, Number(v)); }
+          else setField(el, v);
+        });
+        list.appendChild(node);
+      });
+      var pos = {};
+      dishes.forEach(function (d, i) { pos[d.id] = i; });
+      Array.prototype.slice.call(list.querySelectorAll(':scope > [data-em-type="dish"][data-em-id]'))
+        .sort(function (a, b) { return (pos[a.dataset.emId] ?? 1e9) - (pos[b.dataset.emId] ?? 1e9); })
+        .forEach(function (n) { list.appendChild(n); });
+    });
+  }
+
+  // ── Edición en línea ────────────────────────────────────────────────────────
+  function onFocus(e) {
+    var el = e.target.closest && e.target.closest('[data-em-field]');
+    if (!el || !editMode) return;
+    el.dataset.emOld = el.textContent;
+  }
+  function onKey(e) {
+    var el = e.target.closest && e.target.closest('[data-em-field]');
+    if (!el || !editMode) return;
+    if (e.key === 'Escape') { el.textContent = el.dataset.emOld || ''; el.blur(); }
+    else if (e.key === 'Enter' && !(e.shiftKey && el.dataset.emField === 'description')) { e.preventDefault(); el.blur(); }
+  }
+  function onBlur(e) {
+    var el = e.target.closest && e.target.closest('[data-em-field]');
+    if (!el || !editMode || el.dataset.emOld === undefined) return;
+    var old = el.dataset.emOld, text = el.textContent.replace(/\s+/g, ' ').trim();
+    delete el.dataset.emOld;
+    if (text === old.replace(/\s+/g, ' ').trim()) return;
+    var box = el.closest('[data-em-type][data-em-id]');
+    var field = el.dataset.emField, body = {};
+    if (PRICE[field]) {
+      var n = text === '' ? null : parsePrice(text);
+      if (text !== '' && n == null) { el.textContent = old; return toast('Escribe el precio con números, por ejemplo 18,50.', 'error'); }
+      body[field] = n;
+    } else if (field === 'name') {
+      if (!text) { el.textContent = old; return toast('El nombre no puede quedar vacío.', 'error'); }
+      body.name = text;
+    } else body[field] = text || null;
+    save(box, body, el, old);
+  }
+
+  function save(box, body, el, old) {
+    var type = box.dataset.emType, id = box.dataset.emId;
+    if (el) el.classList.add('em-saving');
+    return api('PATCH', '/' + type + '/' + id, body).then(function (res) {
+      if (el) el.classList.remove('em-saving');
+      if (!res) { if (el) el.textContent = old; return; }
+      var rec = full && full[type] && full[type][id];
+      if (rec) Object.keys(body).forEach(function (k) { rec[k] = body[k]; });
+      if (el) {
+        var f = el.dataset.emField;
+        if (PRICE[f]) el.textContent = body[f] == null ? '' : formatLike(old, body[f]);
+        else setField(el, body[f]);
+      }
+      toast('Guardado. La web pública se actualiza sola en unos minutos.');
+      return res;
+    }).catch(function (err) {
+      if (el) { el.classList.remove('em-saving'); el.textContent = old; }
+      toast(/not found/i.test(err.message) ? 'Eligemenú todavía no permite cambiar esto desde la web.' : 'No se ha podido guardar: ' + err.message, 'error');
+    });
+  }
+
+  // Botón Ocultar / Mostrar de cada plato.
+  function visButton(box) {
+    var b = box.querySelector(':scope .em-vis');
+    var hidden = box.classList.contains('em-hidden-dish');
+    if (!b) {
+      b = document.createElement('button');
+      b.type = 'button'; b.className = 'em-vis';
+      b.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var show = box.classList.contains('em-hidden-dish');
+        b.disabled = true;
+        save(box, { is_visible: show }).then(function (res) {
+          b.disabled = false;
+          if (res) { box.classList.toggle('em-hidden-dish', !show); visButton(box); toast(show ? 'Plato visible. La web pública se actualiza en unos minutos.' : 'Plato oculto. La web pública se actualiza en unos minutos.'); }
+        });
+      });
+      var name = box.querySelector('[data-em-field="name"]');
+      (name && name.parentElement || box).appendChild(b);
+    }
+    b.textContent = hidden ? '👁 Mostrar' : 'Ocultar';
+    b.setAttribute('aria-label', (hidden ? 'Mostrar ' : 'Ocultar ') + ((box.querySelector('[data-em-field="name"]') || {}).textContent || 'plato'));
+  }
+
+  function editable(on) {
+    document.querySelectorAll('[data-em-field]').forEach(function (el) {
+      var box = el.closest('[data-em-type][data-em-id]');
+      if (!box) return;
+      if (on) { el.setAttribute('contenteditable', 'plaintext-only'); if (el.contentEditable !== 'plaintext-only') el.setAttribute('contenteditable', 'true'); el.spellcheck = true; }
+      else el.removeAttribute('contenteditable');
+    });
+    // Ocultar/Mostrar solo en las listas de un grupo (carta, sugerencias), no en destacados sueltos.
+    if (on) document.querySelectorAll('[data-em-list] > [data-em-type="dish"][data-em-id]').forEach(visButton);
+    else document.querySelectorAll('.em-vis').forEach(function (b) { b.remove(); });
+  }
+
+  // Los enlaces que contienen campos (p. ej. un plato enlazado) no deben navegar mientras se edita.
+  function onClick(e) {
+    if (editMode && e.target.closest && e.target.closest('[data-em-field]')) e.preventDefault();
+  }
 
   function activate() {
     editMode = true;
+    store(sessionStorage, ON_KEY, '1');
     document.body.classList.add('em-edit-mode');
-    bar.setAttribute('aria-hidden', 'false');
-    attachControls();
+    bar.hidden = false;
+    fab.hidden = false;
+    toast('Cargando la carta de Eligemenú…');
+    api('GET', '/restaurant-full?restaurant_slug=' + encodeURIComponent(slug)).then(function (data) {
+      if (!data || !editMode) return;
+      full = index(data);
+      fillLists();
+      sync(document);
+      editable(true);
+      toast('Listo. Pulsa un texto para cambiarlo.');
+    }).catch(function (err) { toast('No se ha podido cargar la carta: ' + err.message, 'error'); deactivate(); });
   }
 
   function deactivate() {
-    document.body.classList.remove('em-edit-mode');
     editMode = false;
-    bar.setAttribute('aria-hidden', 'true');
-    document.querySelectorAll('.em-edit-btn').forEach(function (b) { b.remove(); });
-    document.querySelectorAll('.em-inline-form').forEach(function (f) { f.remove(); });
+    document.body.classList.remove('em-edit-mode');
+    bar.hidden = true;
+    editable(false);
+    // Los platos ocultos dibujados solo para editar se quitan; los que se acaban de mostrar se quedan.
+    document.querySelectorAll('[data-em-added].em-hidden-dish').forEach(function (n) { n.remove(); });
   }
-  window.__emDeactivate = deactivate;
+  window.__emEditing = function () { return editMode; };
 
-  function attachControls() {
-    document.querySelectorAll('[data-em-type][data-em-id]').forEach(function (el) {
-      if (el.querySelector('.em-edit-btn')) return;
-      var btn = document.createElement('button');
-      btn.className = 'em-edit-btn';
-      btn.type = 'button';
-      btn.textContent = '✏️';
-      btn.title = 'Editar';
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        openEditForm(el);
-      });
-      el.appendChild(btn);
-    });
-  }
+  document.addEventListener('focusin', onFocus);
+  document.addEventListener('focusout', onBlur);
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('click', onClick, true);
 
-  function openEditForm(container) {
-    document.querySelectorAll('.em-inline-form').forEach(function (f) { f.remove(); });
-
-    var type = container.getAttribute('data-em-type');
-    var id = container.getAttribute('data-em-id');
-    var isDish = type === 'dish';
-
-    var form = document.createElement('div');
-    form.className = 'em-inline-form';
-
-    function field(labelText, inputEl) {
-      var label = document.createElement('label');
-      label.textContent = labelText;
-      form.appendChild(label);
-      form.appendChild(inputEl);
-      return inputEl;
-    }
-
-    var nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.value = container.getAttribute('data-em-name') || '';
-    nameInput.maxLength = 200;
-    field('Nombre', nameInput);
-
-    var descInput = document.createElement('textarea');
-    descInput.rows = 2;
-    descInput.value = container.getAttribute('data-em-desc') || '';
-    descInput.maxLength = 500;
-    field('Descripción', descInput);
-
-    var price1Input = null, price2Input = null;
-    if (isDish) {
-      var priceRow = document.createElement('div');
-      priceRow.className = 'em-row';
-      var p1 = document.createElement('input'); p1.type = 'number'; p1.min = '0'; p1.max = '9999'; p1.step = '0.01';
-      p1.value = container.getAttribute('data-em-price-1') || '';
-      p1.placeholder = 'Precio 1 (€)';
-      var p2 = document.createElement('input'); p2.type = 'number'; p2.min = '0'; p2.max = '9999'; p2.step = '0.01';
-      p2.value = container.getAttribute('data-em-price-2') || '';
-      p2.placeholder = 'Precio 2 (€)';
-      priceRow.appendChild(p1); priceRow.appendChild(p2);
-      var priceLabel = document.createElement('label');
-      priceLabel.textContent = 'Precio 1 / Precio 2 (€)';
-      form.appendChild(priceLabel);
-      form.appendChild(priceRow);
-      price1Input = p1; price2Input = p2;
-    }
-
-    var actions = document.createElement('div');
-    actions.className = 'em-form-actions';
-
-    var saveBtn = document.createElement('button');
-    saveBtn.type = 'button'; saveBtn.className = 'em-btn-save'; saveBtn.textContent = 'Guardar';
-    saveBtn.addEventListener('click', async function () {
-      saveBtn.disabled = true; saveBtn.textContent = 'Guardando…';
-      var body = {};
-      var name = nameInput.value.trim();
-      if (name) body.name = name;
-      var desc = descInput.value.trim();
-      body.description = desc || null;
-      if (isDish && price1Input) {
-        body.price_1 = price1Input.value !== '' ? parseFloat(price1Input.value) : null;
-        body.price_2 = price2Input.value !== '' ? parseFloat(price2Input.value) : null;
-      }
-      var ok = await patch(type, id, body);
-      if (ok) {
-        // Actualizar data attributes
-        if (name) container.setAttribute('data-em-name', name);
-        container.setAttribute('data-em-desc', desc);
-        if (isDish) {
-          container.setAttribute('data-em-price-1', body.price_1 != null ? String(body.price_1) : '');
-          container.setAttribute('data-em-price-2', body.price_2 != null ? String(body.price_2) : '');
-        }
-        // Actualizar texto visible
-        var nameEl = container.querySelector('[data-em-field="name"]');
-        if (nameEl && name) nameEl.textContent = name;
-        var descEl = container.querySelector('[data-em-field="description"]');
-        if (descEl) descEl.textContent = desc;
-        form.remove();
-        showToast('Guardado en eligemenu ✓', 'ok');
-      } else {
-        saveBtn.disabled = false; saveBtn.textContent = 'Guardar';
-      }
-    });
-
-    var cancelBtn = document.createElement('button');
-    cancelBtn.type = 'button'; cancelBtn.className = 'em-btn-cancel'; cancelBtn.textContent = 'Cancelar';
-    cancelBtn.addEventListener('click', function () { form.remove(); });
-
-    actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
-    form.appendChild(actions);
-
-    container.insertBefore(form, container.querySelector('.em-edit-btn'));
-    nameInput.focus();
-  }
-
-  if (getToken()) fab.textContent = '✏️ Editar (activo)';
+  // Al cambiar de página con el modo edición abierto, sigue abierto.
+  if (getToken() && store(sessionStorage, ON_KEY) === '1') activate();
 })();
 </script>

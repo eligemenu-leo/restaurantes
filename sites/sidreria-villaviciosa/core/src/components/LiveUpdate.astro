@@ -18,6 +18,8 @@
       });
     }
     function check() {
+      // Mientras el dueño edita la carta (EditMode), no se repinta: borraría lo que está editando.
+      if (window.__emEditing && window.__emEditing()) return;
       if (busy || document.visibilityState !== 'visible' || Date.now() - last < 60000) return;
       busy = true; last = Date.now();
       fetch(url, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
