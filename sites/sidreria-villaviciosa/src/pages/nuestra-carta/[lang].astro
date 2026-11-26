@@ -1,0 +1,8 @@
+---
+// Carta en otro idioma (/nuestra-carta/en/, /fr/, /de/, /it/), traducida por Eligemenú al compilar.
+import CartaPage from '../../components/CartaPage.astro';
+import { LANGS, type Lang } from '../../data/cartas.ts';
+export const getStaticPaths = () => LANGS.filter((l) => l !== 'es').map((lang) => ({ params: { lang } }));
+const { lang } = Astro.params as { lang: Exclude<Lang, 'es'> };
+---
+<CartaPage id="carta" lang={lang} />

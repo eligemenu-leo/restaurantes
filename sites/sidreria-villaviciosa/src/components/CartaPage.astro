@@ -1,0 +1,81 @@
+---
+// Página de la carta o de la bodega en un idioma, con el selector de idioma con banderas
+// como el de La Vaca Asustada. Cada idioma es una página estática (/nuestra-carta/en/…)
+// con la carta traducida por Eligemenú al compilar.
+import Layout from './Layout.astro';
+import MenuCarta from './MenuCarta.astro';
+import EligemenuTracking from '@rea/core/components/EligemenuTracking.astro';
+import { menuJsonLd } from '@rea/core/lib/jsonld.ts';
+import { restaurantId, site } from '../data/index.ts';
+import { cartaIdioma, cartaPath, LANGS, T, type CartaId, type Lang } from '../data/cartas.ts';
+
+interface Props { id: CartaId; lang?: Lang }
+const { id, lang = 'es' } = Astro.props;
+const c = await cartaIdioma(lang);
+const menu = id === 'carta' ? c.carta : c.bodega;
+const t = T[lang];
+// Si la traducción no llegó, el contenido sale en español: el idioma de la página es el del contenido.
+const shownLang: Lang = c.translated ? lang : 'es';
+const path = cartaPath(id, lang);
+
+const flags: Record<Lang, string> = {
+  es: '<rect width="30" height="20" fill="#c60b1e"/><rect y="5" width="30" height="10" fill="#ffc400"/>',
+  en: '<clipPath id="flag-uk"><path d="M0 0v20h30V0z"/></clipPath><g clip-path="url(#flag-uk)"><path d="M0 0v20h30V0z" fill="#012169"/><path d="M0 0l30 20m0-20L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20m0-20L0 20" stroke="#C8102E" stroke-width="1.6"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.6"/></g>',
+  fr: '<rect width="10" height="20" fill="#002395"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ed2939"/>',
+  de: '<rect width="30" height="7" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>',
+  it: '<rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ce2b37"/>',
+};
+// hreflang solo entre los idiomas que de verdad salen traducidos en esta compilación (los demás llevan noindex).
+const alternates = (await Promise.all(LANGS.map(async (x) => ((await cartaIdioma(x)).translated ? x : null)))).filter((x): x is Lang => !!x);
+const url = (x: Lang) => new URL(cartaPath(id, x), site.url).href;
+const jsonLd = id === 'carta' && c.translated ? [menuJsonLd({ ...site, lang }, menu, url(lang))] : [];
+const p = id === 'carta' ? t.carta : t.bodega;
+---
+<Layout title={p.title} path={path} description={p.description} lang={shownLang} noindex={!c.translated} jsonLd={jsonLd}>
+  <Fragment slot="head">
+    {c.translated && alternates.length > 1 && alternates.map((x) => <link rel="alternate" hreflang={x} href={url(x)} />)}
+    {c.translated && alternates.length > 1 && <link rel="alternate" hreflang="x-default" href={url('es')} />}
+  </Fragment>
+  <div class="wrap section">
+    <div class="ch">
+      <div lang={lang}>
+        <p class="eyebrow">{p.eyebrow}</p>
+        <h1>{p.h1}</h1>
+        {id === 'carta' ? (
+          <p class="lead">{t.carta.lead[0]}<a href="/#sugerencias" hreflang="es">{t.carta.lead[1]}</a>{t.carta.lead[2]}<a href={cartaPath('bodega', lang)}>{t.carta.lead[3]}</a>{t.carta.lead[4]}</p>
+        ) : (
+          <p class="lead">{t.bodega.lead}</p>
+        )}
+      </div>
+      <nav class="lang" aria-label={t.lang}>
+        <ul>
+          {LANGS.map((x) => (
+            <li>
+              <a href={cartaPath(id, x)} hreflang={x} lang={x} aria-current={x === lang ? 'page' : undefined}>
+                <svg aria-hidden="true" viewBox="0 0 30 20" width="24" height="16" set:html={flags[x]} />
+                <span class="lang__code" aria-hidden="true">{x.toUpperCase()}</span>
+                <span class="visually-hidden">{T[x].name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+    {!c.translated && <p class="fallback" lang={lang}>{t.fallback}</p>}
+    <div lang={shownLang} data-live="carta"><MenuCarta menu={menu} lang={shownLang} /></div>
+  </div>
+  <EligemenuTracking restaurantId={restaurantId} />
+</Layout>
+
+<style>
+  .ch { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
+  .lang ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+  .lang a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 4px 10px; border: 1px solid transparent; text-decoration: none; }
+  .lang svg { flex: none; border-radius: 2px; }
+  /* En el móvil, los cinco idiomas en una sola fila. */
+  @media (max-width: 30rem) { .lang ul { gap: 0; } .lang a { gap: 0.3rem; padding-inline: 6px; } }
+  .lang__code { font: 600 0.8125rem/1 var(--f-body); letter-spacing: 0.1em; color: var(--c-text); }
+  .lang a[aria-current='page'] { border-color: var(--c-accent); }
+  .lang a[aria-current='page'] .lang__code, .lang a:hover .lang__code { color: var(--c-accent); }
+  .fallback { margin: 1.5rem 0 0; max-width: 40rem; padding: 0.75rem 1rem; border: 1px dashed var(--c-accent); font-size: 0.9rem; }
+</style>
