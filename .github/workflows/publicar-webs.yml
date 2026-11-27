@@ -1,0 +1,129 @@
+# Publica cada web en la cuenta de Cloudflare de su restaurante (Cloudflare Pages, subida directa).
+#
+# Cloudflare solo deja conectar un repositorio de GitHub a una cuenta. Como cada restaurante
+# tiene su propia cuenta, la compilación se hace aquí y se sube con wrangler.
+#
+# Cuándo publica:
+# - push a main que toca sites/<web>/: publica esa web en producción.
+# - pull request que toca sites/<web>/: vista previa (sin ELIGEMENU_API_KEY, carta guardada).
+# - workflow_dispatch: a mano desde GitHub, o desde Eligemenú al cambiar una carta.
+#
+# Secretos del repositorio (Settings → Secrets and variables → Actions), por web:
+#   CLOUDFLARE_API_TOKEN_<WEB>   token con permiso "Cloudflare Pages: Edit" en la cuenta de esa web
+#   CLOUDFLARE_ACCOUNT_ID_<WEB>  id de la cuenta (está en la URL del panel de Cloudflare)
+# y uno común:
+#   ELIGEMENU_API_KEY            anon key pública de Eligemenú
+# <WEB> = SIDRERIA_VILLAVICIOSA | LA_VACA_ASUSTADA. Si faltan, la web se salta sin fallar.
+
+name: Publicar webs
+
+on:
+  push:
+    branches: [main]
+    paths: ['sites/**']
+  pull_request:
+    paths: ['sites/**']
+  workflow_dispatch:
+    inputs:
+      web:
+        description: Web que se publica
+        type: choice
+        options: [todas, sidreria-villaviciosa, la-vaca-asustada]
+        default: todas
+      motivo:
+        description: Motivo (aparece en Cloudflare)
+        required: false
+        default: Publicación manual
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_VERSION: 4.156.2
+
+jobs:
+  publicar:
+    name: ${{ matrix.web }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - web: sidreria-villaviciosa
+            clave: SIDRERIA_VILLAVICIOSA
+          - web: la-vaca-asustada
+            clave: LA_VACA_ASUSTADA
+    concurrency:
+      group: publicar-${{ matrix.web }}-${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      WEB: ${{ matrix.web }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets[format('CLOUDFLARE_API_TOKEN_{0}', matrix.clave)] }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets[format('CLOUDFLARE_ACCOUNT_ID_{0}', matrix.clave)] }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ¿Hay que publicar esta web?
+        id: decidir
+        env:
+          EVENTO: ${{ github.event_name }}
+          ELEGIDA: ${{ inputs.web }}
+          ANTES: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          DESPUES: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          REPO_PR: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          publicar=si
+          if [ "$EVENTO" = workflow_dispatch ]; then
+            if [ "$ELEGIDA" != todas ] && [ "$ELEGIDA" != "$WEB" ]; then publicar=no; fi
+          elif [ "$EVENTO" = pull_request ] && [ "$REPO_PR" != "$GITHUB_REPOSITORY" ]; then
+            publicar=no   # PR desde un fork: no tiene acceso a los secretos
+          elif ! echo "$ANTES" | grep -qv '^0*$'; then
+            publicar=si   # rama nueva: no hay con qué comparar
+          elif git diff --quiet "$ANTES" "$DESPUES" -- "sites/$WEB"; then
+            publicar=no
+          fi
+          if [ "$publicar" = si ] && { [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; }; then
+            echo "::notice::$WEB: faltan los secretos de Cloudflare de esta web; no se publica."
+            publicar=no
+          fi
+          echo "publicar=$publicar" >> "$GITHUB_OUTPUT"
+          echo "$WEB: publicar=$publicar"
+
+      - uses: actions/setup-node@v4
+        if: steps.decidir.outputs.publicar == 'si'
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: sites/${{ matrix.web }}/package-lock.json
+
+      - name: Compilar
+        if: steps.decidir.outputs.publicar == 'si'
+        working-directory: sites/${{ matrix.web }}
+        env:
+          # Las vistas previas usan la carta guardada, como hasta ahora.
+          ELIGEMENU_API_KEY: ${{ github.event_name != 'pull_request' && secrets.ELIGEMENU_API_KEY || '' }}
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Subir a Cloudflare Pages
+        if: steps.decidir.outputs.publicar == 'si'
+        working-directory: sites/${{ matrix.web }}
+        env:
+          RAMA: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+          MOTIVO: ${{ github.event_name == 'workflow_dispatch' && inputs.motivo || github.event.head_commit.message || github.event.pull_request.title || 'Publicación' }}
+          COMMIT: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # La primera vez crea el proyecto en la cuenta del restaurante. Si ya existe, este
+          # paso falla sin más; un problema real (token, cuenta) lo detiene la subida de abajo.
+          npx --yes "wrangler@$WRANGLER_VERSION" pages project create "$WEB" --production-branch=main \
+            || echo "El proyecto $WEB ya existe."
+          npx --yes "wrangler@$WRANGLER_VERSION" pages deploy dist \
+            --project-name="$WEB" --branch="$RAMA" \
+            --commit-hash="$COMMIT" --commit-message="$(printf '%s' "$MOTIVO" | head -n 1 | cut -c1-200)" \
+            --commit-dirty=true | tee salida.txt
+          url=$(grep -oE 'https://[a-zA-Z0-9.-]+\.pages\.dev' salida.txt | tail -n 1)
+          echo "### $WEB" >> "$GITHUB_STEP_SUMMARY"
+          echo "Publicada en rama \`$RAMA\`: $url" >> "$GITHUB_STEP_SUMMARY"

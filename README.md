@@ -26,13 +26,17 @@ npm run core:status                    # qué webs van por detrás del núcleo
 npm run core:sync -- <web>             # actualizar el núcleo de una web
 ```
 
-## Publicación en Cloudflare Pages (un proyecto por web)
+## Publicación en Cloudflare Pages (una cuenta por restaurante)
 
-- Directorio raíz: `sites/<web>`
-- Comando de compilación: `npm run build` · Directorio de salida: `dist` · Node 22 (`.nvmrc`)
-- Rutas que disparan compilación: solo `sites/<web>/*`, para que un cambio en una web no recompile la otra.
-- Variable de entorno `ELIGEMENU_API_KEY` (la anon key pública de Eligemenú), en cada proyecto por separado.
+Cada web se publica en la cuenta de Cloudflare de su restaurante. Cloudflare solo deja conectar un repositorio de GitHub a una cuenta, así que la compilación la hace GitHub Actions (`.github/workflows/publicar-webs.yml`) y la sube con `wrangler pages deploy`:
+
+- Push a `main` que toca `sites/<web>/`: publica esa web en producción. Las demás no se tocan.
+- Pull request que toca `sites/<web>/`: vista previa en `https://<rama>.<proyecto>.pages.dev` (con la carta guardada, sin `ELIGEMENU_API_KEY`).
+- *Run workflow* (a mano) o Eligemenú al cambiar una carta: publica la web elegida.
+- Secretos del repositorio: `CLOUDFLARE_API_TOKEN_<WEB>` (permiso *Cloudflare Pages: Edit* en esa cuenta), `CLOUDFLARE_ACCOUNT_ID_<WEB>` y `ELIGEMENU_API_KEY` (la anon key pública de Eligemenú). `<WEB>` = `SIDRERIA_VILLAVICIOSA` o `LA_VACA_ASUSTADA`. Sin ellos, esa web se salta.
+- Compilación: `npm ci && npm run build` en `sites/<web>` con Node 24. Salida: `dist`.
 - Redirecciones 301 de las URLs antiguas: `sites/<web>/public/_redirects`. Cabeceras (y `noindex` en *.pages.dev): `public/_headers`.
+- Web nueva: añadirla a la matriz del flujo, crear su cuenta y su token y añadir sus dos secretos. El proyecto de Pages se crea solo la primera vez.
 
 ### Cartas desde Eligemenú
 
@@ -40,7 +44,7 @@ Las cartas se piden a la API de Eligemenú **al compilar** (`restaurant-with-men
 
 - Sin `ELIGEMENU_API_KEY` (en local o en CI) se usa la copia guardada en `src/data/eligemenu/*.json`.
 - Con la clave, si la API falla la compilación falla a propósito y Cloudflare sigue sirviendo la versión anterior.
-- Para que un cambio en Eligemenú llegue a la web hay que recompilar: un *deploy hook* de Cloudflare Pages llamado cada hora (o desde Eligemenú al guardar la carta).
+- Para que un cambio en Eligemenú llegue a la web hay que recompilar: Eligemenú lanza el flujo *Publicar webs* de esa web unos 3 minutos después del cambio (función `fire_site_hooks`; la dirección y el token están en su Vault).
 - El horario de la sidrería también sale de Eligemenú.
 
 ## Ver las webs sin tocar el DNS
